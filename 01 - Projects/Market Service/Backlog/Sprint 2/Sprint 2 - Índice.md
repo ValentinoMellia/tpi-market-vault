@@ -79,4 +79,4 @@ Cargadas en el sprint "G11 - Sprint 2" (las opcionales quedan en el backlog, sin
 
 Fuera del Sprint 2: [[S3-01 - Subastas, lanzar y ver las abiertas]] (Sprint 3) es la historia #5347 en Taiga.
 
-Nota de integración: la revisión del 2026-10-02 indicaba que las opcionales seguían sin cargar, pero las notas [[S2-OPC1 - Reconciliación de compras]] y [[S2-OPC2 - Frontend de gestión del profesor]] ya registraban #5261 y #5266 (cargadas el 2026-10-01). Se conservan esos números; hay que verificarlos en Taiga.
+Nota de integración (verificado en Taiga el 2026-10-02): [[S2-OPC1 - Reconciliación de compras]] (#5261) y [[S2-OPC2 - Frontend de gestión del profesor]] (#5266) están cargadas en Taiga, en el backlog y sin sprint asignado. Por eso no aparecen en el sprint "G11 - Sprint 2".
