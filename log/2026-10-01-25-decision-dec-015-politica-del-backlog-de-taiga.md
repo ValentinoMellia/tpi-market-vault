@@ -1,0 +1,3 @@
+## [2026-10-01] decision | DEC-015 Política del backlog de Taiga
+- Se creó [[DEC-015 - Política del backlog de Taiga]]. **No** cierra [[Q-013 - Higiene del backlog]]: sigue abierta hasta sanear Taiga y planificar los sprints. Historias obsoletas se cierran, no se borran; sprints de 15 días y 340 h (10 integrantes); pendientes las fechas y el acceso al MCP de Taiga.
+- Notas afectadas: [[Q-013 - Higiene del backlog]], [[Backlog - Índice]], [[Roadmap de trabajo]] (sección Sprint 2 y Sprint 3), [[Q-015 - Reglas de la tienda]] y [[DEC-013 - Reglas de la tienda]] (extensión de `publicationExpiresAt` pendiente de implementar), [[Decisiones - Índice]], [[index]].

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Regenerates the local index.md and log.md. Never fails the git operation.
+command -v node >/dev/null 2>&1 || exit 0
+node scripts/generate-index.mjs >/dev/null 2>&1 || true
+exit 0

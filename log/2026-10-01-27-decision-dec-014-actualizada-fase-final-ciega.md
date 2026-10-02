@@ -1,0 +1,5 @@
+## [2026-10-01] decision | DEC-014 actualizada: fase final ciega
+- Se enmendó [[DEC-014 - Reglas de subastas]] (sección "Actualización 2026-10-01: anti-sniping"): en los últimos X minutos las ofertas pasan a ser selladas, sin extender el tiempo; gana la más alta y el empate se resuelve con el dado del servidor. Pendientes de detalle: X (por subasta o por defecto) y si la oferta sellada debe superar a la última mejor visible.
+- Se enmendó [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]]: "se subastan ítems únicos" deja de ser decisión (queda vigente el cierre por tiempo o profesor).
+- Se archivó [[Q-012 - Alcance de subastas]] y se creó [[Q-017 - Qué se subasta mientras no existan ítems únicos]] (en-disputa, sin recomendación) para la dependencia abierta del Sprint 3.
+- Notas afectadas: [[Subasta]], [[Épica 577 - Subastas]], [[Taller de decisiones]], [[Roadmap de trabajo]] (riesgo del Sprint 3), [[Decisiones - Índice]], [[Backlog - Índice]], [[Market Service - Overview]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Integración con Accounting]], [[Integración con Cursos]], [[index]].

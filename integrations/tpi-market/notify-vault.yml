@@ -1,0 +1,44 @@
+# Intended for the tpi-market repository: .github/workflows/notify-vault.yml
+# When a PR is merged into develop, comments on it a reminder to ingest it into the vault.
+# No cross-repository token is needed: it only uses the tpi-market GITHUB_TOKEN.
+name: Notify vault
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  remind:
+    # Skip PRs from forks: their token is read-only and their content is untrusted.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comment the vault ingestion reminder
+        # PR data is untrusted: it only travels through env vars, never through the shell.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Only the PR number (an integer) is interpolated into the message.
+          BODY=$(printf '%s\n' \
+            "## Ingesta en el vault" \
+            "" \
+            "Este PR se mergeó en \`develop\`. Si cambia comportamiento, contratos, eventos o configuración, hay que reflejarlo en el vault (\`tpi-market-vault\`)." \
+            "" \
+            "Prompt para copiar y pegar en el agente (con el vault como carpeta de trabajo):" \
+            "" \
+            '```text' \
+            "Ingerí el PR #${PR_NUMBER} de tpi-market en el vault siguiendo AGENTS.md. Leé el diff del PR, actualizá las notas afectadas, abrí una pregunta Q si hay una contradicción y agregá la entrada en log/." \
+            '```' \
+            "" \
+            "Después, abrir un PR en el vault indicando este PR en la sección *Related Taiga / Origen*.")
+          gh pr comment "$PR_NUMBER" --body "$BODY"

@@ -1,0 +1,9 @@
+.obsidian/workspace*.json
+.obsidian/cache
+.trash/
+.atl/
+.claude/settings.local.json
+node_modules/
+.DS_Store
+index.md
+log.md

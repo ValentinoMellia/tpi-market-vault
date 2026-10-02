@@ -1,0 +1,3 @@
+## [2026-10-01] decision | DEC-014 Reglas de subastas
+- Se creó [[DEC-014 - Reglas de subastas]]. **No** cierra [[Q-012 - Alcance de subastas]]: sigue `en-disputa` solo por la definición de "ítem único" y el mecanismo anti-sniping (candidatos listados, sin recomendación). Confirmadas S1, S3, S5 y S6; S10 reemplazada por 14 días. Subasta ciega con desempate por dado decidido en el servidor y auditable. Se debe comunicar a Accounting que se usa un release por postor.
+- Notas afectadas: [[Q-012 - Alcance de subastas]], [[Subasta]], [[Taller de decisiones]], [[Integración con Accounting]], [[Integración con Cursos]], [[Épica 577 - Subastas]], [[Roadmap de trabajo]], [[Decisiones - Índice]], [[index]].

@@ -1,0 +1,44 @@
+name: Branch name check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate branch name
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_ACTION: ${{ github.event.action }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [[ "$HEAD_REF" =~ ^(feature|fix)/[A-Za-z0-9]+.*$ ]]; then
+            echo "Branch name '$HEAD_REF' is valid for base '$BASE_REF'."
+            exit 0
+          fi
+
+          # Comment only when the PR is opened; other events just emit the error.
+          if [ "$EVENT_ACTION" = "opened" ]; then
+            BODY=$(printf '%s\n' \
+              "## Validación de branch names" \
+              "" \
+              "El nombre de la rama \`$HEAD_REF\` no es válido para un PR hacia \`$BASE_REF\`." \
+              "" \
+              "Las ramas deben empezar con \`feature/\` o \`fix/\` seguido de una letra o un número (por ejemplo \`feature/4888-registrar-dec\`)." \
+              "" \
+              "Renombrá la rama y volvé a abrir el PR.")
+            gh pr comment "$PR_NUMBER" --body "$BODY" || true
+          fi
+
+          echo "::error::Invalid branch name '$HEAD_REF'. It must start with feature/ or fix/ followed by a letter or digit."
+          exit 1

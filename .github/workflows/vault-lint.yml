@@ -1,0 +1,25 @@
+name: Vault lint
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # index.md and log.md are not committed: verify that generation works.
+      - name: Generate index and log
+        run: node scripts/generate-index.mjs
+      - name: Lint vault
+        run: node scripts/lint-vault.mjs

@@ -1,0 +1,2 @@
+## [2026-10-01] decision | Corrección de fechas de sprint según Taiga
+- El sprint "G11 - Sprint 2" de Taiga va del 2026-09-28 al 2026-10-11 (la wiki de Taiga decía 12/10). Sprint 3 estimado del 2026-10-12 al 2026-10-25, pendiente de crearse en Taiga. En Taiga, Mercado es el grupo G11 (Tema 09 es el número del tema). Actualizados [[Roadmap de trabajo]], [[Plan del Sprint 2]], [[DEC-015 - Política del backlog de Taiga]] y [[Carga en Taiga - Sprints 2 y 3]].

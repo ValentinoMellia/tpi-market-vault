@@ -1,0 +1,7 @@
+## [2026-10-01] ingest | Repositorio de accounting (develop)
+- Se leyó el código de `2026-P4-BE/tpi-accounting` (`develop`). Banco pasa a llamarse Accounting (ex Banco, Grupo 08).
+- Se creó [[Integración con Accounting]] (fusiona Banco e Inventario; las notas anteriores se archivaron como [[Integración con Banco (archivada)]] e [[Integración con Inventario (archivada)]]) y se renombró [[Q-007 - Contrato con Accounting]].
+- Se agregó la tabla de diferencias entre Mercado y Accounting y se reescribió [[Q-008 - Orden de la saga de compra]] con los tres órdenes en conflicto.
+- Se actualizaron [[Market Service - Overview]], [[Estado actual del código]], [[Roadmap de trabajo]], [[Mapa de servicios]], [[Gateway e identidad]], [[Eventos y Kafka]], [[Hold de monedas]], [[Orden de compra]], [[Tipos de item]], [[Vencimiento de items]], [[Subasta]], [[Glosario]], [[Integración con Backoffice]], [[Q-002 - Vidas y tope de vidas]], [[Q-006 - Naming de eventos y topics]], [[Q-011 - Efectos y consumo de items]] y [[Q-014 - Vencimiento de items]].
+- Se verificaron en el código de `tpi-market`: `unitsSold` nunca se incrementa y editar el stock devuelve unidades vendidas, clave de idempotencia global, cliente de matrícula simulado `@Primary` sin perfil, lotes de 20 del relay, grupo `market-service`, roles del SSE, residuo `itemValidityDays` y `main` 222 commits detrás de `develop`. `develop` está en `cf988d2` (solo CI sobre `7528610`).
+- Se creó [[Q-016 - Puerto y registro de Mercado en la plataforma]].
