@@ -2,7 +2,7 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -143,14 +143,14 @@ Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y 
 - No existe todavía consulta REST del estado de un hold de monedas (solo `GET /life-holds/{id}`); `GET /api/accounting/holds/{holdId}` está en implementación este sprint, según su mensaje del 2026-10-01.
 - El listener de comandos de hold está apagado por defecto (`app.holds.commands.enabled=false` y `accounting.messaging.consumers-enabled=false`). La documentación del equipo afirma que no se puede encender sin un `HoldReplyResender` de producción; esa afirmación está en disputa.
 - `PURCHASE_CONFIRMED` no lo consume nadie; `AccountCoinReservationsPort` no está implementado.
-- Ramas sin integrar: `lives-purchase-credit`, `life-holds-challenge-reservation` y `life-holds-expiration`.
+- Ramas sin integrar en Accounting: la rama `lives-purchase-credit` dio origen al acuerdo del 2026-10-02 formalizando `LIFE_PURCHASE_CONFIRMED`; restan `life-holds-challenge-reservation` y `life-holds-expiration`.
 - Se necesita un reembolso que hoy no existe (ver D6 en [[Taller de decisiones]]).
 
 ## Acuerdos pendientes
 
 - **Orden de la saga** y su compensación: [[Q-008 - Orden de la saga de compra]] (abierta). Incluye pedir la revocación de ítems.
 - **Comunicar a Accounting** que las subastas usan un release por postor y no por `orderId` ([[DEC-014 - Reglas de subastas]]). Las ofertas superadas mantienen su hold hasta el cierre de la subasta.
-- **Señal del tope de vidas**: evento y motivo que Accounting publicará para una compra de vida con tope alcanzado ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
+- **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
 - Alineación del código de Mercado: tópicos, `orderRef` UUID, mapeo de motivos de rechazo, consulta de hold ([[Roadmap de trabajo]]).
 - Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].

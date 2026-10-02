@@ -1,7 +1,7 @@
 ---
 tipo: historia
 estado: vigente
-verificado_contra: accounting@chat-2026-10-02
+verificado_contra: equipo-accounting@2026-10-02
 actualizado: 2026-10-02
 tags: [mercado, backlog, sprint-2, vidas, accounting]
 sprint: 2
@@ -14,7 +14,7 @@ horas: 16
 
 > Refactorización de la compra de vidas para emitir `LIFE_PURCHASE_CONFIRMED` en `market.events` una vez confirmada la orden y debitadas las monedas en Accounting. Reemplaza para vidas el uso de `ITEM_CONFIRMED` e integra el contrato acordado con Accounting. 4 tareas, 16 h, 5 puntos, Must.
 
-## [G11] — Compra de vidas: emisión de LIFE_PURCHASE_CONFIRMED
+## [G11] — Compra de vidas: emisión de LIFE_PURCHASE_CONFIRMED (#5899)
 
 ---
 
@@ -35,6 +35,7 @@ horas: 16
 - [ ] Seguridad (roles, permisos, datos sensibles): El evento contiene identificadores públicos de negocio (`studentId`, `courseId`, `orderId`). No expone datos personales sensibles.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (evento asíncrono de backend).
 - [ ] Otros: Para las compras de vidas no se emite `ITEM_CONFIRMED` (que queda reservado para ítems del catálogo). Se desvincula la compra de vidas del flujo de aprovisionamiento de ítems.
+- [ ] Estado interno previo a confirmación: En la máquina de estados de Mercado ([[Orden de compra]]), el estado interno que precede a `CONFIRMED` es `ITEM_PROVISIONED` (el cual dispara la confirmación del hold). Al llegar `HOLD_CONFIRMED`, la orden pasa a `CONFIRMED` y se emite `LIFE_PURCHASE_CONFIRMED` suprimiendo `ITEM_CONFIRMED` (CA5). No debe confundirse el evento saliente `ITEM_CONFIRMED` con el estado interno `ITEM_PROVISIONED`.
 
 ---
 
@@ -54,9 +55,9 @@ horas: 16
 
 **Escenario 1**  
 
-- **Dado**: una orden de compra para una oferta de tipo `LIFE` en estado `ITEM_PROVISIONED` con hold creado
+- **Dado**: una orden de compra para una oferta de tipo `LIFE` en estado interno `ITEM_PROVISIONED` (estado previo a la confirmación en la máquina de estados actual) con hold creado
 - **Cuando**: Accounting confirma el hold exitosamente (`HOLD_CONFIRMED`)
-- **Entonces**: la orden transiciona a `CONFIRMED` y se persiste un registro en la outbox para publicar `LIFE_PURCHASE_CONFIRMED` en `market.events` con `producer: "market-service"`, key `studentId` y el payload con `studentId`, `courseId`, `orderId` y `quantity >= 1`
+- **Entonces**: la orden transiciona a `CONFIRMED`, se persiste un registro en la outbox para publicar `LIFE_PURCHASE_CONFIRMED` en `market.events` con `producer: "market-service"`, key `studentId` y payload `{studentId, courseId, orderId, quantity >= 1}`, y no se emite `ITEM_CONFIRMED`
 
 **Escenario 2**  
 
@@ -94,7 +95,7 @@ horas: 16
 ## Dependencias / Impactos
 
 - Servicios involucrados: Mercado (`market-service`) y Accounting (`accounting-service`) ([[Integración con Accounting]]).
-- Módulos afectados: `OrderConfirmationServiceImpl`, `LifePurchaseConfirmedPayloadDto`, `MessagingProperties`, `application.properties`.
+- Componentes afectados: Servicio de confirmación de órdenes (`OrderConfirmationService`), DTO del evento de vidas (`LifePurchaseConfirmedPayloadDto`), configuración de mensajería (`MessagingProperties`), y persistencia outbox.
 - Otros equipos / aprobaciones: Acordado con Accounting (Tema 08, grupo G12 en Taiga) para recepción de `LIFE_PURCHASE_CONFIRMED` en `market.events` y posterior emisión de `LIFE_CREDITED` en `accounting.events`.
 - Impacto en datos / migraciones: No requiere cambios en esquema de base de datos relacional.
 - Riesgos y mitigación (opcional): Garantizar que reenvíos mantengan `eventId` idéntico para evitar duplicación de acreditación en Accounting.
