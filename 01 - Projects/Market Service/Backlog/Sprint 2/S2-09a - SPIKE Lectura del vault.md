@@ -66,15 +66,112 @@ Que todo el equipo comparta la misma comprensión de qué es Mercado, cómo func
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Lectura del vault: integrante 1 | 2 | Recorrer las seis etapas del [[Roadmap de entendimiento]] y responder las preguntas |
-| 2 | Lectura del vault: integrante 2 | 2 | Ídem |
-| 3 | Lectura del vault: integrante 3 | 2 | Ídem |
-| 4 | Lectura del vault: integrante 4 | 2 | Ídem |
-| 5 | Lectura del vault: integrante 5 | 2 | Ídem |
-| 6 | Lectura del vault: integrante 6 | 2 | Ídem |
-| 7 | Lectura del vault: integrante 7 | 2 | Ídem |
-| 8 | Lectura del vault: integrante 8 | 2 | Ídem |
-| 9 | Lectura del vault: integrante 9 | 2 | Ídem |
-| 10 | Lectura del vault: integrante 10 | 2 | Ídem |
+### T01 - Lectura del vault: Valentino Mellia
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Valentino Mellia.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T02 - Lectura del vault: Juan Bosque
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Juan Bosque.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T03 - Lectura del vault: Martín Lozzano
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Martín Lozzano.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T04 - Lectura del vault: Lucio Wiesek
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Lucio Wiesek.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T05 - Lectura del vault: Patiño
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Patiño.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T06 - Lectura del vault: Mateo Presset
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Mateo Presset.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T07 - Lectura del vault: Patricio Fernández
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Patricio Fernández.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T08 - Lectura del vault: Ludueña
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Ludueña.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T09 - Lectura del vault: Melina Medina
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Melina Medina.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
+
+### T10 - Lectura del vault: Tomás Kimmel
+
+**Objetivo:** Recorrer el Roadmap de entendimiento del vault y dejar constancia de lo que entendió Tomás Kimmel.
+
+- Recorrer las seis etapas del Roadmap de entendimiento en el orden indicado
+- Responder las preguntas del spike con palabras propias, citando las notas leídas
+- Anotar las dudas en el Inbox del vault mediante un PR
+- Hecho cuando: las respuestas del spike están completas y las dudas quedaron registradas en el Inbox
+
+Estimación: 2 h
