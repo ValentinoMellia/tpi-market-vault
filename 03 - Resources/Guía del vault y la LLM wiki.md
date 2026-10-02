@@ -170,7 +170,7 @@ Obsidian alcanza para leer y navegar:
 - **Backlinks**: en el panel lateral, quién enlaza a la nota actual. Sirve para saber qué se ve afectado si cambia.
 - **Búsqueda** (`Ctrl+Shift+F`): busca texto en todo el vault; combínala con etiquetas como `tag:#mercado`.
 - **Plantillas**: ejecuta *Insertar plantilla* para crear una nota con el formato correcto.
-- **Obsidian Git** (plugin de comunidad): activa el `pull` al abrir la bóveda para empezar siempre con lo último de `main`. Trabaja siempre en una rama.
+- **Obsidian Git** (plugin de comunidad, ya incluido en el repositorio): al abrir el vault por primera vez, aceptar *Activar complementos de la comunidad*. Luego, en Configuración → Git, activar **Pull on startup** y dejar en 0 los intervalos de commit y push automáticos (`main` está protegida). La configuración de cada persona queda en `.obsidian/plugins/obsidian-git/data.json`, que no se versiona. Trabajar siempre en una rama: `Ctrl+P` → *Git: Create new branch*, y luego *Commit* y *Push*; la PR se abre en GitHub.
 
 Caminos de lectura sugeridos:
 
