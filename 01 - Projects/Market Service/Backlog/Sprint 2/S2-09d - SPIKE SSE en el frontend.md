@@ -2,10 +2,10 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2, spike]
 sprint: 2
-taiga: "5259"
+taiga: "#5259"
 puntos: 2
 prioridad: Should
 horas: 4
@@ -26,9 +26,9 @@ Elegir y probar un patrón de consumo de SSE para el estado de la compra, para q
 
 ## Preguntas a responder
 
-- [ ] ¿Cómo se consume `text/event-stream` en el frontend con Signals (`EventSource` o `fetch` con `ReadableStream`) y cómo se envían las cabeceras `X-User-Id` y `X-User-Roles` si el gateway no las inyecta en una conexión `EventSource`?
+- [ ] ¿Cómo se consume text/event-stream en el frontend con Signals (EventSource o fetch con ReadableStream) y cómo se envían las cabeceras X-User-Id y X-User-Roles si el gateway no las inyecta en una conexión EventSource?
 - [ ] ¿Qué entrega hoy el backend: un único evento de estado y cierre (según [[SSE]])? ¿Alcanza para mostrar el progreso o hace falta que emita cada cambio hasta un estado terminal?
-- [ ] ¿Cómo se maneja la reconexión, el cierre sin estado terminal y el respaldo por `GET /api/market/orders/{orderId}`?
+- [ ] ¿Cómo se maneja la reconexión, el cierre sin estado terminal y el respaldo por GET /api/market/orders/{orderId}?
 - [ ] ¿Cómo se limpia la conexión al salir de la pantalla y cómo se prueba el patrón?
 
 ---
@@ -66,6 +66,13 @@ Elegir y probar un patrón de consumo de SSE para el estado de la compra, para q
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Patrón de consumo de SSE con Signals y el kit de UI | 4 | PoC contra `GET /api/market/orders/stream/{orderId}`, reconexión, respaldo por consulta y nota con la recomendación |
+### T01 - Definir el patrón de consumo de SSE con Signals y el kit de UI
+
+**Objetivo:** Decidir cómo consumir SSE en el frontend y qué entrega hoy el backend.
+
+- PoC contra `GET /api/market/orders/stream/{orderId}`
+- Reconexión y respaldo por consulta
+- Nota con la recomendación para la tarea de estado en vivo
+- Hecho cuando: la PoC funciona y la nota con la recomendación está en el vault
+
+Estimación: 4 h

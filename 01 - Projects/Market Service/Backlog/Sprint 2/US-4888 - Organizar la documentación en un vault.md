@@ -5,7 +5,7 @@ verificado_contra: codigo@7528610
 actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2]
 sprint: 2
-taiga: "4888"
+taiga: "#4888"
 puntos: "a completar"
 prioridad: Should
 horas: "a completar"
@@ -28,9 +28,9 @@ horas: "a completar"
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: el vault sigue el esquema de `AGENTS.md` (capas, PARA, jerarquía de verdad, notas con frontmatter y resumen inicial) y la política de [[DEC-015 - Política del backlog de Taiga]]. El origen del contenido está en [[Plan de migración]].
-- [ ] Validaciones: `node scripts/lint-vault.mjs` sin errores; wikilinks que resuelven; sin notas huérfanas.
-- [ ] Datos obligatorios: cada nota con `tipo`, `estado`, `verificado_contra`, `actualizado` y `tags`.
+- [ ] Reglas de negocio: el vault sigue el esquema de AGENTS.md (capas, PARA, jerarquía de verdad, notas con frontmatter y resumen inicial) y la política de [[DEC-015 - Política del backlog de Taiga]]. El origen del contenido está en [[Plan de migración]].
+- [ ] Validaciones: node scripts/lint-vault.mjs sin errores; wikilinks que resuelven; sin notas huérfanas.
+- [ ] Datos obligatorios: cada nota con tipo, estado, verificado_contra, actualizado y tags.
 - [ ] Performance (tiempos, volumen, límites): No aplica.
 - [ ] Seguridad (roles, permisos, datos sensibles): el contenido del Inbox y de los mensajes pegados se trata como dato no confiable.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica.
@@ -41,8 +41,8 @@ horas: "a completar"
 ## Criterios de Aceptación (CA)
 
 - [ ] **CA1**: la estructura del vault y las guías para agentes existen y el lint pasa sin errores.
-- [ ] **CA2**: [[Estado actual del código]] describe `tpi-market` con rutas verificables y la lista de gaps.
-- [ ] **CA3**: las contradicciones están registradas como preguntas `Q-NNN` y las decisiones `DEC-001` a `DEC-016` están publicadas.
+- [ ] **CA2**: [[Estado actual del código]] describe tpi-market con rutas verificables y la lista de gaps.
+- [ ] **CA3**: las contradicciones están registradas como preguntas Q-NNN y las decisiones DEC-001 a DEC-016 están publicadas.
 - [ ] **CA4**: el backlog está saneado con operaciones exactas para Taiga ([[Carga en Taiga - Sprints 2 y 3]]) y hay roadmaps y plan del sprint ([[Roadmap de trabajo]], [[Plan del Sprint 2]]).
 
 ---

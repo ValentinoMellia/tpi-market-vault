@@ -16,7 +16,7 @@ tags: [mercado, pregunta-abierta, backlog, sprint-2, taiga]
 | Plan | 13 historias, 70 puntos, unas 248 h de las ~250 h que quedan | [[Plan del Sprint 2]], [[Sprint 2 - Índice]] |
 | Taiga | 25 historias: las 13 del plan, 9 anteriores (22 puntos) y 3 de frontend sin puntos cargados (8 y 5 según su descripción) | Sprint "G11 - Sprint 2"; detalle en [[Revisión del Sprint 2 en Taiga]] |
 | Roadmap | El consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` y los eventos para Notificaciones son P2 (alcance futuro) | [[Roadmap de trabajo]] |
-| Taiga | #1037 (Must/1), #1038, #1051 y #1052 están dentro del Sprint 2 | Sprint "G11 - Sprint 2" |
+| Taiga | #1037, #1038, #1051 y #1052 están dentro del Sprint 2; #1037 incluso con prioridad Must (1 en la escala numérica de la plantilla de Taiga) | Sprint "G11 - Sprint 2" |
 
 Las contradicciones con decisiones registradas (formato de los avisos, "Banco", prefijo de #1053, pestañas de #5289) no forman parte de esta pregunta. Las resuelve la jerarquía de verdad y están listadas en [[Revisión del Sprint 2 en Taiga]].
 
@@ -35,7 +35,7 @@ Las contradicciones con decisiones registradas (formato de los avisos, "Banco", 
    - #1011, #1012 y #1013 se cierran como duplicadas u obsoletas;
    - #1051, #1052 y #1053 vuelven al backlog;
    - #1037 y #1038 se tratan en el punto 2.
-   - A favor: el sprint vuelve a unos 72 puntos, cerca de la capacidad.
+   - A favor: el sprint vuelve a 72 puntos (los 70 del plan más los 2 de #1010, que queda en el sprint como Done). Si #1037 y #1038 también se quedan (punto 2), son 78.
    - En contra: hay que avisar al autor y reescribir las historias que vuelven al backlog.
 2. **(b) Dejarlas todas en el sprint.**
    - A favor: no hay que tocar nada.

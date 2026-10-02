@@ -30,7 +30,7 @@ Fuente: [[Backlog - Índice]] y las notas de cada épica. Verificar el estado en
 
 ## 2. Sprint 2 (2026-09-28 al 2026-10-11)
 
-Detalle de contenido y horas en [[Plan del Sprint 2]]. Las historias 1 a 9 se cargaron el 2026-10-02 (#5193 a #5259); el estado del sprint en Taiga está en [[Revisión del Sprint 2 en Taiga]].
+Detalle de contenido y horas en [[Plan del Sprint 2]]. Las historias 1 a 9 se cargaron el 2026-10-01 (#5193 a #5259); el estado del sprint en Taiga está en [[Revisión del Sprint 2 en Taiga]].
 
 | # | Historia nueva | Tareas a crear |
 |---|---|---|

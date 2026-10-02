@@ -2,10 +2,10 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2]
 sprint: 2
-taiga: "5231"
+taiga: "#5231"
 puntos: 8
 prioridad: Must
 horas: 25
@@ -28,23 +28,23 @@ horas: 25
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: se prueba el contrato adoptado en [[DEC-009 - Contrato de holds e ítems según Accounting]]: `HOLD_CREATE_REQUESTED`, `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_CONFIRMED`, `HOLD_RELEASE_REQUESTED`, `HOLD_RELEASED`, `ITEM_CONFIRMED` e `ITEM_CREDITED`.
-- [ ] Validaciones: los mensajes de las pruebas de contrato se construyen a partir de los ejemplos reales de Accounting (envelope de 6 campos, `eventVersion` entero, `eventId` UUID canónico), no de los tipos de Mercado.
-- [ ] Datos obligatorios: Docker disponible para Testcontainers; entorno con Accounting y Kafka accesible; un estudiante con saldo y un `catalogItemId` válido (`ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`).
-- [ ] Performance (tiempos, volumen, límites): `KafkaSagaIntegrationTest` usa Testcontainers y se omite sin Docker; en CI debe correr o quedar marcado explícitamente como omitido.
+- [ ] Reglas de negocio: se prueba el contrato adoptado en [[DEC-009 - Contrato de holds e ítems según Accounting]]: HOLD_CREATE_REQUESTED, HOLD_CREATED, HOLD_REJECTED, HOLD_CONFIRM_REQUESTED, HOLD_CONFIRMED, HOLD_RELEASE_REQUESTED, HOLD_RELEASED, ITEM_CONFIRMED e ITEM_CREDITED.
+- [ ] Validaciones: los mensajes de las pruebas de contrato se construyen a partir de los ejemplos reales de Accounting (envelope de 6 campos, eventVersion entero, eventId UUID canónico), no de los tipos de Mercado.
+- [ ] Datos obligatorios: Docker disponible para Testcontainers; entorno con Accounting y Kafka accesible; un estudiante con saldo y un catalogItemId válido (ITEM-PLACEHOLDER-1 a ITEM-PLACEHOLDER-3).
+- [ ] Performance (tiempos, volumen, límites): KafkaSagaIntegrationTest usa Testcontainers y se omite sin Docker; en CI debe correr o quedar marcado explícitamente como omitido.
 - [ ] Seguridad (roles, permisos, datos sensibles): usar cuentas de prueba, nunca datos reales de estudiantes.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica.
-- [ ] Otros: el listener de comandos de Accounting está apagado por defecto (`app.holds.commands.enabled=false` y `accounting.messaging.consumers-enabled=false`); la prueba punta a punta exige que lo enciendan. El orden de la compra sigue abierto ([[Q-008 - Orden de la saga de compra]]): las pruebas cubren el orden vigente al cierre del spike [[S2-09b - SPIKE Orden de la compra con Accounting]].
+- [ ] Otros: el listener de comandos de Accounting está apagado por defecto (app.holds.commands.enabled=false y accounting.messaging.consumers-enabled=false); la prueba punta a punta exige que lo enciendan. El orden de la compra sigue abierto ([[Q-008 - Orden de la saga de compra]]): las pruebas cubren el orden vigente al cierre del spike [[S2-09b - SPIKE Orden de la compra con Accounting]].
 
 ---
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: los 13 casos de `KafkaSagaIntegrationTest` pasan en una máquina con Docker y el resultado se adjunta a la historia.
-- [ ] **CA2**: existe al menos una prueba de contrato por cada mensaje del listado de Notas, con el JSON de ejemplo de Accounting versionado en `src/test/resources`.
-- [ ] **CA3**: una compra real de una oferta de precio conocido (`POST /api/market/courses/{courseId}/orders`) termina en `CONFIRMED`, el saldo del estudiante en Accounting baja exactamente `coinPrice` y el ítem figura en `GET /api/accounting/courses/{courseId}/accounts/me/items`.
-- [ ] **CA4**: una compra con saldo insuficiente termina en `REJECTED_INSUFFICIENT_FUNDS` sin saldo debitado ni ítem acreditado.
-- [ ] **Extras (opcional)**: el CI de `develop` ejecuta las pruebas de contrato sin Docker.
+- [ ] **CA1**: los 13 casos de KafkaSagaIntegrationTest pasan en una máquina con Docker y el resultado se adjunta a la historia.
+- [ ] **CA2**: existe al menos una prueba de contrato por cada mensaje del listado de Notas, con el JSON de ejemplo de Accounting versionado en src/test/resources.
+- [ ] **CA3**: una compra real de una oferta de precio conocido (POST /api/market/courses/{courseId}/orders) termina en CONFIRMED, el saldo del estudiante en Accounting baja exactamente coinPrice y el ítem figura en GET /api/accounting/courses/{courseId}/accounts/me/items.
+- [ ] **CA4**: una compra con saldo insuficiente termina en REJECTED_INSUFFICIENT_FUNDS sin saldo debitado ni ítem acreditado.
+- [ ] **Extras (opcional)**: el CI de develop ejecuta las pruebas de contrato sin Docker.
 
 ---
 
@@ -116,9 +116,43 @@ Relación: [[Estado actual del código]] (gap 21), [[Roadmap de trabajo]], [[Eve
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | `KafkaSagaIntegrationTest` en verde | 8 | Correr los 13 casos con Docker, corregir fallos y adaptarlos al contrato nuevo (`accounting.events`, `orderRef`) |
-| 2 | Tests de contrato | 6 | Pruebas con los mensajes reales de Accounting para holds, `ITEM_CONFIRMED` e `ITEM_CREDITED` |
-| 3 | Entorno con Accounting | 4 | Levantar Mercado y Accounting con el mismo Kafka (compose) con cuentas e ítems de prueba |
-| 4 | Prueba punta a punta | 7 | Compra exitosa, saldo insuficiente y reenvío duplicado contra Accounting real; evidencia adjunta |
+### T01 - Dejar KafkaSagaIntegrationTest en verde
+
+**Objetivo:** Recuperar y adaptar la prueba de integración de la saga.
+
+- Ejecutar los 13 casos con Docker y corregir los fallos
+- Adaptarlos al contrato nuevo (`accounting.events`, `orderRef`)
+- Hecho cuando: los 13 casos pasan en verde con Docker
+
+Estimación: 8 h
+
+### T02 - Escribir pruebas de contrato con mensajes reales de Accounting
+
+**Objetivo:** Detectar roturas del contrato de holds e ítems.
+
+- Construir los mensajes a partir de los ejemplos reales de Accounting (envelope de 6 campos, `eventVersion` entero, `eventId` UUID)
+- Cubrir holds, `ITEM_CONFIRMED` e `ITEM_CREDITED`
+- Hecho cuando: las pruebas de contrato pasan con los mensajes reales de Accounting
+
+Estimación: 6 h
+
+### T03 - Levantar el entorno con Accounting
+
+**Objetivo:** Contar con un entorno donde Mercado y Accounting comparten Kafka.
+
+- Compose con Mercado, Accounting y el mismo Kafka
+- Cuentas e ítems de prueba (`ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`)
+- Accounting debe encender su listener de comandos
+- Hecho cuando: ambos servicios intercambian mensajes por el mismo Kafka con datos de prueba
+
+Estimación: 4 h
+
+### T04 - Probar la compra punta a punta contra Accounting real
+
+**Objetivo:** Comprobar el flujo completo con evidencia.
+
+- Casos: compra exitosa, saldo insuficiente y reenvío duplicado
+- Adjuntar la evidencia (logs o capturas)
+- Hecho cuando: los tres casos se ejecutan contra Accounting real y la evidencia queda adjunta
+
+Estimación: 7 h

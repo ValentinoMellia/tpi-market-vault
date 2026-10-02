@@ -11,7 +11,7 @@ tags: [mercado, backlog, sprint-2, taiga]
 
 ## Fuente y alcance
 
-- Taiga, proyecto `1804026`, sprint "G11 - Sprint 2" (id `533590`, del 2026-09-28 al 2026-10-11), leído el 2026-10-02 con la descripción completa de cada historia.
+- Taiga, proyecto `1804026`, sprint "G11 - Sprint 2" (id `533590`, del 2026-09-28 al 2026-10-11), leído el 2026-10-02 con la descripción completa de cada historia. Taiga guarda las fechas en UTC; acá se dan en hora de Argentina (UTC-3). Los datos de Taiga no surgen del código: para verificarlos hay que abrir cada historia en Taiga.
 - Código: `tpi-market`, rama `develop`, commit `7528610`. Las rutas citadas son relativas a `src/main/java/ar/edu/utn/frc/tup/p4/`.
 - Esta nota describe lo que hay y propone acciones. Las acciones no están decididas: dependen de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. Taiga no se modificó.
 
@@ -22,9 +22,9 @@ Las historias llegaron en tres tandas.
 | Tanda | Historias | Origen | Puntos en Taiga |
 |---|---|---|---|
 | A. Anteriores | #1010, #1011, #1012, #1013, #1037, #1038, #1051, #1052, #1053 | Creadas el 2026-09-17, épicas #1008, #1035 y #1050. No figuran en el plan ni en otras notas del vault | 22 |
-| B. Del plan | #5193 a #5259 (12 historias, una por nota de [[Sprint 2 - Índice]]) y #4888 | Cargadas el 2026-10-02 desde las notas del vault. El texto de #5193 coincide con [[S2-01 - Contrato con Accounting]] | 70 (#4888 sin puntos) |
-| C. Frontend | #5288, #5289, #5290 | Creadas la noche del 2026-10-02 sobre trabajo ya implementado en el frontend | 0 (la descripción dice 8 y 5; #5290 no tiene) |
-| **Total** | **25** | | **92**, más 13 sin cargar |
+| B. Del plan | #5193 a #5259 (12 historias, una por nota de [[Sprint 2 - Índice]]) y #4888 | Cargadas el 2026-10-01 desde las notas del vault. El texto de #5193 coincide con [[S2-01 - Contrato con Accounting]] | 70 (#4888 sin puntos) |
+| C. Frontend | #5288, #5289, #5290 | Creadas la noche del 2026-10-01 sobre trabajo ya implementado en el frontend | 0 (la descripción dice 8 y 5; #5290 no tiene) |
+| **Total** | **25** | | **92**, más los 13 de #5288 y #5289 que no tienen puntos cargados |
 
 ### Detalle
 
@@ -56,7 +56,7 @@ Las historias llegaron en tres tandas.
 | #5289 | Hub y navegación del mercado por curso | — | In progress, figura cerrada | — | Corregir lo implementado y cargar puntos |
 | #5290 | Mejora visual del catalogo | — | New, figura cerrada | — | Normalizar (prefijo, tags, puntos) y delimitar frente a #5236 |
 
-Las opcionales [[S2-OPC1 - Reconciliación de compras]] y [[S2-OPC2 - Frontend de gestión del profesor]] no están cargadas en Taiga.
+Las opcionales [[S2-OPC1 - Reconciliación de compras]] (#5261) y [[S2-OPC2 - Frontend de gestión del profesor]] (#5266) están cargadas en Taiga, pero en el backlog, fuera del sprint.
 
 ## Duplicados y solapamientos
 
@@ -66,7 +66,7 @@ Las opcionales [[S2-OPC1 - Reconciliación de compras]] y [[S2-OPC2 - Frontend d
 |---|---|---|
 | Saber quién hace el pedido y con qué rol | Hecho: `configs/filters/GatewayIdentityFilter.java` lee `X-User-Id` y `X-User-Roles` | — |
 | CA3: rechazar el pedido sin identidad | En parte: sin cabeceras responde 401 (`configs/SecurityConfig.java`, `anyRequest().authenticated()`). Con identidad pero sin `X-User-Id`, los controladores asumen `usr-student-001` (`controllers/StorefrontCatalogController.java`, `StudentOrderController.java`, `CatalogOfferController.java`) | [[S2-04 - Seguridad]] (#5214), CA3 |
-| CA2: un alumno no administra el catálogo | Hecho pero frágil: `services/impl/CourseCatalogManageServiceImpl.java` (líneas 163 a 189) compara con `contains()`, de modo que `NOT_ADMIN` cuenta como ADMIN; con cabecera vacía se omite el chequeo | [[S2-04 - Seguridad]] (#5214), CA1 y CA2 |
+| CA2: un alumno no administra el catálogo | Hecho pero frágil. En `services/impl/CourseCatalogManageServiceImpl.java`, `validateAdminRole` y `validateAdminOrInstructorAccess` (líneas 160 a 191) comparan con `contains()`, de modo que `NOT_ADMIN` cuenta como ADMIN. En `validateProfessorAccess` (líneas 342 a 361), si `X-User-Roles` llega vacío se saltea la verificación de rol y solo queda la de asignación al curso; si además falta `X-User-Id`, no se valida nada | [[S2-04 - Seguridad]] (#5214), CA1 y CA2 |
 | Qué puede hacer dentro de cada curso | Simulado: `MockCourseEnrollmentClient` y `MockCourseInstructorClient` | [[S2-02 - Clientes reales de Cursos]] (#5202) |
 
 Todo lo pendiente de #1011 queda dentro de #5214 y #5202, que lo piden con criterios más precisos.
@@ -104,7 +104,7 @@ Con [[S2-02 - Clientes reales de Cursos]], cada compra consulta `GET /course-coh
 | Alcance | Dónde aparece |
 |---|---|
 | Vitrina, tarjetas, búsqueda y filtros | [[S2-08 - Frontend de Mercado]] (#5236, CA1) y #5290 |
-| Vista de gestión del profesor (estado, ventas, vigencia, publicar) | #5290 y [[S2-OPC2 - Frontend de gestión del profesor]] (no cargada) |
+| Vista de gestión del profesor (estado, ventas, vigencia, publicar) | #5290 y [[S2-OPC2 - Frontend de gestión del profesor]] (#5266, en el backlog) |
 | Selector de curso y Hub con pestañas | Solo #5288 y #5289, alcance nuevo |
 | Compra con idempotencia, estado por [[SSE]], mis compras, errores `problem+json` | Solo #5236 |
 

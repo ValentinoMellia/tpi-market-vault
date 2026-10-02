@@ -2,10 +2,10 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2]
 sprint: 2
-taiga: "5207"
+taiga: "#5207"
 puntos: 8
 prioridad: Should
 horas: 30
@@ -28,24 +28,24 @@ horas: 30
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio ([[DEC-013 - Reglas de la tienda]]): `unitsSold` se incrementa cuando una orden pasa a `CONFIRMED`; disponible = total - vendidos - reservados (T1). Las ofertas no se borran, solo se desactivan (T4). `publicationExpiresAt` puede fijarse y extenderse (T6 modificada). El `courseId` es la cohorte (T3).
-- [ ] Validaciones: al publicar, la plantilla debe existir y estar activa, el `itemType` debe coincidir con el de la plantilla y el multiplicador debe estar en rango (T5, `validation/ValidOfferConfigurationValidator.java`). Pendiente de decidir: si al extender solo se aceptan fechas posteriores a la vigente; hasta decidirlo, la tarea 6 acepta solo fechas posteriores y se registra la decisión.
-- [ ] Datos obligatorios: `templateId`, `itemType`, `customName`, `coinPrice` (mínimo 1); `totalStock` opcional ([[DEC-002 - Stock opcional por oferta]]).
-- [ ] Performance (tiempos, volumen, límites): el incremento de `unitsSold` debe ser atómico frente a confirmaciones concurrentes (hoy `OfferStockConcurrencyTest` cubre el descuento de stock).
-- [ ] Seguridad (roles, permisos, datos sensibles): el profesor desactiva por `PATCH /api/market/courses/{courseId}/catalog/manage/offers/{itemId}/status`; la ruta `PATCH /api/market/offers/{id}/status` es de ADMIN, GESTOR y MS ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]).
+- [ ] Reglas de negocio ([[DEC-013 - Reglas de la tienda]]): unitsSold se incrementa cuando una orden pasa a CONFIRMED; disponible = total - vendidos - reservados (T1). Las ofertas no se borran, solo se desactivan (T4). publicationExpiresAt puede fijarse y extenderse (T6 modificada). El courseId es la cohorte (T3).
+- [ ] Validaciones: al publicar, la plantilla debe existir y estar activa, el itemType debe coincidir con el de la plantilla y el multiplicador debe estar en rango (T5, validation/ValidOfferConfigurationValidator.java). Pendiente de decidir: si al extender solo se aceptan fechas posteriores a la vigente; hasta decidirlo, la tarea 6 acepta solo fechas posteriores y se registra la decisión.
+- [ ] Datos obligatorios: templateId, itemType, customName, coinPrice (mínimo 1); totalStock opcional ([[DEC-002 - Stock opcional por oferta]]).
+- [ ] Performance (tiempos, volumen, límites): el incremento de unitsSold debe ser atómico frente a confirmaciones concurrentes (hoy OfferStockConcurrencyTest cubre el descuento de stock).
+- [ ] Seguridad (roles, permisos, datos sensibles): el profesor desactiva por PATCH /api/market/courses/{courseId}/catalog/manage/offers/{itemId}/status; la ruta PATCH /api/market/offers/{id}/status es de ADMIN, GESTOR y MS ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]).
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
-- [ ] Otros: hoy `publish` calcula `publicationExpiresAt` desde `publicationTtlMinutes` (`CatalogOfferPublishDto`); la tarea 5 define si el campo nuevo convive con el TTL o lo reemplaza. Datos con `deleted=true` existentes se tratan como inactivos.
+- [ ] Otros: hoy publish calcula publicationExpiresAt desde publicationTtlMinutes (CatalogOfferPublishDto); la tarea 5 define si el campo nuevo convive con el TTL o lo reemplaza. Datos con deleted=true existentes se tratan como inactivos.
 
 ---
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: tras confirmar 3 órdenes de una oferta con `totalStock` 10, `unitsSold` vale 3 y el disponible es 7 menos las unidades reservadas.
-- [ ] **CA2**: si el profesor edita `totalStock` a 8 con 3 unidades vendidas, el disponible resultante es 5 (menos reservadas), nunca 8.
-- [ ] **CA3**: publicar con plantilla inexistente, inactiva, de otro tipo o con multiplicador fuera de rango responde 400 `validation-error` con el campo en `errors[]`.
-- [ ] **CA4**: no existe ninguna ruta que borre una oferta; desactivar conserva las órdenes asociadas y la oferta deja de aparecer en `GET /api/market/courses/{courseId}/catalog`.
-- [ ] **CA5**: `POST` y `PATCH` de `/api/market/courses/{courseId}/catalog/manage` aceptan `publicationExpiresAt` y lo devuelven en la respuesta; una fecha en el pasado responde 400.
-- [ ] **Extras (opcional)**: la prueba de concurrencia confirma que dos confirmaciones simultáneas incrementan `unitsSold` en 2.
+- [ ] **CA1**: tras confirmar 3 órdenes de una oferta con totalStock 10, unitsSold vale 3 y el disponible es 7 menos las unidades reservadas.
+- [ ] **CA2**: si el profesor edita totalStock a 8 con 3 unidades vendidas, el disponible resultante es 5 (menos reservadas), nunca 8.
+- [ ] **CA3**: publicar con plantilla inexistente, inactiva, de otro tipo o con multiplicador fuera de rango responde 400 validation-error con el campo en errors[].
+- [ ] **CA4**: no existe ninguna ruta que borre una oferta; desactivar conserva las órdenes asociadas y la oferta deja de aparecer en GET /api/market/courses/{courseId}/catalog.
+- [ ] **CA5**: POST y PATCH de /api/market/courses/{courseId}/catalog/manage aceptan publicationExpiresAt y lo devuelven en la respuesta; una fecha en el pasado responde 400.
+- [ ] **Extras (opcional)**: la prueba de concurrencia confirma que dos confirmaciones simultáneas incrementan unitsSold en 2.
 
 ---
 
@@ -117,11 +117,68 @@ Relación: [[Oferta de catálogo]], [[Estado actual del código]] (gaps 4 y 24),
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | `unitsSold` al confirmar | 6 | Incrementar `unitsSold` al pasar la orden a `CONFIRMED` en la misma transacción; recalcular las ofertas existentes |
-| 2 | Cálculo de disponible | 5 | Disponible = total - vendidos - reservados al editar el stock (`CourseCatalogManageServiceImpl`); corrige la sobreventa |
-| 3 | Validaciones al publicar | 6 | Plantilla existente y activa, tipo coincidente y multiplicador en rango en `ValidOfferConfigurationValidator` |
-| 4 | Solo desactivar | 4 | Dejar de usar `deleted` en ofertas; solo `active`; verificar que no hay borrado y que el historial se conserva |
-| 5 | `publicationExpiresAt` al publicar | 4 | Aceptar el campo en `CatalogOfferPublishDto`, definir la convivencia con `publicationTtlMinutes` y validar fecha futura |
-| 6 | `publicationExpiresAt` al editar | 5 | Aceptar el campo en `CatalogOfferUpdateDto`, regla de extensión (solo fechas posteriores hasta decidir) y pruebas |
+### T01 - Incrementar unitsSold al confirmar la orden
+
+**Objetivo:** Registrar las unidades vendidas de cada oferta de forma consistente.
+
+- Incrementar `unitsSold` al pasar la orden a `CONFIRMED`, en la misma transacción (`OrderConfirmationServiceImpl`)
+- El incremento debe ser atómico ante confirmaciones concurrentes
+- Recalcular `unitsSold` de las ofertas existentes con órdenes confirmadas
+- Hecho cuando: tras confirmar 3 órdenes de una oferta, `unitsSold` vale 3
+
+Estimación: 6 h
+
+### T02 - Calcular el stock disponible al editar la oferta
+
+**Objetivo:** Corregir la sobreventa que ocurre al editar `totalStock`.
+
+- Disponible = total - vendidos - reservados en `CourseCatalogManageServiceImpl`
+- Aplicarlo en `PATCH /api/market/courses/{courseId}/catalog/manage/{offerId}`
+- Prueba: editar `totalStock` a 8 con 3 vendidas
+- Hecho cuando: con `totalStock` 8 y 3 vendidas, el disponible es 5 menos las reservadas, nunca 8
+
+Estimación: 5 h
+
+### T03 - Validar la configuración de la oferta al publicar
+
+**Objetivo:** Rechazar ofertas con una plantilla o una configuración inválida.
+
+- En `ValidOfferConfigurationValidator`: plantilla existente y activa, `itemType` igual al de la plantilla y multiplicador en rango
+- Respuesta 400 `validation-error` con el campo en `errors[]`
+- Una prueba por cada causa de rechazo
+- Hecho cuando: publicar con plantilla inexistente, inactiva, de otro tipo o con multiplicador fuera de rango responde 400 con el campo en `errors[]`
+
+Estimación: 6 h
+
+### T04 - Permitir solo desactivar ofertas
+
+**Objetivo:** Conservar el historial de compras evitando el borrado de ofertas.
+
+- Dejar de usar `deleted` en las ofertas y usar solo `active`
+- Tratar como inactivas las ofertas existentes con `deleted=true`
+- Verificar que no existe ninguna ruta de borrado y que las órdenes asociadas se conservan
+- Hecho cuando: una oferta desactivada sale de `GET /api/market/courses/{courseId}/catalog` y sus órdenes se siguen consultando
+
+Estimación: 4 h
+
+### T05 - Aceptar publicationExpiresAt al publicar
+
+**Objetivo:** Permitir fijar el vencimiento de la oferta al publicarla.
+
+- Agregar el campo a `CatalogOfferPublishDto` y devolverlo en la respuesta
+- Definir la convivencia con `publicationTtlMinutes` y registrarla
+- Validar que la fecha sea futura
+- Hecho cuando: `POST /api/market/courses/{courseId}/catalog/manage` acepta y devuelve `publicationExpiresAt` y responde 400 con una fecha pasada
+
+Estimación: 4 h
+
+### T06 - Aceptar publicationExpiresAt al editar
+
+**Objetivo:** Permitir extender el vencimiento de una oferta ya publicada.
+
+- Agregar el campo a `CatalogOfferUpdateDto`
+- Regla de extensión: solo fechas posteriores a la vigente hasta que se decida otra, y registrar la decisión
+- Pruebas de extensión válida y de fecha anterior
+- Hecho cuando: `PATCH .../manage/{offerId}` con una fecha posterior responde 200 con la fecha nueva y la oferta sigue visible hasta ese instante
+
+Estimación: 5 h

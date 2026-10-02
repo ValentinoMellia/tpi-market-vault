@@ -5,7 +5,7 @@ verificado_contra: codigo@7528610
 actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2, opcional]
 sprint: 2
-taiga: ""
+taiga: "#5266"
 puntos: 5
 prioridad: Could
 horas: 14
@@ -28,9 +28,9 @@ horas: 14
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: el profesor solo gestiona los cursos a los que está asignado. Las ofertas no se borran: se desactivan ([[DEC-013 - Reglas de la tienda]], T4). `publicationExpiresAt` puede extenderse. Al publicar se elige una plantilla activa de `GET /api/market/templates`.
-- [ ] Validaciones: precio mínimo 1; stock opcional (sin `totalStock` o `unlimitedStock` significa ilimitado, [[DEC-002 - Stock opcional por oferta]]); errores de validación del backend (`errors[]`) se muestran junto a cada campo.
-- [ ] Datos obligatorios: `templateId`, `itemType`, `customName`, `coinPrice` al publicar; configuración según el tipo de ítem.
+- [ ] Reglas de negocio: el profesor solo gestiona los cursos a los que está asignado. Las ofertas no se borran: se desactivan ([[DEC-013 - Reglas de la tienda]], T4). publicationExpiresAt puede extenderse. Al publicar se elige una plantilla activa de GET /api/market/templates.
+- [ ] Validaciones: precio mínimo 1; stock opcional (sin totalStock o unlimitedStock significa ilimitado, [[DEC-002 - Stock opcional por oferta]]); errores de validación del backend (errors[]) se muestran junto a cada campo.
+- [ ] Datos obligatorios: templateId, itemType, customName, coinPrice al publicar; configuración según el tipo de ítem.
 - [ ] Performance (tiempos, volumen, límites): lista de gestión con carga inicial menor a 2 s (a medir).
 - [ ] Seguridad (roles, permisos, datos sensibles): rutas visibles solo para PROFESSOR, ADMIN y GESTOR; la API valida igualmente ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]).
 - [ ] Accesibilidad (WCAG/teclado/lectores): formularios con etiquetas asociadas, errores anunciados a lectores de pantalla y operación completa por teclado.
@@ -40,9 +40,9 @@ horas: 14
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: el profesor ve la lista de `GET /api/market/courses/{courseId}/catalog/manage` con estado activa o inactiva, precio, stock y vencimiento.
-- [ ] **CA2**: puede publicar una oferta nueva con `POST /api/market/courses/{courseId}/catalog/manage` y la ve en la lista y en la vitrina del estudiante.
-- [ ] **CA3**: puede editar nombre, descripción, precio y stock con `PATCH .../manage/{offerId}` y activar o desactivar con `PATCH .../manage/offers/{itemId}/status`.
+- [ ] **CA1**: el profesor ve la lista de GET /api/market/courses/{courseId}/catalog/manage con estado activa o inactiva, precio, stock y vencimiento.
+- [ ] **CA2**: puede publicar una oferta nueva con POST /api/market/courses/{courseId}/catalog/manage y la ve en la lista y en la vitrina del estudiante.
+- [ ] **CA3**: puede editar nombre, descripción, precio y stock con PATCH .../manage/{offerId} y activar o desactivar con PATCH .../manage/offers/{itemId}/status.
 - [ ] **CA4**: puede extender el vencimiento de una oferta y la fecha nueva se refleja en la lista.
 - [ ] **Extras (opcional)**: confirmación antes de desactivar una oferta con compras.
 
@@ -116,9 +116,43 @@ Relación: [[Oferta de catálogo]], [[Plantilla base]], [[Roadmap de trabajo]].
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Lista de gestión | 4 | Tabla de ofertas del curso con estado, precio, stock y vencimiento |
-| 2 | Publicar oferta | 4 | Formulario con selección de plantilla, validaciones y configuración por tipo de ítem |
-| 3 | Editar y activar o desactivar | 3 | Edición de nombre, descripción, precio y stock, y cambio de estado de la oferta |
-| 4 | Extender el vencimiento | 3 | Selector de fecha de `publicationExpiresAt` en la edición y confirmación del cambio |
+### T01 - Maquetar la lista de gestión de ofertas del profesor
+
+**Objetivo:** Mostrar al profesor las ofertas de su curso.
+
+- Tabla de `GET /api/market/courses/{courseId}/catalog/manage`
+- Columnas: estado, precio, stock y vencimiento
+- Hecho cuando: el profesor ve sus ofertas con los cuatro datos
+
+Estimación: 4 h
+
+### T02 - Maquetar el formulario para publicar una oferta
+
+**Objetivo:** Permitir publicar ofertas desde la interfaz.
+
+- Selección de plantilla activa desde `GET /api/market/templates`
+- Campos `templateId`, `itemType`, `customName` y `coinPrice`, y configuración según el tipo de ítem
+- Errores de `errors[]` junto a cada campo
+- Hecho cuando: una oferta publicada con `POST /api/market/courses/{courseId}/catalog/manage` aparece en la lista
+
+Estimación: 4 h
+
+### T03 - Editar y activar o desactivar ofertas
+
+**Objetivo:** Permitir modificar y cambiar el estado de una oferta.
+
+- Edición de nombre, descripción, precio y stock con `PATCH .../manage/{offerId}`
+- Cambio de estado con `PATCH .../manage/offers/{itemId}/status`
+- Hecho cuando: los cambios y el nuevo estado se reflejan en la lista
+
+Estimación: 3 h
+
+### T04 - Extender el vencimiento de una oferta
+
+**Objetivo:** Permitir ampliar el plazo de publicación.
+
+- Selector de fecha de `publicationExpiresAt` en la edición
+- Confirmación del cambio
+- Hecho cuando: la fecha nueva se guarda y se muestra en la lista
+
+Estimación: 3 h

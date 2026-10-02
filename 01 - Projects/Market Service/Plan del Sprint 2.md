@@ -52,7 +52,7 @@ tags: [mercado, sprint, planificacion]
 ## Riesgos
 
 - La estimación tiene un margen de ±20 %: es una referencia para la planning, no un compromiso.
-- El Sprint 2 empezó sin historias cargadas; cargar Taiga es lo primero ([[Q-013 - Higiene del backlog]]).
+- El Sprint 2 empezó sin historias cargadas. Las historias del plan se cargaron en Taiga el 2026-10-01 (#5193 a #5259; las opcionales #5261 y #5266 quedaron en el backlog) y falta sanear el resto ([[Q-013 - Higiene del backlog]]).
 - Si Accounting no acepta el orden de compra propuesto ([[Q-008 - Orden de la saga de compra]]), la historia 1 puede cambiar.
 - El sprint de Taiga tiene 25 historias y 92 puntos, no las 13 historias y 70 puntos de este plan: hay nueve historias anteriores y tres de frontend que no estaban previstas ([[Revisión del Sprint 2 en Taiga]]). El alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
 
