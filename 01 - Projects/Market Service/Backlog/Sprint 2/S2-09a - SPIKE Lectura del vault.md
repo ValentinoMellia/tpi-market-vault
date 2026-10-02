@@ -2,10 +2,10 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, backlog, sprint-2, spike]
 sprint: 2
-taiga: ""
+taiga: "5243"
 puntos: 3
 prioridad: Should
 horas: 20
