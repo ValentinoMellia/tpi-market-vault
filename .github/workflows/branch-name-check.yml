@@ -22,7 +22,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if [[ "$HEAD_REF" =~ ^(feature|fix)/[A-Za-z0-9]+.*$ ]]; then
+          if [[ "$HEAD_REF" =~ ^(feature|fix)/[A-Za-z0-9]+.*$ || "$HEAD_REF" =~ ^dependabot/ ]]; then
             echo "Branch name '$HEAD_REF' is valid for base '$BASE_REF'."
             exit 0
           fi
