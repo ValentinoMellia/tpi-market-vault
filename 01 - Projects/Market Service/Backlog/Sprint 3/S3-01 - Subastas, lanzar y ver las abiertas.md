@@ -3,9 +3,9 @@ tipo: historia
 estado: borrador
 verificado_contra: DEC-014
 actualizado: 2026-10-02
-tags: [mercado, backlog, sprint-3, subastas]
-sprint: 3
-taiga: "5347"
+tags: [mercado, backlog, sprint-2, subastas]
+sprint: 2
+taiga: "#5347"
 puntos: 8
 prioridad: Should
 horas: 27
@@ -118,4 +118,4 @@ Relación: [[Épica 577 - Subastas]], [[Subasta]], [[Roadmap de trabajo]].
 | 5 | #5352 | Derivar la fase final ciega y ocultar la mejor oferta en modo ciega | 3 | Fase calculada con el tiempo restante, sin guardarla; pruebas con reloj controlado |
 | 6 | #5353 | Pruebas de aceptación y contrato de la API de subastas | 5 | Escenarios 1 a 4 y contrato OpenAPI al día |
 
-Cargada en Taiga el 2026-10-02 en el backlog, sin sprint (el Sprint 3 todavía no está creado) y con las tareas sin asignar. Las horas son una propuesta con el margen de ±20 % del resto del plan.
+Cargada en Taiga el 2026-10-02 en el backlog. El mismo día se adelantó al sprint "G11 - Sprint 2" (historia y sus 6 tareas, #5348 a #5353) porque Valentino Mellia sumó horas de capacidad; las tareas siguen sin asignar. Depende del spike [[S2-09c - SPIKE Diseño técnico de subastas]], que debe cerrarse antes de empezar. Las horas son una propuesta con el margen de ±20 % del resto del plan.
