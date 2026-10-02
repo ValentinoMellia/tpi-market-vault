@@ -17,8 +17,8 @@ Ver [[Subasta]] para la intención del dominio y [[Q-012 - Alcance de subastas]]
 ## Historias
 | Taiga # | Título | Estado en el código |
 |---|---|---|
-| #578 | Lanzar una subasta | no iniciada |
-| #579 | Ver las subastas abiertas | no iniciada |
+| #578 | Lanzar una subasta | no iniciada; se reemplaza por [[S3-01 - Subastas, lanzar y ver las abiertas]] (#5347) |
+| #579 | Ver las subastas abiertas | no iniciada; se reemplaza por [[S3-01 - Subastas, lanzar y ver las abiertas]] (#5347) |
 | #580 | Ofertar | no iniciada |
 | #581 | Mejorar mi oferta | no iniciada |
 | #582 | Enterarme si me superaron | no iniciada |

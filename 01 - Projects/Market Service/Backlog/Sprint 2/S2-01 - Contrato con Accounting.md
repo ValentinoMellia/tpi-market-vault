@@ -107,7 +107,7 @@ horas: 45
 
 - Servicios involucrados: Mercado y Accounting (Tema 08, grupo G12 en Taiga); Kafka de la plataforma.
 - Módulos afectados: `clients/impl/OutboxBankHoldClient.java`, `OutboxInventoryItemProvisionClient.java`, `listeners/AccountingHoldKafkaListener.java`, `configs/MessagingProperties.java`, `entities/OrderEntity.java`, `dtos/events/ItemConfirmedPayloadDto.java`, `models/enums/OrderRejectionReason.java`, `application.properties`.
-- Otros equipos / aprobaciones: Accounting debe encender su listener de comandos (apagado por defecto en su configuración) y confirmar el orden de la compra ([[Q-008 - Orden de la saga de compra]]). Qué ve el estudiante ante cada motivo de rechazo lo define producto ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
+- Otros equipos / aprobaciones: Notificaciones define el estándar de eventos de la plataforma y hoy difiere del que decidió Mercado: hay que informarle el envelope, el productor y el tópico ([[Integración con Notificaciones]]; absorbe la tarea T03 de la historia #1012 de Taiga, ver [[Revisión del Sprint 2 en Taiga]]). Accounting debe encender su listener de comandos (apagado por defecto en su configuración) y confirmar el orden de la compra ([[Q-008 - Orden de la saga de compra]]). Qué ve el estudiante ante cada motivo de rechazo lo define producto ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 - Impacto en datos / migraciones: columna nueva `orderRef` en la tabla de órdenes. No hay Flyway: el esquema lo actualiza Hibernate (`ddl-auto=update` en docker y prod), por lo que la columna debe admitir nulos en las filas existentes.
 - Riesgos y mitigación (opcional): si Accounting no acepta el orden de compra, cambia la activación de `ITEM_CONFIRMED`; mitigación: flag apagado y spike previo. Los mensajes `ITEM_PROVISION_*` desaparecen: hay que actualizar el transporte `mock` (`LoopbackDispatcher`) y sus pruebas.
 
@@ -135,6 +135,7 @@ Estimación: 6 h
 - Valores por defecto `accounting.events` y `market.events` en `market.messaging.topics.*` (`application.properties`)
 - Cada tópico se puede sobrescribir por variable de entorno
 - Actualizar `.compose/.env.example` con los nombres nuevos
+- Incluye `order-events`, que hoy es `market.orders.events` y pasa a `market.events` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]); absorbe la tarea T03 de #1012
 - Hecho cuando: la aplicación arranca sin variables y publica en `accounting.events` y `market.events`
 
 Estimación: 3 h

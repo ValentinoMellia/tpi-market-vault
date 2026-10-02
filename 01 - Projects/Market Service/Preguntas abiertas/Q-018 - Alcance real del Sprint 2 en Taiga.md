@@ -7,13 +7,13 @@ tags: [mercado, pregunta-abierta, backlog, sprint-2, taiga]
 ---
 # Q-018 - Alcance real del Sprint 2 en Taiga
 
-> El sprint "G11 - Sprint 2" de Taiga tiene 25 historias y 92 puntos, mientras que el [[Plan del Sprint 2]] prevé 13 historias y 70 puntos. Hay que decidir qué pasa con las nueve historias anteriores, si #1037 y #1038 entran con mock y cómo se reparte el frontend entre #5236, #5288, #5289 y #5290.
+> El sprint "G11 - Sprint 2" de Taiga tiene 25 historias y 92 puntos, mientras que el [[Plan del Sprint 2]] prevé 13 historias y 73 puntos. Hay que decidir qué pasa con las nueve historias anteriores, si #1037 y #1038 entran con mock y cómo se reparte el frontend entre #5236, #5288, #5289 y #5290.
 
 ## Qué se contradice
 
 | Postura | Qué dice | Dónde aparecía |
 |---|---|---|
-| Plan | 13 historias, 70 puntos, unas 248 h de las ~250 h que quedan | [[Plan del Sprint 2]], [[Sprint 2 - Índice]] |
+| Plan | 13 historias, 73 puntos, unas 255 h de las ~250 h que quedan | [[Plan del Sprint 2]], [[Sprint 2 - Índice]] |
 | Taiga | 25 historias: las 13 del plan, 9 anteriores (22 puntos) y 3 de frontend sin puntos cargados (8 y 5 según su descripción) | Sprint "G11 - Sprint 2"; detalle en [[Revisión del Sprint 2 en Taiga]] |
 | Roadmap | El consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` y los eventos para Notificaciones son P2 (alcance futuro) | [[Roadmap de trabajo]] |
 | Taiga | #1037, #1038, #1051 y #1052 están dentro del Sprint 2; #1037 incluso con prioridad Must (1 en la escala numérica de la plantilla de Taiga) | Sprint "G11 - Sprint 2" |
@@ -31,15 +31,15 @@ Las contradicciones con decisiones registradas (formato de los avisos, "Banco", 
 ### 1. Las nueve historias anteriores
 
 1. **(a) Sanear según [[DEC-015 - Política del backlog de Taiga]]:**
-   - #1010 pasa a Done si se verifica;
+   - #1010 se mantiene con sus tareas reescritas ([[US-1010 - Contrato de la API publicado]]);
    - #1011, #1012 y #1013 se cierran como duplicadas u obsoletas;
    - #1051, #1052 y #1053 vuelven al backlog;
    - #1037 y #1038 se tratan en el punto 2.
-   - A favor: el sprint vuelve a 72 puntos (los 70 del plan más los 2 de #1010, que queda en el sprint como Done). Si #1037 y #1038 también se quedan (punto 2), son 78.
+   - A favor: el sprint queda en 75 puntos: los 73 del plan más los 2 de #1010, que se mantiene con sus tareas reescritas. Si además #1037 y #1038 quedan en el sprint (punto 2), son 81.
    - En contra: hay que avisar al autor y reescribir las historias que vuelven al backlog.
 2. **(b) Dejarlas todas en el sprint.**
    - A favor: no hay que tocar nada.
-   - En contra: 92 puntos o más contra una capacidad de 70; hay historias ya hechas o duplicadas, y otras que contradicen decisiones.
+   - En contra: 92 puntos o más contra los 73 del plan; hay historias ya hechas o duplicadas, y otras que contradicen decisiones.
 3. **(c) Sanear solo las duplicadas y obsoletas, y dejar las demás en el sprint como Could.**
    - A favor: término medio.
    - En contra: el sprint sigue por encima de la capacidad.
