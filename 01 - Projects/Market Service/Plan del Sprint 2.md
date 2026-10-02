@@ -25,13 +25,13 @@ tags: [mercado, sprint, planificacion]
 | 2 | Clientes reales de Cursos | Verificación de matrícula y de profesor con `/course-cohorts/{id}/membership` y token de servicio; manejo de errores; tests ([[Integración con Cursos]]) | 4 | 22 |
 | 3 | Reglas de la tienda | `unitsSold` y cálculo de disponible; validaciones al publicar; solo desactivar; `publicationExpiresAt` al publicar y editar | 6 | 30 |
 | 4 | Seguridad | Parseo de roles sin `contains()`; sin bypass por cabecera vacía; quitar el usuario por defecto `usr-student-001` | 4 | 16 |
-| 5 | Robustez de la compra | Liberar stock en `HOLD_NOT_SETTLED`; vencimiento del hold en UTC; excepciones que hoy responden 500; oferta vencida que responde 200; clave de idempotencia por estudiante | 5 | 22 |
+| 5 | Robustez de la compra | Liberar stock en `HOLD_NOT_SETTLED`; vencimiento del hold en UTC; excepciones que hoy responden 500; oferta vencida que responde 200; clave de idempotencia por estudiante; outbox con reintentos acotados y contador de avisos pendientes (de #1012) | 7 | 29 |
 | 6 | Plataforma y CI | CI sobre `develop`; despliegue con `PORT=8100`; variable de Kafka; quitar `itemValidityDays`; documentación placeholder | 5 | 15 |
 | 7 | Pruebas integradas con Accounting | `KafkaSagaIntegrationTest` en verde; tests de contrato; prueba punta a punta con Accounting | 4 | 25 |
 | 8 | Frontend de Mercado | Vitrina del curso (8 h); detalle de oferta (4 h); compra con idempotencia (6 h); estado de la compra en vivo por SSE (8 h); mis compras (5 h); errores `problem+json` (5 h) | 6 | 36 |
 | 9 | Spikes | Ver tabla siguiente | 14 | 37 |
 | 10 | Organizar la documentación en un vault de conocimiento (Taiga #4888, ya creada) | Trabajo del 2026-10-01: estructura del vault y guías para agentes; estado del código; plataforma e integraciones; contradicciones y decisiones (DEC-001 a DEC-016); saneamiento del backlog; roadmaps y este plan | 6 | a completar con las horas reales |
-| | **Total comprometido** | | **62** | **~248 h + #4888** |
+| | **Total comprometido** | | **64** | **~255 h + #4888** |
 
 ### Spikes
 
@@ -54,7 +54,8 @@ tags: [mercado, sprint, planificacion]
 - La estimación tiene un margen de ±20 %: es una referencia para la planning, no un compromiso.
 - El Sprint 2 empezó sin historias cargadas; cargar Taiga es lo primero ([[Q-013 - Higiene del backlog]]).
 - Si Accounting no acepta el orden de compra propuesto ([[Q-008 - Orden de la saga de compra]]), la historia 1 puede cambiar.
-- El sprint de Taiga tiene 25 historias y 92 puntos, no las 13 historias y 70 puntos de este plan: hay nueve historias anteriores y tres de frontend que no estaban previstas ([[Revisión del Sprint 2 en Taiga]]). El alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+- El sprint de Taiga tiene 25 historias y 92 puntos, no las 13 historias y 73 puntos de este plan: hay nueve historias anteriores y tres de frontend que no estaban previstas ([[Revisión del Sprint 2 en Taiga]]). El alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+- Las ~255 h comprometidas ya superan las ~250 h disponibles. Si #1010 se mantiene con sus tareas reescritas, suma unas 10 h más ([[US-1010 - Contrato de la API publicado]]).
 
 ## Detalle de las historias
 

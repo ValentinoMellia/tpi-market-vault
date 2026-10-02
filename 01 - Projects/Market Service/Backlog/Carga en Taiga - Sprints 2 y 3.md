@@ -38,7 +38,7 @@ Detalle de contenido y horas en [[Plan del Sprint 2]]. Las historias 1 a 9 se ca
 | 2 | Clientes reales de Cursos | Cliente de membership · token de servicio · manejo de errores · tests |
 | 3 | Reglas de la tienda | `unitsSold` al confirmar · cálculo de disponible · validaciones al publicar · solo desactivar · `publicationExpiresAt` en publicar · `publicationExpiresAt` en editar |
 | 4 | Seguridad | Parseo de roles · bypass por cabecera vacía · quitar `usr-student-001` · tests de seguridad |
-| 5 | Robustez de la compra | Stock en `HOLD_NOT_SETTLED` · hold en UTC · excepciones 500 · oferta vencida 200 · idempotencia por estudiante |
+| 5 | Robustez de la compra | Stock en `HOLD_NOT_SETTLED` · hold en UTC · excepciones 500 · oferta vencida 200 · idempotencia por estudiante · outbox con reintentos acotados · contador de avisos pendientes |
 | 6 | Plataforma y CI | CI en `develop` · `PORT=8100` · variable de Kafka · quitar `itemValidityDays` · documentación placeholder |
 | 7 | Pruebas integradas con Accounting | `KafkaSagaIntegrationTest` en verde · tests de contrato · entorno con Accounting · prueba punta a punta |
 | 8 | Frontend de Mercado | Vitrina · detalle de oferta · compra con idempotencia · estado por SSE · mis compras · errores `problem+json` |
