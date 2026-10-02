@@ -92,9 +92,9 @@ Lectura REST para Mercado y otros, bajo `/api/accounting/courses/{courseId}/acco
 
 ## Vidas
 
-El tope PAR-12 viene de Backoffice (evento `GLOBAL_CONFIGURATION_CHANGED {initialLives, maxLives}` en `administration.events`, valores por defecto 3 y 3, ver [[Integración con Backoffice]]). Accounting **recorta (clamp), nunca rechaza**: el crédito se trunca y queda una fila de libro con `delta` 0. `LIFE_PURCHASE_CONFIRMED` solo existe en la rama sin integrar `feature/lives-purchase-credit` (propuesta).
+El tope PAR-12 viene de Backoffice (evento `GLOBAL_CONFIGURATION_CHANGED {initialLives, maxLives}` en `administration.events`, valores por defecto 3 y 3, ver [[Integración con Backoffice]]). Accounting **recorta (clamp), nunca rechaza**: el crédito se trunca y queda una fila de libro con `delta` 0.
 
-Decisión ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]): Mercado **no valida** el tope. Accounting aplica su regla (hoy el recorte, PAR-12) y reporta el resultado de una compra de vida con tope alcanzado; Mercado reacciona (por ejemplo, libera el hold o lo refleja en el estado de la orden). **A acordar con Accounting**: el evento y el motivo exactos que publicará para ese caso; hasta entonces Mercado no implementa el manejo ([[Roadmap de trabajo]]). Pregunta de origen: [[Q-002 - Vidas y tope de vidas]].
+Decisión ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]): Mercado **no valida** el tope. Accounting aplica su regla (hoy el recorte, PAR-12) y reporta el resultado de una compra de vida; Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` una vez confirmada la compra y debitadas las monedas (tras confirmar el hold) con sobre contratos-kafka v5, key `studentId` y payload `{studentId, courseId, orderId, quantity}` ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]). Accounting reporta las vidas efectivamente acreditadas con `LIFE_CREDITED` en `accounting.events`. Pregunta de origen: [[Q-002 - Vidas y tope de vidas]].
 
 ## Diferencias entre el código de Mercado y el de accounting
 

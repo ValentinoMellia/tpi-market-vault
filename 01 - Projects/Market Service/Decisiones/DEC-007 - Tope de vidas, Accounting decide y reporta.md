@@ -27,9 +27,8 @@ Esta decisión **reemplaza** la recomendación D1 del taller (Accounting rechaza
 - **Accounting rechaza (D1)**: no se adopta como obligación; si Accounting decide rechazar en el futuro, Mercado reaccionará igual al evento correspondiente.
 
 ## Consecuencias
-- Se elimina de las tareas pendientes "Mercado valida el tope antes del hold".
-- **Tarea de código**: Mercado debe manejar el resultado (evento y motivo) que Accounting publique para una compra de vida con tope alcanzado. Hoy existe `LIFE_CAP_REACHED` en `models/enums/OrderRejectionReason.java` sin uso, y `LIFE_PURCHASE_CONFIRMED` solo existe en una rama sin integrar de Accounting (`feature/lives-purchase-credit`).
-- **A acordar con Accounting**: la señal exacta (nombre del evento, motivo y cómo se refleja el hecho de que el estudiante no recibe todas las vidas pagadas). Hasta entonces, no implementar el manejo. Ver [[Integración con Accounting]].
+- **Tarea de código**: Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` una vez confirmada la orden y debitadas las monedas (tras confirmar el hold) con key `studentId` y payload `{studentId, courseId, orderId, quantity}` ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]).
+- **Acordado con Accounting el 2026-10-02**: Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` (contratos-kafka v5, 4 campos obligatorios, `quantity >= 1`, reenvíos con el mismo `eventId`); Accounting aplica su tope (acredita hasta el máximo o 0 si ya llegó al tope sin devolver monedas) e informa el resultado con `LIFE_CREDITED` en `accounting.events`. Ver [[Integración con Accounting]].
 - Aprovechar el mapeo de todos los motivos de rechazo de [[DEC-009 - Contrato de holds e ítems según Accounting]].
 - La historia #142 cambia de enfoque ([[Épica 137 - Compra directa]]).
 
