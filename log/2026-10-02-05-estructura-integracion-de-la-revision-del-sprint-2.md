@@ -1,0 +1,6 @@
+## [2026-10-02] estructura | Integración de la revisión del Sprint 2 con main
+- Se integró la rama `feature/4888-revision-sprint-2-taiga` (hecha en otra PC sobre `aa607ae`) con `main`, que ya traía el campo `taiga: "#NNNN"`, la sección "Referencias en Taiga" y el formato de tareas por bloques `### T0N`.
+- Las doce notas S2 en conflicto conservan la estructura de `main`. Diez solo diferían en el frontmatter (`actualizado: 2026-10-02`). [[S2-01 - Contrato con Accounting]] suma el aviso a Notificaciones y el tópico `order-events`; [[S2-05 - Robustez de la compra]] suma el análisis del outbox, CA6, CA7, el escenario 5 y las tareas T06 y T07 en el formato nuevo (8 puntos, 29 h).
+- [[Sprint 2 - Índice]] une la tabla con columna Taiga y los totales (73 puntos, 255 h, 64 tareas) con "Referencias en Taiga"; se agregó [[US-1010 - Contrato de la API publicado]] y se mencionó [[S3-01 - Subastas, lanzar y ver las abiertas]] aparte, por ser del Sprint 3.
+- Contradicción: la rama decía que las opcionales no estaban cargadas, pero sus notas registran #5261 y #5266. Se conservaron los números y quedó una nota en el índice para verificarlos en Taiga.
+- En [[S3-01 - Subastas, lanzar y ver las abiertas]] se quitaron las comillas inversas de las líneas de checkbox, por cómo Taiga las renderiza.

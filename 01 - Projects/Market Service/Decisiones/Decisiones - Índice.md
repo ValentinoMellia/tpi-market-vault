@@ -42,4 +42,6 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 
 - [[Q-013 - Higiene del backlog]]: [[DEC-015 - Política del backlog de Taiga]] fija la política; falta sanear Taiga y planificar los sprints.
 
+- [[Q-018 - Alcance real del Sprint 2 en Taiga]]: el sprint de Taiga tiene historias que no están en el plan; falta decidir qué se queda, qué entra con mock y cómo se reparte el frontend.
+
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].

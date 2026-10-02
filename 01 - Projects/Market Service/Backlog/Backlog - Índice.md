@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, backlog]
 ---
 # Backlog - Índice
@@ -37,4 +37,4 @@ Los estados de Taiga se mantienen a mano y están desactualizados: solo US-092 y
 
 ## Problemas del backlog
 
-Duplicados, historias ajenas y faltantes se registran en [[Q-013 - Higiene del backlog]], que sigue abierta hasta sanear el backlog de Taiga. Contexto del proyecto: [[Market Service - Overview]] y [[Roadmap de trabajo]]. Las operaciones exactas para cargar y cerrar historias están en [[Carga en Taiga - Sprints 2 y 3]]. Las historias del Sprint 2, una nota por historia con su plantilla y tareas: [[Sprint 2 - Índice]].
+Duplicados, historias ajenas y faltantes se registran en [[Q-013 - Higiene del backlog]], que sigue abierta hasta sanear el backlog de Taiga. Contexto del proyecto: [[Market Service - Overview]] y [[Roadmap de trabajo]]. Las operaciones exactas para cargar y cerrar historias están en [[Carga en Taiga - Sprints 2 y 3]]. Las historias del Sprint 2, una nota por historia con su plantilla y tareas: [[Sprint 2 - Índice]]. Cómo quedó el sprint en Taiga y qué historias se solapan: [[Revisión del Sprint 2 en Taiga]].

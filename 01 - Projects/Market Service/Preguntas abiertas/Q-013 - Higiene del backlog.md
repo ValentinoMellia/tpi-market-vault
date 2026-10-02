@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: en-disputa
 verificado_contra: DEC-015
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, pregunta-abierta, backlog]
 ---
 # Q-013 - Higiene del backlog
@@ -35,6 +35,7 @@ No aplica. Ver [[Backlog - Índice]].
 ## Qué sigue pendiente
 - Sanear realmente el backlog de Taiga (cerrar como obsoletas, transferir, crear faltantes, actualizar estados).
 - Fechas de inicio y fin de los sprints.
+- El alcance real del Sprint 2 en Taiga: historias anteriores, duplicadas o ya hechas dentro del sprint ([[Q-018 - Alcance real del Sprint 2 en Taiga]], [[Revisión del Sprint 2 en Taiga]]).
 - Acceso al MCP de Taiga (lo debe reconfigurar el usuario; problema recurrente conocido).
 
 ## Opciones

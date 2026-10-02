@@ -2,17 +2,17 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
-puntos: 5
+puntos: 8
 prioridad: Should
-horas: 22
+horas: 29
 ---
 # S2-05 - Robustez de la compra
 
-> Corregir los defectos de la compra que dejan stock retenido, vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. 5 tareas, 22 h, 5 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo.
+> Corregir los defectos de la compra que dejan stock retenido, vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 29 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo.
 
 ## [G11] — Robustez de la compra
 
@@ -34,6 +34,7 @@ horas: 22
 - [ ] Performance (tiempos, volumen, límites): el índice único pasa de uk_orders_idempotency_key (solo clave) a clave más estudiante; sin impacto de volumen esperado.
 - [ ] Seguridad (roles, permisos, datos sensibles): evitar que un estudiante reutilice la clave de otro para obtener su orden: con clave por estudiante, la misma clave de dos estudiantes crea dos órdenes independientes.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
+- [ ] Outbox (absorbe #1012): hoy OutboxEventEntity solo tiene el booleano processed: no hay contador de intentos, espera creciente entre reintentos, máximo de intentos ni estado de fallo. OutboxRelayServiceImpl corta el ciclo en el primer fallo, de modo que un mensaje que nunca se puede enviar bloquea todos los que vienen detrás. Tampoco hay forma de consultar cuántos avisos esperan salir (OutboxEventRepository solo tiene findByProcessedFalseOrderByCreatedAtAscIdAsc). El resto de #1012 ya está en el código: guardado antes de enviar, deduplicación por eventId en los dos listeners y studentId como clave de Kafka para conservar el orden.
 - [ ] Otros: OrderHoldServiceImpl convierte granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 112); debe guardarse en UTC. Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
 
 ---
@@ -45,6 +46,8 @@ horas: 22
 - [ ] **CA3**: ningún flujo de error previsto de compra, vitrina o gestión responde 500; cada excepción de la lista de la tarea 3 responde su estado 4xx con problem+json.
 - [ ] **CA4**: GET /api/market/courses/{courseId}/catalog/{itemId} de una oferta activa con publicationExpiresAt pasado responde 409 catalog-offer-expired.
 - [ ] **CA5**: dos estudiantes distintos con la misma idempotencyKey crean dos órdenes; el mismo estudiante con la misma clave y otra oferta recibe 409 idempotency-key-conflict.
+- [ ] **CA6**: un aviso del outbox que falla se reintenta con espera creciente y, al llegar al máximo de intentos, queda en estado de fallo; los avisos que vienen después se siguen enviando. Probado con un envío que siempre falla.
+- [ ] **CA7**: la cantidad de avisos pendientes de enviar se puede consultar (métrica en /actuator/prometheus).
 - [ ] **Extras (opcional)**: OrderIdempotencyConcurrencyTest pasa con la clave por estudiante.
 
 ---
@@ -77,6 +80,12 @@ horas: 22
 - **Cuando**: llega la segunda petición
 - **Entonces**: devuelve el `orderId` de la primera orden sin crear otra ni retener otro hold
 
+**Escenario 5**  
+
+- **Dado**: tres avisos pendientes en el outbox y un primero que Kafka rechaza siempre
+- **Cuando**: el relay corre más veces que el máximo de intentos configurado
+- **Entonces**: el primero queda en estado de fallo, los otros dos se envían y el contador de pendientes refleja solo los que siguen esperando
+
 ---
 
 ## Prototipo
@@ -92,26 +101,26 @@ horas: 22
 
 **Formato rápido**
 
-- **Puntos (Fibonacci)**: 5
+- **Puntos (Fibonacci)**: 8
 - **Prioridad (MoSCoW / Numérica)**: Should
 
 **Formato tabla (opcional)**
 
 |Puntos (Fibonacci)|Prioridad (MoSCoW / Numérica)|
 |---|---|
-|5|Should|
+|8|Should|
 
 ---
 
 ## Dependencias / Impactos
 
 - Servicios involucrados: Mercado.
-- Módulos afectados: `services/impl/OrderConfirmationServiceImpl.java`, `OrderHoldServiceImpl.java`, `PurchaseIdempotencyServiceImpl.java`, `StorefrontCatalogServiceImpl.java`, `repositories/OrderRepository.java`, `entities/OrderEntity.java`, `controllers/GlobalExceptionHandler.java`.
+- Módulos afectados: `entities/OutboxEventEntity.java`, `repositories/OutboxEventRepository.java`, `services/impl/OutboxRelayServiceImpl.java`, `services/impl/OrderConfirmationServiceImpl.java`, `OrderHoldServiceImpl.java`, `PurchaseIdempotencyServiceImpl.java`, `StorefrontCatalogServiceImpl.java`, `repositories/OrderRepository.java`, `entities/OrderEntity.java`, `controllers/GlobalExceptionHandler.java`.
 - Otros equipos / aprobaciones: ninguno.
 - Impacto en datos / migraciones: cambia la restricción única de `orders` (clave de idempotencia por estudiante); no hay Flyway, así que se ajusta `OrderEntity.IDEMPOTENCY_KEY_CONSTRAINT` y se verifica `ddl-auto=update` en un entorno con datos.
 - Riesgos y mitigación (opcional): interacción con [[S2-03 - Reglas de la tienda]] (stock vendido y reservado) y con [[S2-01 - Contrato con Accounting]] (`orderRef`); ordenar los merges para evitar conflictos en `OrderEntity`.
 
-Relación: [[Orden de compra]], [[Estado actual del código]] (gaps 8, 13, 18 y 19), [[Errores de la API]], [[Bloqueo optimista]].
+Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07), [[Entrega at-least-once y deduplicación]], [[Eventos y Kafka]], [[Orden de compra]], [[Estado actual del código]] (gaps 8, 13, 18 y 19), [[Errores de la API]], [[Bloqueo optimista]].
 
 ---
 
@@ -168,3 +177,26 @@ Estimación: 4 h
 - Hecho cuando: la misma clave usada por dos estudiantes crea dos órdenes independientes
 
 Estimación: 5 h
+
+### T06 - Reintentar con espera creciente los avisos del outbox que fallan (de #1012)
+
+**Objetivo:** Evitar que un aviso imposible de enviar bloquee a los que vienen detrás.
+
+- Contador de intentos, espera creciente y máximo configurable en `OutboxEventEntity`
+- Estado de fallo para el mensaje que no se puede enviar
+- `OutboxRelayServiceImpl` deja de cortar el ciclo por un mensaje con fallo
+- Pruebas con un envío que siempre falla y con Kafka caído
+- Hecho cuando: un aviso que falla llega al máximo de intentos y queda en estado de fallo, y los avisos siguientes se envían
+
+Estimación: 5 h
+
+### T07 - Consultar la cantidad de avisos pendientes del outbox (de #1012)
+
+**Objetivo:** Poder ver cuántos avisos esperan salir.
+
+- Consulta de cantidad en `OutboxEventRepository`
+- Métrica en `/actuator/prometheus`
+- Prueba de que el contador baja al enviar
+- Hecho cuando: la métrica refleja los avisos pendientes y baja cuando se envían
+
+Estimación: 2 h
