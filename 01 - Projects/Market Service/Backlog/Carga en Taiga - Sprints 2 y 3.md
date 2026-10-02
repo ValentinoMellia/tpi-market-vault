@@ -49,7 +49,7 @@ Opcionales: reconciliación de compras (absorbe #143) y frontend de gestión del
 
 ## 3. Sprint 3 (2026-10-12 al 2026-10-25), borrador
 
-A detallar en la planning del Sprint 3, con el resultado del spike de diseño de subastas.
+A detallar en la planning del Sprint 3, con el resultado del spike de diseño de subastas. Ya está cargada, en el backlog y sin sprint, la primera historia: [[S3-01 - Subastas, lanzar y ver las abiertas]] (#5347, tareas #5348 a #5353).
 
 | Historia nueva | Base |
 |---|---|
