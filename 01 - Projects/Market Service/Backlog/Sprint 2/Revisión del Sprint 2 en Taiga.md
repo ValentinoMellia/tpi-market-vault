@@ -7,13 +7,13 @@ tags: [mercado, backlog, sprint-2, taiga]
 ---
 # Revisión del Sprint 2 en Taiga
 
-> Foto del sprint "G11 - Sprint 2" de Taiga al 2026-10-02: tiene 25 historias, y no solo las 13 del [[Plan del Sprint 2]]. Suma 92 puntos frente a los 70 previstos, con duplicados, historias ya hechas en el código y algunas que contradicen decisiones. El alcance final está abierto en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+> Foto del sprint "G11 - Sprint 2" de Taiga al 2026-10-02: tiene 25 historias, y no solo las 13 del [[Plan del Sprint 2]]. Suma 92 puntos frente a los 73 que prevé el plan (Taiga todavía tiene #5219 con 5 puntos y el plan ya lo subió a 8), con duplicados, historias ya hechas en el código y algunas que contradicen decisiones. El alcance final está abierto en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
 
 ## Fuente y alcance
 
 - Taiga, proyecto `1804026`, sprint "G11 - Sprint 2" (id `533590`, del 2026-09-28 al 2026-10-11), leído el 2026-10-02 con la descripción completa de cada historia.
 - Código: `tpi-market`, rama `develop`, commit `7528610`. Las rutas citadas son relativas a `src/main/java/ar/edu/utn/frc/tup/p4/`.
-- Esta nota describe lo que hay y propone acciones. Las acciones no están decididas: dependen de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. Taiga no se modificó.
+- Esta nota describe lo que hay y propone acciones. Las acciones no están decididas: dependen de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. En Taiga solo se tocaron las tareas de #1010, #1011 y #1012 (sección «Tareas de #1010, #1011 y #1012»); las historias no se modificaron.
 
 ## Qué hay en el sprint
 
@@ -30,9 +30,9 @@ Las historias llegaron en tres tandas.
 
 | US | Título en Taiga | Pts | Estado | Nota del vault | Propuesta (pendiente de [[Q-018 - Alcance real del Sprint 2 en Taiga]]) |
 |---|---|---|---|---|---|
-| #1010 | Publicar el contrato de la API antes de programarla | 2 | New | — | Verificar y pasar a Done |
+| #1010 | Publicar el contrato de la API antes de programarla | 2 | New | — | Mantener con las tareas reescritas: [[US-1010 - Contrato de la API publicado]] |
 | #1011 | Saber quién entra al Mercado y qué puede hacer | 2 | New | — | Cerrar como duplicada de #5214 y #5202 |
-| #1012 | Que los avisos entre módulos no se pierdan ni se dupliquen | 3 | New | — | Cerrar como obsoleta (hecha) o reducir al contador de pendientes |
+| #1012 | Que los avisos entre módulos no se pierdan ni se dupliquen | 3 | New | — | Cerrar como obsoleta: lo pendiente pasa a #5219 ([[S2-05 - Robustez de la compra]], tareas 6 y 7) y #5193 ([[S2-01 - Contrato con Accounting]]) |
 | #1013 | Simular al Banco para poder probar sin esperarlo | 2 | New | — | Cerrar como obsoleta (hecha; la adaptación al contrato está en #5193) |
 | #1037 | Dejar el Mercado en solo lectura cuando el curso se cierra | 3 | New | — | Sprint 2 con mock o Sprint 3 |
 | #1038 | Bloquear las compras de un alumno que deja el curso | 3 | New | — | Sprint 2 con mock o Sprint 3; casi cubierta por #5202 |
@@ -44,7 +44,7 @@ Las historias llegaron en tres tandas.
 | #5202 | Clientes reales de Cursos | 5 | New | [[S2-02 - Clientes reales de Cursos]] | Mantener |
 | #5207 | Reglas de la tienda | 8 | New | [[S2-03 - Reglas de la tienda]] | Mantener |
 | #5214 | Seguridad | 3 | New | [[S2-04 - Seguridad]] | Mantener |
-| #5219 | Robustez de la compra | 5 | New | [[S2-05 - Robustez de la compra]] | Mantener |
+| #5219 | Robustez de la compra | 5 | New | [[S2-05 - Robustez de la compra]] | Mantener; en el vault ya son 8 puntos y 29 h por lo que absorbe de #1012 |
 | #5225 | Plataforma y CI | 3 | New | [[S2-06 - Plataforma y CI]] | Mantener |
 | #5231 | Pruebas integradas con Accounting | 8 | New | [[S2-07 - Pruebas integradas con Accounting]] | Mantener |
 | #5236 | Frontend de Mercado | 13 | New | [[S2-08 - Frontend de Mercado]] | Reducir a lo que no cubren #5288 a #5290 |
@@ -95,6 +95,8 @@ Diferencias: el mock no maneja un saldo configurable por alumno, sino que decide
 | Extra: consultar los avisos pendientes | No existe |
 | Prueba con Kafka real | Pendiente en [[S2-07 - Pruebas integradas con Accounting]] |
 
+Lo que sí falta del outbox (reintentos acotados, estado de fallo y contador de pendientes) se detalla en la sección «Tareas de #1010, #1011 y #1012» y se absorbe en [[S2-05 - Robustez de la compra]].
+
 ### #1038 queda casi cubierta por #5202
 
 Con [[S2-02 - Clientes reales de Cursos]], cada compra consulta `GET /course-cohorts/{id}/membership`. Un alumno dado de baja recibe 403 `student-not-enrolled`, sin que haga falta consumir `STUDENT_UNENROLLED`. Así se cumple el CA1 de #1038. El CA2 (el historial no cambia) se cumple solo, porque nada toca las órdenes. Lo exclusivo de #1038 es procesar el evento de baja de forma idempotente (CA3) y registrar el momento de la baja (extra).
@@ -109,6 +111,33 @@ Con [[S2-02 - Clientes reales de Cursos]], cada compra consulta `GET /course-coh
 | Compra con idempotencia, estado por [[SSE]], mis compras, errores `problem+json` | Solo #5236 |
 
 Ya hay trabajo de vitrina terminado en el Sprint 1: #3636 y #3684, en Done.
+
+## Tareas de #1010, #1011 y #1012
+
+Las diez tareas de estas historias estaban en `New` y sin descripción (comprobado en #1019, #1022 y #1027; el listado de Taiga no devuelve ese campo). Se contrastó el alcance de cada una con `tpi-market` en `develop@7528610`. Criterio del equipo: si falta algo, la tarea se reescribe o se absorbe en una historia del Sprint 2; si no falta nada, se marca obsoleta.
+
+| Tarea | Veredicto | Qué hay en el código | Destino |
+|---|---|---|---|
+| #1019 US-1010 T01, contrato de catálogo y compra | Obsoleta | Los 13 endpoints de negocio tienen `@Operation`, `@ApiResponses` y `ErrorApi` | Archivar con comentario |
+| #1020 US-1010 T02, publicar en el navegador | Reescribir | `/swagger-ui.html` y `/v3/api-docs` están abiertos en `SecurityConfig`, pero el puerto de Mercado no se publica ([[Gateway e identidad]]) y no se verificó una ruta por el gateway | [[US-1010 - Contrato de la API publicado]], T02 |
+| #1021 US-1010 T03, errores y compartir | Reescribir | `ErrorApi` está en todos los endpoints, pero `docs/api_doc/swagger.json` está desactualizado y nada lo regenera; no hay `@ExampleObject` | [[US-1010 - Contrato de la API publicado]], T03 y T04 |
+| #1025 US-1012 T01, guardar y reintentar | Absorber en el Sprint 2 | El outbox existe, pero sin contador de intentos, espera creciente, máximo ni estado de fallo, y un mensaje que no sale bloquea la cola; tampoco hay contador de pendientes | [[S2-05 - Robustez de la compra]], tareas 6 y 7 |
+| #1026 US-1012 T02, ignorar repetidos | Obsoleta | Los dos listeners deduplican por `eventId` en `processed_events` | Archivar con comentario |
+| #1027 US-1012 T03, formato de los avisos | Absorber en el Sprint 2 | Envelope y productor `market-service` ya aplicados; el tópico de órdenes sigue en `market.orders.events` y falta informar a Notificaciones | [[S2-01 - Contrato con Accounting]], tareas 2 y 4 |
+| #1028 US-1012 T04, pruebas | Obsoleta | Existen las pruebas de mensajería caída y de duplicados; `KafkaSagaIntegrationTest` se omite sin Docker | Lo cubre [[S2-07 - Pruebas integradas con Accounting]] |
+| #1022 US-1011 T01, leer identidad y rol | Obsoleta | `GatewayIdentityFilter` ya lee `X-User-Id` y `X-User-Roles` y arma las autoridades | Archivar con comentario; los defectos que quedan están en [[S2-04 - Seguridad]] |
+| #1023 US-1011 T02, definir qué puede hacer cada rol | Obsoleta | Roles y permisos definidos en [[DEC-006 - Roles y permisos según el código y los headers del gateway]]; falta el parseo exacto de roles | [[S2-04 - Seguridad]], tareas 1 y 2 |
+| #1024 US-1011 T03, pruebas de acceso | Obsoleta | Existen `SecurityConfigTest`, `GatewayIdentityFilterTest` y pruebas de aceptación con 401 y 403; faltan los casos de subcadena, cabecera vacía y sin `X-User-Id` | [[S2-04 - Seguridad]], tarea 4 |
+
+Resultado: #1011 y #1012 se cierran como obsoletas sin tareas propias abiertas. #1010 se mantiene con tareas reescritas, fuera del plan hasta que se resuelva [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+
+Aplicado en Taiga el 2026-10-02:
+
+- Cerradas con la etiqueta `obsoleta` y un comentario con la evidencia: #1019, #1022, #1023, #1024, #1026 y #1028.
+- Cerradas con la etiqueta `absorbida` y un comentario que apunta a la historia que las absorbe: #1025 y #1027.
+- Reescritas (título y descripción): #1020 y #1021.
+- Creadas: #5344 y #5345 en #5219 (outbox con reintentos y contador de pendientes) y #5346 en #1010 (ejemplos y validación con otro equipo). Quedan sin asignar.
+- Las historias #1010, #1011 y #1012 no se modificaron: su destino depende de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. #5219 sigue con 5 puntos en Taiga y en el vault ya son 8.
 
 ## Contradicciones que la jerarquía de verdad resuelve
 
