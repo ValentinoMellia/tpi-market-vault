@@ -2,14 +2,14 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
 
 > Qué hace hoy `tpi-market` (rama `develop`, commit `7528610`, PR #73). El código es la segunda fuente de verdad: lo que dice acá es lo que *es*, no necesariamente lo que *debe ser*.
 
-Actualización: `develop` avanzó a `cf988d2`, dos commits por encima de `7528610`, que solo tocan CI (la verificación del nombre de rama corre únicamente al abrir el PR); el resto de la nota sigue vigente contra `7528610`.
+Actualización: `develop` avanzó a `cf988d2`, dos commits por encima de `7528610`, que solo tocan CI (la verificación del nombre de rama corre únicamente al abrir el PR); el resto de la nota sigue vigente contra `7528610`. La sección [[#Confirmación de compra y métricas]] está verificada contra el PR #82 (commit `6e8b7fc`, pendiente de merge en `develop`).
 
 ## Stack
 
@@ -66,6 +66,18 @@ No existen `admin/metrics` ni `/api/v1/market/orders`. Estas rutas son el contra
 ## Eventos
 
 Resumen; el detalle está en [[Eventos y Kafka]]. Envelope `EventEnvelope<T>`; tópicos `accounting.holds.commands`, `accounting.holds.events`, `inventory.items.commands`, `inventory.items.events`, `market.orders.events`. **Ninguno de esos tópicos está aprovisionado en la plataforma**; accounting usa `accounting.events` y `market.events`, que son los que Mercado debe usar ([[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]]). Se consumen respuestas de Accounting (ex Banco) y del inventario inexistente solo con transporte `kafka` (`AccountingHoldKafkaListener`, `InventoryItemKafkaListener`). Se publica con [[Patrón Outbox]] (`OutboxRelayJob`; lotes de 20, `market.messaging.relay.batch-size`). El grupo consumidor es `market-service`.
+
+## Confirmación de compra y métricas
+
+Al confirmarse el débito, `OrderConfirmationServiceImpl.applyConfirmResult` pasa la orden a `CONFIRMED`, publica `PURCHASE_CONFIRMED` y, en la misma transacción, como mucho un evento de ítem:
+
+- **Vida (`LIFE`):** `LIFE_PURCHASE_CONFIRMED` en `market.events` con productor `market-service` (PR #78, US-5899). Nunca `ITEM_CONFIRMED`.
+- **Otros ítems:** `ITEM_CONFIRMED` en `market.orders.events`, solo con `market.events.item-confirmed.enabled=true` (por defecto `false`).
+- **Evento omitido:** si la oferta ya no existe o la vida tiene `livesGranted` nulo o no positivo, la orden igual se confirma (el débito ya ocurrió), no se publica el evento, se registra un `ERROR` para conciliación manual y se incrementa la métrica.
+
+**Métrica `market.life_purchase.event_skipped`** (`services/impl/LifePurchaseMetrics.java`, PR #82). En Prometheus es `market_life_purchase_event_skipped_total`, expuesta en `/actuator/prometheus` (puerto de management `8085`), con el tag `reason` en `offer_not_found` o `invalid_lives_granted`. Las dos series se registran en 0 al arrancar, para que la alerta `increase(market_life_purchase_event_skipped_total[5m]) > 0` dispare desde el primer caso, y se incrementan después del commit, nunca en rollback, para que los reintentos de conciliación no cuenten de más. `offer_not_found` cuenta cualquier tipo de ítem, porque sin la oferta no se sabe si era una vida.
+
+**Tipo de ítem guardado en la orden** (PR #82). `PurchaseOrderServiceImpl` copia el `itemType` de la oferta en la orden ([[Orden de compra]]). Al confirmar, la oferta se lee solo si puede hacer falta: vida, flag de `ITEM_CONFIRMED` activo u orden anterior a este cambio sin el dato.
 
 ## Seguridad
 
