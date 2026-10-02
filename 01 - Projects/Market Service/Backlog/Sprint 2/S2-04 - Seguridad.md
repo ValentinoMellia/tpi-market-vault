@@ -28,11 +28,11 @@ horas: 16
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: la cabecera oficial de roles es `X-User-Roles`; los roles son STUDENT, PROFESSOR, ADMIN, GESTOR y MS ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]). Se quita el respaldo `X-Roles`.
-- [ ] Validaciones: comparación exacta de cada rol de la cabecera (separada por comas), sin `contains()`: hoy `rolesHeader.contains("MS")` también acepta cualquier valor que contenga `MS`, y `contains("ADMIN")` acepta `NOT_ADMIN` (`services/impl/CourseCatalogManageServiceImpl.java`, líneas 162 a 189 y 343 a 348).
-- [ ] Datos obligatorios: `X-User-Id` y `X-User-Roles` en toda ruta autenticada; si falta `X-User-Id` la respuesta es 400 `missing-header` o 401, no un usuario por defecto.
+- [ ] Reglas de negocio: la cabecera oficial de roles es X-User-Roles; los roles son STUDENT, PROFESSOR, ADMIN, GESTOR y MS ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]). Se quita el respaldo X-Roles.
+- [ ] Validaciones: comparación exacta de cada rol de la cabecera (separada por comas), sin contains(): hoy rolesHeader.contains("MS") también acepta cualquier valor que contenga MS, y contains("ADMIN") acepta NOT_ADMIN (services/impl/CourseCatalogManageServiceImpl.java, líneas 162 a 189 y 343 a 348).
+- [ ] Datos obligatorios: X-User-Id y X-User-Roles en toda ruta autenticada; si falta X-User-Id la respuesta es 400 missing-header o 401, no un usuario por defecto.
 - [ ] Performance (tiempos, volumen, límites): sin impacto.
-- [ ] Seguridad (roles, permisos, datos sensibles): `GatewayIdentityFilter` sigue confiando en las cabeceras del gateway sin validar JWT ([[Gateway e identidad]]); validar JWT queda fuera de alcance. `validateProfessorAccess` hoy omite el chequeo cuando la cabecera está vacía. Los controladores asumen `usr-student-001` si falta `X-User-Id` (`StorefrontCatalogController`, `StudentOrderController`, `CatalogOfferController`).
+- [ ] Seguridad (roles, permisos, datos sensibles): GatewayIdentityFilter sigue confiando en las cabeceras del gateway sin validar JWT ([[Gateway e identidad]]); validar JWT queda fuera de alcance. validateProfessorAccess hoy omite el chequeo cuando la cabecera está vacía. Los controladores asumen usr-student-001 si falta X-User-Id (StorefrontCatalogController, StudentOrderController, CatalogOfferController).
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
 - [ ] Otros: el código de estado exacto cuando falta la identidad (400 o 401) se confirma con el equipo al inicio de la tarea 3.
 
@@ -40,10 +40,10 @@ horas: 16
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: una cabecera `X-User-Roles` con un valor que solo contiene un rol como subcadena (por ejemplo `NOT_ADMIN` o `SYSTEM`) no otorga ADMIN ni MS; verificado con pruebas parametrizadas.
-- [ ] **CA2**: `PATCH /api/market/courses/{courseId}/catalog/manage/offers/{itemId}/status` con `X-User-Roles` vacío o ausente responde 403 y no ejecuta la verificación de profesor como "omitida".
-- [ ] **CA3**: ninguna ruta de `/api/market/**` asume `usr-student-001`; sin `X-User-Id` responde con error y la cadena no aparece en el código de producción.
-- [ ] **CA4**: no hay referencias a la cabecera `X-Roles` en `GatewayIdentityFilter` ni en los controladores.
+- [ ] **CA1**: una cabecera X-User-Roles con un valor que solo contiene un rol como subcadena (por ejemplo NOT_ADMIN o SYSTEM) no otorga ADMIN ni MS; verificado con pruebas parametrizadas.
+- [ ] **CA2**: PATCH /api/market/courses/{courseId}/catalog/manage/offers/{itemId}/status con X-User-Roles vacío o ausente responde 403 y no ejecuta la verificación de profesor como "omitida".
+- [ ] **CA3**: ninguna ruta de /api/market/** asume usr-student-001; sin X-User-Id responde con error y la cadena no aparece en el código de producción.
+- [ ] **CA4**: no hay referencias a la cabecera X-Roles en GatewayIdentityFilter ni en los controladores.
 - [ ] **Extras (opcional)**: una prueba de seguridad por cada rol y endpoint de la tabla de [[Estado actual del código]].
 
 ---
@@ -116,9 +116,43 @@ Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Parseo de roles sin `contains()` | 5 | Parser común que separa `X-User-Roles` por comas y compara cada rol de forma exacta (con y sin prefijo `ROLE_`); quitar el respaldo `X-Roles` |
-| 2 | Sin bypass por cabecera vacía | 3 | `validateProfessorAccess` deja de omitir el chequeo cuando la cabecera está vacía; 403 |
-| 3 | Quitar `usr-student-001` | 3 | Eliminar los `defaultValue` y la constante `DEFAULT_USER_ID`; error por identidad ausente |
-| 4 | Tests de seguridad | 5 | Pruebas parametrizadas por rol y endpoint, incluidos los casos de subcadena, cabecera vacía y falta de `X-User-Id` |
+### T01 - Parsear los roles sin contains
+
+**Objetivo:** Reemplazar la comparación por subcadena con una comparación exacta de cada rol.
+
+- Parser común que separa `X-User-Roles` por comas y compara cada rol de forma exacta, con y sin prefijo `ROLE_`
+- Reemplaza los `contains()` de `CourseCatalogManageServiceImpl`
+- Quitar el respaldo `X-Roles`
+- Hecho cuando: `NOT_ADMIN` y cualquier valor que contenga `MS` ya no otorgan permisos
+
+Estimación: 5 h
+
+### T02 - Eliminar el bypass por cabecera de roles vacía
+
+**Objetivo:** Impedir que una cabecera vacía omita el control de acceso del profesor.
+
+- `validateProfessorAccess` deja de omitir el chequeo cuando la cabecera está vacía
+- Responder 403 en ese caso
+- Hecho cuando: una petición con `X-User-Roles` vacío a una ruta de gestión responde 403
+
+Estimación: 3 h
+
+### T03 - Quitar el usuario por defecto usr-student-001
+
+**Objetivo:** Evitar que se opere con una identidad que el cliente no envió.
+
+- Eliminar los `defaultValue` y la constante `DEFAULT_USER_ID` en `StorefrontCatalogController`, `StudentOrderController` y `CatalogOfferController`
+- Responder con error por identidad ausente (400 `missing-header` o 401, a confirmar con el equipo al iniciar la tarea)
+- Hecho cuando: una petición sin `X-User-Id` falla y ya no queda ninguna referencia a `usr-student-001`
+
+Estimación: 3 h
+
+### T04 - Probar la seguridad por rol y endpoint
+
+**Objetivo:** Cubrir con pruebas automáticas las reglas estrictas de roles e identidad.
+
+- Pruebas parametrizadas por rol y endpoint
+- Casos de subcadena, cabecera vacía y ausencia de `X-User-Id`
+- Hecho cuando: las pruebas parametrizadas pasan en verde y fallan si se reintroduce `contains()`
+
+Estimación: 5 h

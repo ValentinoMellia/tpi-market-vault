@@ -28,9 +28,9 @@ Dejar un diseño técnico de subastas listo para implementar en el Sprint 3: ent
 
 - [ ] ¿Qué entidades y campos tiene una subasta (modo abierta o ciega, incremento mínimo, duración máxima de 14 días, X de la fase final ciega, ítem del catálogo subastado)?
 - [ ] ¿Cuál es la máquina de estados de la subasta y cómo se deriva la fase (abierta o sellada) del tiempo restante?
-- [ ] ¿Cómo se mapea cada oferta a los comandos de Accounting: `HOLD_CREATE_REQUESTED` con `orderType: "AUCTION_BID"` y `ttlSeconds`, `HOLD_INCREASE_REQUESTED` con el total nuevo y un `HOLD_RELEASE_REQUESTED` por postor con `AUCTION_LOST` o `AUCTION_CANCELLED`?
+- [ ] ¿Cómo se mapea cada oferta a los comandos de Accounting: HOLD_CREATE_REQUESTED con orderType: "AUCTION_BID" y ttlSeconds, HOLD_INCREASE_REQUESTED con el total nuevo y un HOLD_RELEASE_REQUESTED por postor con AUCTION_LOST o AUCTION_CANCELLED?
 - [ ] ¿Cómo se decide y audita el desempate por dado en el servidor y qué datos se registran?
-- [ ] ¿Qué hace Mercado ante `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` (tópico `courses.events`)?
+- [ ] ¿Qué hace Mercado ante COURSE_ARCHIVED y STUDENT_UNENROLLED (tópico courses.events)?
 - [ ] ¿Qué regla rige la oferta sellada (pendiente en DEC-014) y qué propuesta se lleva al equipo?
 
 ---
@@ -68,7 +68,24 @@ Dejar un diseño técnico de subastas listo para implementar en el Sprint 3: ent
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Modelo, estados y fase final ciega | 5 | Entidades, máquina de estados, derivación de la fase ciega, desempate por dado auditable y propuesta para la regla de la oferta sellada |
-| 2 | Contrato con Accounting y Cursos | 5 | Secuencias de `HOLD_CREATE_REQUESTED` (`AUCTION_BID`), `HOLD_INCREASE_REQUESTED`, releases por postor y consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` |
+### T01 - Diseñar el modelo, los estados y la fase final ciega de las subastas
+
+**Objetivo:** Dejar definido el modelo de subastas para que el Sprint 3 empiece implementando.
+
+- Entidades y máquina de estados
+- Derivación de la fase ciega y desempate por dado auditable
+- Propuesta para la regla de la oferta sellada
+- Hecho cuando: el diseño está documentado en el vault y revisado por el equipo
+
+Estimación: 5 h
+
+### T02 - Definir el contrato de subastas con Accounting y Cursos
+
+**Objetivo:** Especificar las secuencias de mensajes que necesitan las subastas.
+
+- Secuencias de `HOLD_CREATE_REQUESTED` (`AUCTION_BID`) y `HOLD_INCREASE_REQUESTED`
+- Releases por postor
+- Consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED`
+- Hecho cuando: las secuencias están documentadas y validadas con ambos equipos
+
+Estimación: 5 h

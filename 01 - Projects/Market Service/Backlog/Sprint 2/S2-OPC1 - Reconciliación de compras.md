@@ -28,21 +28,21 @@ horas: 20
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: ante `INVALID_HOLD_STATE` al confirmar, `reconcileHoldStatus` consulta el estado del hold: `COMMITTED` confirma la orden y `RELEASED` la cancela con `HOLD_NOT_SETTLED` ([[Orden de compra]]). Las órdenes que quedan en `CREATED` porque falló `requestHold` deben reconciliarse (gap 20, reportado sin verificar).
-- [ ] Validaciones: el cliente real consulta `GET /api/accounting/holds/{holdId}` y debe interpretar los estados de hold de Accounting; los estados exactos se confirman con su documentación al integrarlo.
-- [ ] Datos obligatorios: `holdId` de la orden; URL base de Accounting por variable de entorno.
-- [ ] Performance (tiempos, volumen, límites): el job corre con la periodicidad actual (`BankHoldReconciliationJob`, a revisar) y procesa lotes acotados para no saturar a Accounting.
+- [ ] Reglas de negocio: ante INVALID_HOLD_STATE al confirmar, reconcileHoldStatus consulta el estado del hold: COMMITTED confirma la orden y RELEASED la cancela con HOLD_NOT_SETTLED ([[Orden de compra]]). Las órdenes que quedan en CREATED porque falló requestHold deben reconciliarse (gap 20, reportado sin verificar).
+- [ ] Validaciones: el cliente real consulta GET /api/accounting/holds/{holdId} y debe interpretar los estados de hold de Accounting; los estados exactos se confirman con su documentación al integrarlo.
+- [ ] Datos obligatorios: holdId de la orden; URL base de Accounting por variable de entorno.
+- [ ] Performance (tiempos, volumen, límites): el job corre con la periodicidad actual (BankHoldReconciliationJob, a revisar) y procesa lotes acotados para no saturar a Accounting.
 - [ ] Seguridad (roles, permisos, datos sensibles): llamada servicio a servicio con el token que acuerde Accounting.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica.
-- [ ] Otros: hoy, con transporte `kafka`, `OrderConfirmationServiceImpl` y `BankHoldReconciliationServiceImpl` fallan al arrancar porque no hay bean `BankHoldQueryClient` (gap 1, no verificado ejecutando). La propiedad `bank-hold.reconciliation.enabled` está en `false`. Solo se ejecuta si Accounting avisa que integró la consulta.
+- [ ] Otros: hoy, con transporte kafka, OrderConfirmationServiceImpl y BankHoldReconciliationServiceImpl fallan al arrancar porque no hay bean BankHoldQueryClient (gap 1, no verificado ejecutando). La propiedad bank-hold.reconciliation.enabled está en false. Solo se ejecuta si Accounting avisa que integró la consulta.
 
 ---
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: con `market.messaging.transport=kafka` la aplicación arranca sin errores de bean `BankHoldQueryClient`.
-- [ ] **CA2**: con `bank-hold.reconciliation.enabled=true`, una orden con hold `COMMITTED` en Accounting pasa a `CONFIRMED` y una con hold `RELEASED` pasa a `CANCELLED` con `HOLD_NOT_SETTLED` y libera el stock.
-- [ ] **CA3**: una orden en `CREATED` sin `holdId` por más del umbral configurado se reintenta o se cancela, y no queda trabada.
+- [ ] **CA1**: con market.messaging.transport=kafka la aplicación arranca sin errores de bean BankHoldQueryClient.
+- [ ] **CA2**: con bank-hold.reconciliation.enabled=true, una orden con hold COMMITTED en Accounting pasa a CONFIRMED y una con hold RELEASED pasa a CANCELLED con HOLD_NOT_SETTLED y libera el stock.
+- [ ] **CA3**: una orden en CREATED sin holdId por más del umbral configurado se reintenta o se cancela, y no queda trabada.
 - [ ] **CA4**: el cliente responde de forma controlada (sin romper el job) ante 404, 5xx y timeout de Accounting.
 
 ---
@@ -109,9 +109,45 @@ Relación: [[Estado actual del código]] (gaps 1, 3 y 20), [[Roadmap de trabajo]
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | `BankHoldQueryClient` real | 6 | Cliente REST de `GET /api/accounting/holds/{holdId}` activo con transporte `kafka`; corrige el arranque |
-| 2 | Activar el job de reconciliación | 4 | Habilitar `bank-hold.reconciliation.enabled`, revisar periodicidad y lote, y configurar por entorno |
-| 3 | Órdenes trabadas en `CREATED` | 6 | Detectar órdenes sin hold tras un umbral y reintentarlas o cancelarlas, liberando el stock |
-| 4 | Tests | 4 | Pruebas del cliente y de la reconciliación para `COMMITTED`, `RELEASED`, 404, 5xx y timeout |
+### T01 - Implementar el BankHoldQueryClient real
+
+**Objetivo:** Consultar a Accounting el estado de un hold.
+
+- Cliente REST de `GET /api/accounting/holds/{holdId}`, activo con transporte `kafka`
+- Corrige el error de arranque por bean ausente
+- URL base por variable de entorno
+- Hecho cuando: con `market.messaging.transport=kafka` la aplicación arranca y el cliente consulta el hold
+
+Estimación: 6 h
+
+### T02 - Activar el job de reconciliación
+
+**Objetivo:** Poner en marcha la reconciliación de holds.
+
+- Habilitar `bank-hold.reconciliation.enabled`
+- Revisar periodicidad y tamaño de lote en `BankHoldReconciliationJob`
+- Configuración por entorno
+- Hecho cuando: el job corre con la periodicidad configurada y procesa lotes acotados
+
+Estimación: 4 h
+
+### T03 - Resolver las órdenes trabadas en CREATED
+
+**Objetivo:** Evitar que queden órdenes sin hold indefinidamente.
+
+- Detectar órdenes sin `holdId` tras un umbral configurable
+- Reintentarlas o cancelarlas
+- Liberar el stock al cancelar
+- Hecho cuando: una orden en `CREATED` sin hold pasado el umbral se reintenta o se cancela y no queda trabada
+
+Estimación: 6 h
+
+### T04 - Probar el cliente y la reconciliación
+
+**Objetivo:** Cubrir con pruebas los resultados posibles de Accounting.
+
+- Casos `COMMITTED` y `RELEASED`
+- Casos 404, 5xx y timeout sin romper el job
+- Hecho cuando: las pruebas de los cinco casos pasan en verde
+
+Estimación: 4 h

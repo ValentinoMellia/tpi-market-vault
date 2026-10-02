@@ -28,23 +28,23 @@ horas: 15
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: Mercado corre en el puerto 8100 (gestión 8101) en la plataforma ([[Q-016 - Puerto y registro de Mercado en la plataforma]], [[Mapa de servicios]]). Los ítems no vencen: `itemValidityDays` se quita de la entidad, el DTO, las validaciones y los datos de demostración ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
-- [ ] Validaciones: `mvn verify` corre en todo PR a `develop`; la variable de Kafka debe ser la que Spring espera (`SPRING_KAFKA_BOOTSTRAP_SERVERS`) o la plantilla debe mapear `KAFKA_SERVERS` hacia ella (`application-prod.properties`, `.tpi/platform/`).
-- [ ] Datos obligatorios: `.tpi/platform/.env` con `PORT=8100`; `SERVER_PORT=${PORT}` en el compose de la plataforma.
-- [ ] Performance (tiempos, volumen, límites): el CI debe terminar en un tiempo razonable (objetivo a medir, por ejemplo menos de 10 minutos); `KafkaSagaIntegrationTest` se omite sin Docker y no debe bloquear.
-- [ ] Seguridad (roles, permisos, datos sensibles): no incluir secretos en `.compose/.env.example` ni en el workflow.
+- [ ] Reglas de negocio: Mercado corre en el puerto 8100 (gestión 8101) en la plataforma ([[Q-016 - Puerto y registro de Mercado en la plataforma]], [[Mapa de servicios]]). Los ítems no vencen: itemValidityDays se quita de la entidad, el DTO, las validaciones y los datos de demostración ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
+- [ ] Validaciones: mvn verify corre en todo PR a develop; la variable de Kafka debe ser la que Spring espera (SPRING_KAFKA_BOOTSTRAP_SERVERS) o la plantilla debe mapear KAFKA_SERVERS hacia ella (application-prod.properties, .tpi/platform/).
+- [ ] Datos obligatorios: .tpi/platform/.env con PORT=8100; SERVER_PORT=${PORT} en el compose de la plataforma.
+- [ ] Performance (tiempos, volumen, límites): el CI debe terminar en un tiempo razonable (objetivo a medir, por ejemplo menos de 10 minutos); KafkaSagaIntegrationTest se omite sin Docker y no debe bloquear.
+- [ ] Seguridad (roles, permisos, datos sensibles): no incluir secretos en .compose/.env.example ni en el workflow.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica.
-- [ ] Otros: `main` está 222 commits por detrás de `develop` (gap 16); no se resuelve acá. `docs/app_doc` y `.tpi/.tpi` son placeholders de la plantilla.
+- [ ] Otros: main está 222 commits por detrás de develop (gap 16); no se resuelve acá. docs/app_doc y .tpi/.tpi son placeholders de la plantilla.
 
 ---
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: un PR con destino `develop` dispara `mvn verify` y el resultado queda como verificación requerida del PR.
-- [ ] **CA2**: con `PORT=8100` en `.tpi/platform/.env`, el contenedor expone la aplicación en 8100 y actuator en 8101; `GET /actuator/health` responde 200 en 8101.
-- [ ] **CA3**: con una sola variable de entorno de Kafka definida en la plantilla de plataforma, el perfil `prod` se conecta al bus y no cae en `localhost:9092`.
-- [ ] **CA4**: no queda ninguna aparición de `itemValidityDays` en el código ni en los datos de demostración, y las pruebas existentes pasan.
-- [ ] **CA5**: `docs/app_doc` y `.tpi/.tpi` ya no contienen texto de plantilla y `.compose/.env.example` refleja las variables vigentes.
+- [ ] **CA1**: un PR con destino develop dispara mvn verify y el resultado queda como verificación requerida del PR.
+- [ ] **CA2**: con PORT=8100 en .tpi/platform/.env, el contenedor expone la aplicación en 8100 y actuator en 8101; GET /actuator/health responde 200 en 8101.
+- [ ] **CA3**: con una sola variable de entorno de Kafka definida en la plantilla de plataforma, el perfil prod se conecta al bus y no cae en localhost:9092.
+- [ ] **CA4**: no queda ninguna aparición de itemValidityDays en el código ni en los datos de demostración, y las pruebas existentes pasan.
+- [ ] **CA5**: docs/app_doc y .tpi/.tpi ya no contienen texto de plantilla y .compose/.env.example refleja las variables vigentes.
 - [ ] **Extras (opcional)**: el workflow publica el reporte de pruebas como artefacto.
 
 ---
@@ -117,10 +117,52 @@ Relación: [[Git workflow]], [[Estado actual del código]] (gaps 7, 10, 11 y 15)
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | CI sobre `develop` | 3 | Extender `verify.yml` a PR hacia `develop` con `mvn verify` |
-| 2 | Despliegue con `PORT=8100` | 2 | `pull` de `tpi-system-compose`, `.env` con `PORT=8100` y verificación con `verify.sh` |
-| 3 | Variable de Kafka | 3 | Unificar `KAFKA_SERVERS` con `SPRING_KAFKA_BOOTSTRAP_SERVERS` en perfil `prod` y plantilla |
-| 4 | Quitar `itemValidityDays` | 4 | Eliminar el campo de entidad, DTO, validaciones y datos de demostración |
-| 5 | Documentación placeholder | 3 | Reemplazar `docs/app_doc` y `.tpi/.tpi` y actualizar `.compose/.env.example` |
+### T01 - Ejecutar el CI en los PR hacia develop
+
+**Objetivo:** Verificar cada PR antes de integrarlo.
+
+- Extender `verify.yml` a los PR hacia `develop`
+- Ejecutar `mvn verify` sin secretos en el workflow
+- Hecho cuando: un PR hacia `develop` dispara `mvn verify` y su resultado se ve en el PR
+
+Estimación: 3 h
+
+### T02 - Desplegar Mercado con PORT=8100
+
+**Objetivo:** Dejar a Mercado alcanzable en la plataforma con el puerto acordado.
+
+- `pull` de `tpi-system-compose` y `.env` con `PORT=8100`
+- Verificación con `verify.sh`
+- Hecho cuando: Mercado responde en el puerto 8100 dentro de la plataforma y `verify.sh` pasa
+
+Estimación: 2 h
+
+### T03 - Unificar la variable de Kafka
+
+**Objetivo:** Evitar que el perfil prod ignore la dirección de Kafka.
+
+- Unificar `KAFKA_SERVERS` con `SPRING_KAFKA_BOOTSTRAP_SERVERS` en `application-prod.properties`
+- Actualizar la plantilla de `.tpi/platform/`
+- Hecho cuando: el perfil `prod` se conecta a Kafka con la variable de la plantilla
+
+Estimación: 3 h
+
+### T04 - Quitar itemValidityDays
+
+**Objetivo:** Eliminar el vencimiento de ítems, que fue descartado.
+
+- Eliminar el campo de la entidad, del DTO y de las validaciones
+- Quitarlo de los datos de demostración
+- Hecho cuando: no queda ninguna referencia a `itemValidityDays` y las pruebas pasan
+
+Estimación: 4 h
+
+### T05 - Reemplazar la documentación placeholder
+
+**Objetivo:** Sustituir los archivos que quedaron de la plantilla.
+
+- Reemplazar `docs/app_doc` y `.tpi/.tpi` por contenido real de Mercado
+- Actualizar `.compose/.env.example`
+- Hecho cuando: ningún archivo placeholder queda en el repositorio y `.compose/.env.example` refleja las variables vigentes
+
+Estimación: 3 h
