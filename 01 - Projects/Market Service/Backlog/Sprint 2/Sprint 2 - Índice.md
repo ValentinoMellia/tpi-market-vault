@@ -11,7 +11,7 @@ tags: [mercado, backlog, sprint-2]
 
 ## Estado en Taiga
 
-Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). El sprint de Taiga tiene además nueve historias anteriores y tres de frontend que no están en este índice: suma 25 historias y 92 puntos. El detalle está en [[Revisión del Sprint 2 en Taiga]] y el alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]]. #5219 (S2-05) sigue en Taiga con 5 puntos y 22 h: hay que subirla a 8 puntos y 29 h porque absorbe lo que faltaba de #1012 (tareas 6 y 7).
+Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). El sprint de Taiga tiene además nueve historias anteriores y tres de frontend que no están en este índice: suma 25 historias y 92 puntos. El detalle está en [[Revisión del Sprint 2 en Taiga]] y el alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]]. #5219 (S2-05) sigue en Taiga con 5 puntos: hay que subirla a 8 (29 h) porque absorbe lo que faltaba de #1012. Sus tareas 6 y 7 ya están cargadas (#5344 y #5345).
 
 ## Comprometidas
 

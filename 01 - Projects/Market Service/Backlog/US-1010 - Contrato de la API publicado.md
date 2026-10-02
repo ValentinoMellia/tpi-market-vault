@@ -60,4 +60,4 @@ Las horas son una propuesta con el margen de ±20 % del resto del plan. No suman
 
 ## Origen
 
-Revisión de #1010 y #1012 contra el código el 2026-10-02, a pedido del equipo, a partir de [[Revisión del Sprint 2 en Taiga]]. Taiga no se modificó: las tareas se actualizan cuando se resuelva [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+Revisión de #1010 y #1012 contra el código el 2026-10-02, a pedido del equipo, a partir de [[Revisión del Sprint 2 en Taiga]]. Aplicado en Taiga el 2026-10-02: T01 (#1019) cerrada como obsoleta, T02 (#1020) y T03 (#1021) reescritas y T04 creada (#5346). La historia #1010 no se modificó: su lugar en el sprint depende de [[Q-018 - Alcance real del Sprint 2 en Taiga]].

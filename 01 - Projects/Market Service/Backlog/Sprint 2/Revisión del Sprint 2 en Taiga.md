@@ -13,7 +13,7 @@ tags: [mercado, backlog, sprint-2, taiga]
 
 - Taiga, proyecto `1804026`, sprint "G11 - Sprint 2" (id `533590`, del 2026-09-28 al 2026-10-11), leído el 2026-10-02 con la descripción completa de cada historia.
 - Código: `tpi-market`, rama `develop`, commit `7528610`. Las rutas citadas son relativas a `src/main/java/ar/edu/utn/frc/tup/p4/`.
-- Esta nota describe lo que hay y propone acciones. Las acciones no están decididas: dependen de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. Taiga no se modificó.
+- Esta nota describe lo que hay y propone acciones. Las acciones no están decididas: dependen de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. En Taiga solo se tocaron las tareas de #1010, #1011 y #1012 (sección «Tareas de #1010, #1011 y #1012»); las historias no se modificaron.
 
 ## Qué hay en el sprint
 
@@ -95,7 +95,7 @@ Diferencias: el mock no maneja un saldo configurable por alumno, sino que decide
 | Extra: consultar los avisos pendientes | No existe |
 | Prueba con Kafka real | Pendiente en [[S2-07 - Pruebas integradas con Accounting]] |
 
-Lo que sí falta del outbox (reintentos acotados, estado de fallo y contador de pendientes) se detalla en la sección «Tareas de #1010 y #1012» y se absorbe en [[S2-05 - Robustez de la compra]].
+Lo que sí falta del outbox (reintentos acotados, estado de fallo y contador de pendientes) se detalla en la sección «Tareas de #1010, #1011 y #1012» y se absorbe en [[S2-05 - Robustez de la compra]].
 
 ### #1038 queda casi cubierta por #5202
 
@@ -112,9 +112,9 @@ Con [[S2-02 - Clientes reales de Cursos]], cada compra consulta `GET /course-coh
 
 Ya hay trabajo de vitrina terminado en el Sprint 1: #3636 y #3684, en Done.
 
-## Tareas de #1010 y #1012
+## Tareas de #1010, #1011 y #1012
 
-Las siete tareas de estas historias están en `New` y sin descripción (comprobado en #1019 y #1027; el listado de Taiga no devuelve ese campo). Se contrastó el alcance de cada una con `tpi-market` en `develop@7528610`. Criterio del equipo: si falta algo, la tarea se reescribe o se absorbe en una historia del Sprint 2; si no falta nada, se marca obsoleta.
+Las diez tareas de estas historias estaban en `New` y sin descripción (comprobado en #1019, #1022 y #1027; el listado de Taiga no devuelve ese campo). Se contrastó el alcance de cada una con `tpi-market` en `develop@7528610`. Criterio del equipo: si falta algo, la tarea se reescribe o se absorbe en una historia del Sprint 2; si no falta nada, se marca obsoleta.
 
 | Tarea | Veredicto | Qué hay en el código | Destino |
 |---|---|---|---|
@@ -125,8 +125,19 @@ Las siete tareas de estas historias están en `New` y sin descripción (comproba
 | #1026 US-1012 T02, ignorar repetidos | Obsoleta | Los dos listeners deduplican por `eventId` en `processed_events` | Archivar con comentario |
 | #1027 US-1012 T03, formato de los avisos | Absorber en el Sprint 2 | Envelope y productor `market-service` ya aplicados; el tópico de órdenes sigue en `market.orders.events` y falta informar a Notificaciones | [[S2-01 - Contrato con Accounting]], tareas 2 y 4 |
 | #1028 US-1012 T04, pruebas | Obsoleta | Existen las pruebas de mensajería caída y de duplicados; `KafkaSagaIntegrationTest` se omite sin Docker | Lo cubre [[S2-07 - Pruebas integradas con Accounting]] |
+| #1022 US-1011 T01, leer identidad y rol | Obsoleta | `GatewayIdentityFilter` ya lee `X-User-Id` y `X-User-Roles` y arma las autoridades | Archivar con comentario; los defectos que quedan están en [[S2-04 - Seguridad]] |
+| #1023 US-1011 T02, definir qué puede hacer cada rol | Obsoleta | Roles y permisos definidos en [[DEC-006 - Roles y permisos según el código y los headers del gateway]]; falta el parseo exacto de roles | [[S2-04 - Seguridad]], tareas 1 y 2 |
+| #1024 US-1011 T03, pruebas de acceso | Obsoleta | Existen `SecurityConfigTest`, `GatewayIdentityFilterTest` y pruebas de aceptación con 401 y 403; faltan los casos de subcadena, cabecera vacía y sin `X-User-Id` | [[S2-04 - Seguridad]], tarea 4 |
 
-Resultado: #1012 se cierra como obsoleta sin tareas propias. #1010 se mantiene con tareas reescritas, fuera del plan hasta que se resuelva [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+Resultado: #1011 y #1012 se cierran como obsoletas sin tareas propias abiertas. #1010 se mantiene con tareas reescritas, fuera del plan hasta que se resuelva [[Q-018 - Alcance real del Sprint 2 en Taiga]].
+
+Aplicado en Taiga el 2026-10-02:
+
+- Cerradas con la etiqueta `obsoleta` y un comentario con la evidencia: #1019, #1022, #1023, #1024, #1026 y #1028.
+- Cerradas con la etiqueta `absorbida` y un comentario que apunta a la historia que las absorbe: #1025 y #1027.
+- Reescritas (título y descripción): #1020 y #1021.
+- Creadas: #5344 y #5345 en #5219 (outbox con reintentos y contador de pendientes) y #5346 en #1010 (ejemplos y validación con otro equipo). Quedan sin asignar.
+- Las historias #1010, #1011 y #1012 no se modificaron: su destino depende de [[Q-018 - Alcance real del Sprint 2 en Taiga]]. #5219 sigue con 5 puntos en Taiga y en el vault ya son 8.
 
 ## Contradicciones que la jerarquía de verdad resuelve
 
