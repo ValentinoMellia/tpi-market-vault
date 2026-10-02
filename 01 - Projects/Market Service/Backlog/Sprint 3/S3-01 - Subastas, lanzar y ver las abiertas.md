@@ -43,7 +43,7 @@ horas: 27
 ## Criterios de Aceptación (CA)
 
 - [ ] **CA1**: un profesor asignado puede lanzar una subasta de una oferta de catálogo de su curso con modo, duración, duración de la fase final, incremento mínimo y oferta mínima opcional; responde 201 y la subasta queda abierta, sin ofertas.
-- [ ] **CA2**: un estudiante, o un profesor no asignado al curso, que intenta lanzar recibe 403 `application/problem+json`.
+- [ ] **CA2**: un estudiante, o un profesor no asignado al curso, que intenta lanzar recibe 403 application/problem+json.
 - [ ] **CA3**: los datos fuera de regla (duración fuera de 1 hora a 14 días, fase final mayor o igual a la duración, incremento no positivo, oferta inactiva, de otro curso o de tipo vida) se rechazan con un 4xx y un motivo claro, sin crear la subasta.
 - [ ] **CA4**: un estudiante inscripto lista las subastas abiertas de su curso, ordenadas por cierre más próximo, sin ver las de otros cursos ni las vencidas.
 - [ ] **CA5**: en modo ciega el listado no muestra la mejor oferta; en modo abierta la muestra (vacía mientras no haya ofertas); en ambos indica si la subasta está en su fase final ciega, derivada del tiempo restante.

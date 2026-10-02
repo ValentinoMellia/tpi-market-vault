@@ -5,7 +5,7 @@ verificado_contra: codigo@7528610
 actualizado: 2026-10-02
 tags: [mercado, backlog, sprint-2]
 sprint: 2
-taiga: "5236"
+taiga: "#5236"
 puntos: 13
 prioridad: Should
 horas: 36
@@ -28,23 +28,23 @@ horas: 36
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: la tienda es la de la cohorte (`courseId`); solo se muestran ofertas activas y no vencidas. El precio se congela al comprar (`appliedPrice`). Cada intento de compra lleva una `idempotencyKey` nueva generada por el cliente y se reutiliza en los reintentos del mismo intento ([[Idempotencia]]).
-- [ ] Validaciones: el botón de compra se deshabilita mientras la orden está en proceso; se bloquea el doble clic. Se muestran los mensajes del campo `detail` de `problem+json` y la lista `errors[]` de validación ([[Errores de la API]]).
-- [ ] Datos obligatorios: `courseId`, `offerId`, `idempotencyKey`, `X-User-Id` y `X-User-Roles` (los inyecta el gateway).
-- [ ] Performance (tiempos, volumen, límites): vitrina paginada o con carga inicial menor a 2 s con unas 50 ofertas (a medir); lista "mis compras" paginada (`page`, `size`).
+- [ ] Reglas de negocio: la tienda es la de la cohorte (courseId); solo se muestran ofertas activas y no vencidas. El precio se congela al comprar (appliedPrice). Cada intento de compra lleva una idempotencyKey nueva generada por el cliente y se reutiliza en los reintentos del mismo intento ([[Idempotencia]]).
+- [ ] Validaciones: el botón de compra se deshabilita mientras la orden está en proceso; se bloquea el doble clic. Se muestran los mensajes del campo detail de problem+json y la lista errors[] de validación ([[Errores de la API]]).
+- [ ] Datos obligatorios: courseId, offerId, idempotencyKey, X-User-Id y X-User-Roles (los inyecta el gateway).
+- [ ] Performance (tiempos, volumen, límites): vitrina paginada o con carga inicial menor a 2 s con unas 50 ofertas (a medir); lista "mis compras" paginada (page, size).
 - [ ] Seguridad (roles, permisos, datos sensibles): el frontend no decide permisos; solo muestra lo que devuelve la API. No se muestran órdenes ajenas (la API responde 404).
-- [ ] Accesibilidad (WCAG/teclado/lectores): navegación por teclado en tarjetas y botones, estados de compra anunciados con `aria-live`, contraste AA y no depender solo del color para los estados.
-- [ ] Otros: hoy `GET /api/market/orders/stream/{orderId}` envía un único evento con el estado actual y cierra ([[SSE]]); el seguimiento "en vivo" real puede requerir que el backend emita los cambios de estado hasta un estado terminal (historia #140 parcial, [[Épica 137 - Compra directa]]). El spike [[S2-09d - SPIKE SSE en el frontend]] confirma el alcance; si hace falta trabajo de backend, se carga como historia aparte. Mientras tanto, el frontend vuelve a consultar `GET /api/market/orders/{orderId}` si la conexión cierra sin estado terminal.
+- [ ] Accesibilidad (WCAG/teclado/lectores): navegación por teclado en tarjetas y botones, estados de compra anunciados con aria-live, contraste AA y no depender solo del color para los estados.
+- [ ] Otros: hoy GET /api/market/orders/stream/{orderId} envía un único evento con el estado actual y cierra ([[SSE]]); el seguimiento "en vivo" real puede requerir que el backend emita los cambios de estado hasta un estado terminal (historia #140 parcial, [[Épica 137 - Compra directa]]). El spike [[S2-09d - SPIKE SSE en el frontend]] confirma el alcance; si hace falta trabajo de backend, se carga como historia aparte. Mientras tanto, el frontend vuelve a consultar GET /api/market/orders/{orderId} si la conexión cierra sin estado terminal.
 
 ---
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: la vitrina lista las ofertas de `GET /api/market/courses/{courseId}/catalog` con nombre, descripción, precio y stock disponible, y permite filtrar por `itemType`.
-- [ ] **CA2**: al comprar se envía `POST /api/market/courses/{courseId}/orders` con `{offerId, idempotencyKey}` una sola vez por intento; un doble clic no genera dos órdenes.
-- [ ] **CA3**: tras el 202, la pantalla muestra el estado `PROCESSING` y se actualiza hasta un estado terminal (`CONFIRMED`, `REJECTED_INSUFFICIENT_FUNDS`, `CANCELLED` o `EXPIRED`) sin recargar la página.
-- [ ] **CA4**: "Mis compras" muestra las órdenes propias paginadas de `GET /api/market/orders?courseId&page&size` con su estado.
-- [ ] **CA5**: cada error `problem+json` (403 `student-not-enrolled`, 409 `catalog-offer-out-of-stock`, 409 `catalog-offer-expired`, 409 `idempotency-key-conflict`, 503 `course-service-unavailable`) muestra un mensaje comprensible y no una pantalla en blanco.
+- [ ] **CA1**: la vitrina lista las ofertas de GET /api/market/courses/{courseId}/catalog con nombre, descripción, precio y stock disponible, y permite filtrar por itemType.
+- [ ] **CA2**: al comprar se envía POST /api/market/courses/{courseId}/orders con {offerId, idempotencyKey} una sola vez por intento; un doble clic no genera dos órdenes.
+- [ ] **CA3**: tras el 202, la pantalla muestra el estado PROCESSING y se actualiza hasta un estado terminal (CONFIRMED, REJECTED_INSUFFICIENT_FUNDS, CANCELLED o EXPIRED) sin recargar la página.
+- [ ] **CA4**: "Mis compras" muestra las órdenes propias paginadas de GET /api/market/orders?courseId&page&size con su estado.
+- [ ] **CA5**: cada error problem+json (403 student-not-enrolled, 409 catalog-offer-out-of-stock, 409 catalog-offer-expired, 409 idempotency-key-conflict, 503 course-service-unavailable) muestra un mensaje comprensible y no una pantalla en blanco.
 - [ ] **Extras (opcional)**: pruebas de componentes con Storybook para los estados de la tarjeta de oferta.
 
 ---
@@ -117,11 +117,65 @@ Relación: [[Orden de compra]], [[Oferta de catálogo]], [[Gateway e identidad]]
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Vitrina del curso | 8 | Lista de ofertas del curso con filtro por tipo, estados de carga y vacío |
-| 2 | Detalle de oferta | 4 | Pantalla de detalle con precio, stock y configuración del ítem |
-| 3 | Compra con idempotencia | 6 | Botón de compra con `idempotencyKey` por intento, bloqueo de doble clic y manejo del 202 |
-| 4 | Estado de la compra en vivo por SSE | 8 | Consumo de `sseStreamUrl` con el patrón del spike, respaldo por `GET /api/market/orders/{orderId}` y estados terminales |
-| 5 | Mis compras | 5 | Lista paginada de órdenes propias con estado y detalle |
-| 6 | Errores `problem+json` | 5 | Interceptor y mensajes por `type` y `errors[]`; casos 403, 404, 409 y 503 |
+### T01 - Maquetar la vitrina con filtros por tipo y tarjeta de oferta
+
+**Objetivo:** Mostrar las ofertas activas del curso con un filtro por tipo.
+
+- Lista de ofertas de `GET /api/market/courses/{courseId}/catalog` con filtro por tipo
+- Estados de carga y de lista vacía
+- Navegación por teclado en tarjetas
+- Hecho cuando: el estudiante ve solo ofertas activas, puede filtrar por tipo y ve los estados de carga y vacío
+
+Estimación: 8 h
+
+### T02 - Construir el detalle de la oferta
+
+**Objetivo:** Mostrar la información necesaria para decidir la compra.
+
+- Pantalla con precio, stock y configuración del ítem
+- Acceso desde la tarjeta de la vitrina
+- Hecho cuando: el detalle muestra precio, stock y configuración de la oferta elegida
+
+Estimación: 4 h
+
+### T03 - Implementar la compra con idempotencia
+
+**Objetivo:** Permitir comprar sin duplicar órdenes.
+
+- Botón de compra con `idempotencyKey` nueva por intento, reutilizada en los reintentos del mismo intento
+- Bloquear el doble clic y deshabilitar el botón mientras la orden está en proceso
+- Manejar la respuesta 202 de `POST /api/market/courses/{courseId}/orders`
+- Hecho cuando: un doble clic crea una sola orden y la interfaz pasa a seguir su estado
+
+Estimación: 6 h
+
+### T04 - Mostrar el estado de la compra en vivo por SSE
+
+**Objetivo:** Informar al estudiante el resultado de su compra sin recargar.
+
+- Consumir `sseStreamUrl` (`GET /api/market/orders/stream/{orderId}`) con el patrón definido en el spike
+- Respaldo por `GET /api/market/orders/{orderId}` si la conexión cierra sin estado terminal
+- Estados terminales anunciados con `aria-live`
+- Hecho cuando: la pantalla muestra el estado final de la compra aunque se corte la conexión
+
+Estimación: 8 h
+
+### T05 - Listar Mis compras
+
+**Objetivo:** Permitir consultar el historial de órdenes propias.
+
+- Lista paginada (`page`, `size`) con estado de cada orden
+- Detalle de cada orden
+- Hecho cuando: el estudiante ve solo sus órdenes, paginadas, con su estado
+
+Estimación: 5 h
+
+### T06 - Mostrar los errores problem+json
+
+**Objetivo:** Traducir los errores de la API en mensajes comprensibles.
+
+- Interceptor HTTP que lee `type`, `detail` y `errors[]`
+- Mensajes para los casos 403, 404, 409 y 503
+- Hecho cuando: cada uno de los cuatro casos muestra su mensaje y los errores de validación aparecen por campo
+
+Estimación: 5 h

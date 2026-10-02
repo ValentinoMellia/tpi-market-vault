@@ -38,8 +38,8 @@ Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la histori
 
 | Nota | Taiga | Puntos | Horas | Tareas | Prioridad |
 |---|---|---|---|---|---|
-| [[S2-OPC1 - Reconciliación de compras]] | sin cargar | 8 | 20 | 4 | Could |
-| [[S2-OPC2 - Frontend de gestión del profesor]] | sin cargar | 5 | 14 | 4 | Could |
+| [[S2-OPC1 - Reconciliación de compras]] | #5261 | 8 | 20 | 4 | Could |
+| [[S2-OPC2 - Frontend de gestión del profesor]] | #5266 | 5 | 14 | 4 | Could |
 | **Total opcional** | | **13** | **34** | **8** | |
 
 ## Cómo leer las notas
@@ -47,9 +47,36 @@ Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la histori
 - Los puntos (Fibonacci) y la prioridad (MoSCoW) son propuestas para la planning; las horas son las del plan y tienen un margen de ±20 %.
 - Must: bloquea el funcionamiento real (P0 de [[Roadmap de trabajo]]). Should: trabajo decidido de menor urgencia. Could: opcional.
 - Las historias nuevas siguen la plantilla `Taiga - Historia de usuario` y los spikes la plantilla `Taiga - Spike`; el título en Taiga lleva el prefijo `[G11]` (Mercado es el grupo G11 en Taiga; "Tema 09" es el número del tema).
-- El campo `taiga` de cada nota tiene el número de la historia en Taiga; las opcionales siguen sin cargar. La historia #4888 ya existía en Taiga (id interno 9593287): solo se cargan sus tareas.
+- El campo `taiga` de cada nota tiene el número de la historia en Taiga; las opcionales quedan en el backlog, sin sprint (ver la nota de integración al final). La historia #4888 ya existía en Taiga (id interno 9593287): solo se cargan sus tareas.
 - Las tareas están dimensionadas entre 2 y 6 h, salvo la reunión con Accounting (3 h) y la lectura individual del vault (2 h por persona).
 
 ## Relacionado
 
 [[Plan del Sprint 2]] · [[Carga en Taiga - Sprints 2 y 3]] · [[Revisión del Sprint 2 en Taiga]] · [[Backlog - Índice]] · [[Roadmap de trabajo]]
+
+## Referencias en Taiga
+
+Cargadas en el sprint "G11 - Sprint 2" (las opcionales quedan en el backlog, sin sprint).
+
+| Nota | Taiga |
+|---|---|
+| [[S2-01 - Contrato con Accounting]] | #5193 |
+| [[S2-02 - Clientes reales de Cursos]] | #5202 |
+| [[S2-03 - Reglas de la tienda]] | #5207 |
+| [[S2-04 - Seguridad]] | #5214 |
+| [[S2-05 - Robustez de la compra]] | #5219 |
+| [[S2-06 - Plataforma y CI]] | #5225 |
+| [[S2-07 - Pruebas integradas con Accounting]] | #5231 |
+| [[S2-08 - Frontend de Mercado]] | #5236 |
+| [[S2-09a - SPIKE Lectura del vault]] | #5243 |
+| [[S2-09b - SPIKE Orden de la compra con Accounting]] | #5254 |
+| [[S2-09c - SPIKE Diseño técnico de subastas]] | #5256 |
+| [[S2-09d - SPIKE SSE en el frontend]] | #5259 |
+| [[S2-OPC1 - Reconciliación de compras]] | #5261 |
+| [[S2-OPC2 - Frontend de gestión del profesor]] | #5266 |
+| [[US-4888 - Organizar la documentación en un vault]] | #4888 |
+| [[US-1010 - Contrato de la API publicado]] | #1010 |
+
+Fuera del Sprint 2: [[S3-01 - Subastas, lanzar y ver las abiertas]] (Sprint 3) es la historia #5347 en Taiga.
+
+Nota de integración: la revisión del 2026-10-02 indicaba que las opcionales seguían sin cargar, pero las notas [[S2-OPC1 - Reconciliación de compras]] y [[S2-OPC2 - Frontend de gestión del profesor]] ya registraban #5261 y #5266 (cargadas el 2026-10-01). Se conservan esos números; hay que verificarlos en Taiga.

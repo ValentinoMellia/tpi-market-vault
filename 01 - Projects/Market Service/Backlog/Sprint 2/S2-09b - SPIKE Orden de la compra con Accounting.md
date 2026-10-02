@@ -5,7 +5,7 @@ verificado_contra: codigo@7528610
 actualizado: 2026-10-02
 tags: [mercado, backlog, sprint-2, spike]
 sprint: 2
-taiga: "5254"
+taiga: "#5254"
 puntos: 2
 prioridad: Must
 horas: 3
@@ -27,8 +27,8 @@ Cerrar con Accounting el orden de la saga de compra y su compensación, para dec
 ## Preguntas a responder
 
 - [ ] ¿Qué orden adoptan ambos equipos: A (entregar y luego cobrar, código de Mercado), B (cobrar y luego entregar, código de Accounting) o C (acreditar y luego confirmar, recomendación del taller)?
-- [ ] ¿Puede Accounting ofrecer la revocación de un ítem (por `itemInstanceId` o por `orderId`) y cuándo?
-- [ ] ¿Publicará Accounting un evento de error cuando falle `ITEM_CREDITED` (hoy va a DLT sin evento)?
+- [ ] ¿Puede Accounting ofrecer la revocación de un ítem (por itemInstanceId o por orderId) y cuándo?
+- [ ] ¿Publicará Accounting un evento de error cuando falle ITEM_CREDITED (hoy va a DLT sin evento)?
 - [ ] ¿Cómo se resuelve un hold vencido (TTL fijo de 300 s) después de entregar el ítem?
 - [ ] ¿Cuál es la señal exacta del tope de vidas ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]) y se puede tratar en la misma reunión?
 
@@ -67,6 +67,13 @@ Cerrar con Accounting el orden de la saga de compra y su compensación, para dec
 
 ## Tareas
 
-| # | Tarea | Horas | Descripción breve |
-|---|---|---|---|
-| 1 | Reunión y acuerdo del orden de la compra | 3 | Reunión con Accounting sobre Q-008 y la revocación de ítems, acta, decisión y envío de la respuesta preparada |
+### T01 - Acordar con Accounting el orden de la compra
+
+**Objetivo:** Cerrar Q-008 con Accounting: qué va primero, entregar el ítem o confirmar el débito.
+
+- Reunión sobre Q-008, la compensación de cada fallo y la revocación de ítems
+- Acta y decisión registradas en el vault
+- Enviar la respuesta preparada en el Inbox
+- Hecho cuando: el orden queda acordado y registrado, y se envió la respuesta a Accounting
+
+Estimación: 3 h
