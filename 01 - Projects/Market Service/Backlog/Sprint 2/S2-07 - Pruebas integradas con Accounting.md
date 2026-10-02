@@ -5,7 +5,7 @@ verificado_contra: codigo@7528610
 actualizado: 2026-10-01
 tags: [mercado, backlog, sprint-2]
 sprint: 2
-taiga: ""
+taiga: "#5231"
 puntos: 8
 prioridad: Must
 horas: 25
