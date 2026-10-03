@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: codigo@276af52
+estado: archivado
+verificado_contra: DEC-017
 actualizado: 2026-10-03
-tags: [mercado, pregunta-abierta, seguridad, roles, gateway]
+tags: [mercado, pregunta-archivada, seguridad, roles, gateway]
 ---
 # Q-021 - Principal de servicio MS en las reglas de negocio
 
@@ -36,4 +36,4 @@ Opción 1, después de la T02, y cubierta por la matriz de la T04 de [[S2-04 - S
 El equipo de Mercado. Si algún servicio necesita estas rutas, el equipo dueño de ese servicio. Contexto en [[Gateway e identidad]].
 
 ## Resolución
-Pendiente. Surgió en la revisión del PR #86 de `tpi-market` (2026-10-03).
+Archivada el 2026-10-03. Surgió en la revisión del PR #86 de `tpi-market`. Resuelta por [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]: opción 1, adelantada de la T04 a la T02 de [[S2-04 - Seguridad]] (PR #92 de `tpi-market`). En las dos rutas de estado, la regla de negocio lee el principal autenticado y un servicio con `MS` es administrativo; además, una cabecera de roles vacía ya no omite el chequeo.
