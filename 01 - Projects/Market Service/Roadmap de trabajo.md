@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -54,7 +54,7 @@ Coordinación y comunicación:
 
 Detalle de historias y tareas del Sprint 2: [[Plan del Sprint 2]].
 
-Alcance definido en [[DEC-015 - Política del backlog de Taiga]] (2026-10-01). Capacidad de cada sprint: 14 días, 340 h entre 10 integrantes (unas 34 h por persona). Fechas: **Sprint 2 del lunes 2026-09-28 al domingo 2026-10-11** y **Sprint 3 del lunes 2026-10-12 al domingo 2026-10-25** (según el sprint "G11 - Sprint 2" de Taiga; el Sprint 3 aún no está creado en Taiga, fechas estimadas). Al 2026-10-01 el Sprint 2 lleva 4 de 15 días sin historias cargadas en Taiga: quedan unas 11 jornadas (~250 h de las 340 h), por lo que el alcance del Sprint 2 debe priorizar los P0. La carga en Taiga se hace con el CLI local del coordinador (el MCP de Taiga falla en las lecturas); la plantilla US ya está en `03 - Resources/Templates/`. Saneamiento del backlog ([[Q-013 - Higiene del backlog]]).
+Alcance definido en [[DEC-015 - Política del backlog de Taiga]] (2026-10-01). Capacidad de cada sprint: 14 días, 340 h entre 10 integrantes (unas 34 h por persona). Fechas: **Sprint 2 del lunes 2026-09-28 al domingo 2026-10-11** y **Sprint 3 del lunes 2026-10-12 al domingo 2026-10-25** (según el sprint "G11 - Sprint 2" de Taiga; el Sprint 3 aún no está creado en Taiga, fechas estimadas). Al 2026-10-01 el Sprint 2 lleva 4 de 15 días sin historias cargadas en Taiga: quedan unas 11 jornadas (~250 h de las 340 h), por lo que el alcance del Sprint 2 debe priorizar los P0. La carga en Taiga se hace con el CLI local del coordinador (el MCP de Taiga lee correctamente, verificado el 2026-10-03); la plantilla US ya está en `03 - Resources/Templates/`. Saneamiento del backlog ([[Q-013 - Higiene del backlog]]).
 
 | Sprint | Alcance | Referencias |
 |---|---|---|
