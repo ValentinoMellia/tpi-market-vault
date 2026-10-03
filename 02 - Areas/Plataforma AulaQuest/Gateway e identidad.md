@@ -7,7 +7,7 @@ tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
 
-> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado. Cómo se leen los roles está en disputa en [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] y [[Q-021 - Principal de servicio MS en las reglas de negocio]].
+> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado. Cómo se leen los roles está en disputa en [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]; qué puede hacer un servicio con `MS` en las rutas de estado de oferta lo fija [[DEC-017 - Servicios con MS en las rutas de estado de oferta]].
 
 ## Camino de una petición
 
@@ -62,12 +62,15 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 1. `@PreAuthorize` por endpoint (por ejemplo `hasRole('MS') and hasAuthority('market.catalog.read')`).
 2. Regla de negocio: inscripción del estudiante o asignación del profesor, con los clientes de [[Integración con Cursos]].
 
-Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Por eso un servicio con ámbito `MS` pasa la primera y la segunda lo trata como si no tuviera roles ([[Q-021 - Principal de servicio MS en las reglas de negocio]]).
+Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Por eso un servicio con ámbito `MS` pasa la primera y la segunda lo trata como si no tuviera roles: en `develop` (`codigo@276af52`), `PATCH /offers/{id}/status` lo rechaza y la ruta de estado del curso lo deja pasar sin chequeo.
+
+**Cambio en revisión: PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], apilado sobre el PR #86). Las dos rutas de estado de oferta pasan a leer el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas, y ningún chequeo de rol se saltea con la cabecera vacía. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
 
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
-- Algunos servicios leen el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` cuenta como `MS`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes en `develop`, [[Estado actual del código]]). El PR #86 corrige el primero; los otros dos son las tareas T02 y T03 de [[S2-04 - Seguridad]].
+- Algunos servicios leen el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` cuenta como `MS`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes en `develop`, [[Estado actual del código]]). El PR #86 corrige el primero y el PR #92 el segundo (los dos en revisión); el usuario por defecto es la T03 de [[S2-04 - Seguridad]].
+- Un servicio cuyo `X-Service-Scopes` traiga un valor con forma de rol (`ROLE_ADMIN`) recibe esa autoridad tal cual. Depende de que el gateway solo emita ámbitos válidos; queda para la T04 de [[S2-04 - Seguridad]].
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
 

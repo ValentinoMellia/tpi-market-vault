@@ -121,7 +121,7 @@ Al 2026-10-03:
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5215 T01 - Parsear los roles sin contains | Ready for test | PR #86 de `tpi-market`, sin mergear. Revisado por Valentino Mellia sin bloqueantes |
-| #5216 T02 - Eliminar el bypass por cabecera de roles vacía | New | Es la siguiente: el bypass sigue abierto en `develop` |
+| #5216 T02 - Eliminar el bypass por cabecera de roles vacía | Ready for test | PR #92 de `tpi-market`, apilado sobre el #86, sin mergear |
 | #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
 | #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
 
@@ -129,8 +129,14 @@ Lo que dejó la T01 y la revisión del PR #86:
 
 - **Hallazgo.** La lectura por subcadena era explotable: un profesor no asignado con `X-User-Roles: PROFESSOR, SYSTEMS` cambiaba el estado de ofertas de otro curso (200, porque `SYSTEMS` contiene `MS`). Con el PR responde 403.
 - **Para la T02.** Los dos chequeos que se saltean con cabecera vacía (`validateProfessorAccess` y `CourseCatalogSummaryServiceImpl.validateRole`) quedaron sin cambios y fijados con pruebas, para que la T02 los cambie a propósito. Deben seguir mirando la cabecera cruda: si pasan a preguntar "no hay roles conocidos", un valor como `NOT_ADMIN` también se saltearía el chequeo.
-- **Decisiones abiertas.** Roles desconocidos y prefijo `ROLE_`: [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]. Llamadas de servicio con `MS`: [[Q-021 - Principal de servicio MS en las reglas de negocio]], a cubrir en la matriz de la T04.
+- **Decisiones abiertas.** Roles desconocidos y prefijo `ROLE_`: [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]. Las llamadas de servicio con `MS` ([[Q-021 - Principal de servicio MS en las reglas de negocio]]) quedaron resueltas en la T02, ver abajo.
 - **Coordinación con el PR #85 de `tpi-market`** (resumen de ventas, US-1053, sin mergear). `CourseSalesSummaryServiceImpl.validateAccess` también compara roles con `contains()` y el controlador agrega `X-Roles`. Si el PR #86 entra primero, el #85 debe rebasarse y usar `UserRole`.
+
+Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
+
+- **Cabecera vacía.** `validateProfessorAccess` y el chequeo de lector del resumen ya no se saltean sin roles: responden 403 `professor-not-assigned`. Se quitó la condición en lugar de reescribirla como "no hay roles conocidos", tal como pedía la T01. Para un usuario ya respondía 403 la capa de `@PreAuthorize`; el único llamador real del bypass era un servicio con `MS`.
+- **Q-021 adelantada.** Cerrar el bypass dejaba a ese servicio con 403 en la ruta del curso, así que se resolvió acá en vez de en la T04: [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Las dos rutas de estado leen el principal autenticado y `MS` es administrativo en ambas.
+- **Para la T03 y la T04.** `validateProfessorAccess` todavía omite el chequeo de asignación si `userId` viene vacío (hoy no se alcanza por HTTP). Un ámbito de servicio con forma de rol (`ROLE_ADMIN`) se toma como esa autoridad. Los dos quedan para la matriz de la T04.
 
 ## Tareas
 
