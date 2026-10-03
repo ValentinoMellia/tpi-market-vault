@@ -2,5 +2,5 @@
 - Ingerido el PR #92 de `tpi-market` (T02 #5216 de [[S2-04 - Seguridad]], apilado sobre el PR #86, sin mergear). El código nuevo se verificó contra `ede253c` de la rama `feature/us-5214-t02-blank-roles-header`.
 - Se creó [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] a partir de [[Q-021 - Principal de servicio MS en las reglas de negocio]] (opción 1), que pasa a `archivado`. La pregunta estaba prevista para la T04; se adelantó porque cerrar el bypass por cabecera vacía dejaba a los servicios con `MS` en 403.
 - [[Gateway e identidad]]: descripto el cambio en revisión del PR #92 y el punto débil de los ámbitos con forma de rol; sigue `en-disputa` solo por [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]].
-- [[S2-04 - Seguridad]]: #5216 en *In progress* con el PR #92, y lo que dejó la T02 para la T03 y la T04.
+- [[S2-04 - Seguridad]]: #5216 en *Ready for test* con el PR #92, y lo que dejó la T02 para la T03 y la T04.
 - [[Estado actual del código]]: avance del gap 12. [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: seguimiento en Consecuencias, sin modificar la decisión. [[Decisiones - Índice]]: DEC-017 registrada y Q-021 fuera de las abiertas.
