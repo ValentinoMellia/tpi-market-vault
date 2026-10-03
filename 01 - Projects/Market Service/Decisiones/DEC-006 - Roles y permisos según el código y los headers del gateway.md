@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, decision, seguridad, roles]
 ---
 # DEC-006 - Roles y permisos según el código y los headers del gateway
@@ -28,6 +28,7 @@ Confirmada por el líder del equipo de Mercado el 2026-10-01:
 ## Consecuencias
 - **Sigue siendo una brecha** (no la cierra esta decisión): el respaldo `X-Roles` en `configs/filters/GatewayIdentityFilter.java` debe quitarse, el parseo de roles con `contains()` (subcadena) debe endurecerse y `CourseCatalogManageServiceImpl.validateProfessorAccess` omite el chequeo cuando la cabecera está vacía. Es el gap 12 de [[Estado actual del código]] y una tarea de [[Roadmap de trabajo]].
 - También persiste el usuario por defecto `usr-student-001` (gap 9).
+- **Seguimiento del 2026-10-03** (no modifica la decisión): el respaldo `X-Roles` ya no estaba en el filtro sino en cuatro controladores (verificado contra `codigo@276af52`). El PR #86 de `tpi-market` (T01 de [[S2-04 - Seguridad]], en revisión) lo quita y reemplaza `contains()` por una comparación exacta. Ese PR propone además dos cambios de conducta que esta decisión no cubre y quedan abiertos en [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]; si se confirman, se registran como enmienda de esta decisión. El caso de un servicio con `MS` en las reglas de negocio está en [[Q-021 - Principal de servicio MS en las reglas de negocio]].
 
 ## Notas afectadas
 [[Gateway e identidad]], [[Estado actual del código]], [[Oferta de catálogo]], [[Épica 090 - Catálogo por plantillas]], [[Integración con Users]], [[Roadmap de trabajo]], [[Decisiones - Índice]].

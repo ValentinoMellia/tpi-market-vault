@@ -1,13 +1,13 @@
 ---
 tipo: integracion
-estado: vigente
+estado: en-disputa
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
 
-> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado.
+> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado. Cómo se leen los roles está en disputa en [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] y [[Q-021 - Principal de servicio MS en las reglas de negocio]].
 
 ## Camino de una petición
 
@@ -51,17 +51,23 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 ## Cómo las recibe Mercado
 
-`GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`. Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS` y el resto queda como autoridad simple. Existe un respaldo con la cabecera antigua `X-Roles`. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
+`GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`. Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS` y el resto queda como autoridad simple. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
+
+**La cabecera `X-Roles`.** Verificado contra `codigo@276af52`: el filtro **ya no** la lee (la sacó el change `gateway-mesh-integration`), pero cuatro controladores todavía la usan como respaldo cuando falta `X-User-Roles` (`CourseCatalogManageController`, `CatalogOfferController`, `StorefrontCatalogController` y `CourseCatalogSummaryController`, dos de ellos con valor por defecto `ROLE_STUDENT`). Ningún cliente la envía: el gateway la elimina y el frontend no la usa.
+
+**Cambio en revisión: PR #86 de `tpi-market`** (T01 de [[S2-04 - Seguridad]], todavía sin mergear). Introduce `models/enums/UserRole` como único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. También quita `X-Roles` de los controladores. Hoy el código prefija sin condiciones (`ROLE_PROFESSOR` da `ROLE_ROLE_PROFESSOR`) y convierte cualquier texto en autoridad; si eso debe cambiar es lo que pregunta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]].
 
 ## Autorización en dos capas
 
 1. `@PreAuthorize` por endpoint (por ejemplo `hasRole('MS') and hasAuthority('market.catalog.read')`).
 2. Regla de negocio: inscripción del estudiante o asignación del profesor, con los clientes de [[Integración con Cursos]].
 
+Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Por eso un servicio con ámbito `MS` pasa la primera y la segunda lo trata como si no tuviera roles ([[Q-021 - Principal de servicio MS en las reglas de negocio]]).
+
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
-- Algunos servicios leen el rol con `contains()`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes, [[Estado actual del código]]).
+- Algunos servicios leen el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` cuenta como `MS`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes en `develop`, [[Estado actual del código]]). El PR #86 corrige el primero; los otros dos son las tareas T02 y T03 de [[S2-04 - Seguridad]].
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
 

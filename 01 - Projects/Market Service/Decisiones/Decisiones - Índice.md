@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-016
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -43,5 +43,9 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-013 - Higiene del backlog]]: [[DEC-015 - Política del backlog de Taiga]] fija la política; falta sanear Taiga y planificar los sprints.
 
 - [[Q-018 - Alcance real del Sprint 2 en Taiga]]: el sprint de Taiga tiene historias que no están en el plan; falta decidir qué se queda, qué entra con mock y cómo se reparte el frontend.
+
+- [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]: el PR #86 de `tpi-market` propone que solo los cinco roles de DEC-006 sean autoridades y que se acepte un `ROLE_` inicial; falta confirmarlo y, si se confirma, enmendar DEC-006.
+
+- [[Q-021 - Principal de servicio MS en las reglas de negocio]]: un servicio con `MS` pasa `@PreAuthorize`, pero los services no lo ven; hoy una ruta lo rechaza y otra lo deja pasar sin chequeo.
 
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].
