@@ -2,7 +2,7 @@
 tipo: estado
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-03
 tags: [mercado, backlog, sprint-2, taiga]
 ---
 # Revisión del Sprint 2 en Taiga
@@ -83,6 +83,12 @@ Con `market.messaging.transport=mock` (el valor por defecto en dev), `clients/im
 | Otros fallos | `student-bank-timeout`, `student-bank-confirm-failed`, `student-bank-confirm-unavailable`, `student-bank-unknown-code` |
 
 Diferencias: el mock no maneja un saldo configurable por alumno, sino que decide por el identificador. Además, la historia habla de "Banco" (hoy Accounting, [[DEC-001 - Accounting es dueño del inventario]]) y su CA3 usa el protocolo `ITEM_PROVISION_*`, que [[S2-01 - Contrato con Accounting]] reemplaza por `ITEM_CONFIRMED` y `ITEM_CREDITED`. Esa misma historia ya incluye actualizar `LoopbackDispatcher` y sus pruebas.
+
+Novedad del 2026-10-03: la PR #84 de `tpi-market` (borrador, tarea 1029 de #1013, no mergeada) agrega el saldo configurable por alumno y curso al Banco simulado (`market.messaging.mock.bank.default-balance` y `balances[studentId:courseId]`), que es justo la diferencia anotada arriba. La propuesta de cerrar #1013 como obsoleta depende de [[Q-018 - Alcance real del Sprint 2 en Taiga]]; mientras tanto hay trabajo en curso sobre ella ([[Revisión de PRs abiertas (2026-10-03)]]).
+
+### #1053 tiene una PR abierta
+
+La PR #85 (borrador, tareas 1062 a 1065 de #1053, no mergeada) implementa `GET /api/market/courses/{courseId}/sales/summary`, con la ruta bajo `/api/market` como pide [[DEC-005 - Endpoints y prefijos según el código]]. El formato del reporte no se acordó con Administración ([[Q-019 - Formato del resumen de ventas para Administración]]) y la revisión encontró un defecto de autorización que hay que corregir antes de mergear ([[Revisión de PRs abiertas (2026-10-03)]]). La propuesta de mover #1053 al backlog sigue abierta en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
 
 ### #1012 está hecha salvo un extra
 

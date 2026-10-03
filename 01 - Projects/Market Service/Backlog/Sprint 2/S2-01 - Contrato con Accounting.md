@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-03
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5193"
@@ -112,6 +112,8 @@ horas: 45
 - Riesgos y mitigación (opcional): si Accounting no acepta el orden de compra, cambia la activación de `ITEM_CONFIRMED`; mitigación: flag apagado y spike previo. Los mensajes `ITEM_PROVISION_*` desaparecen: hay que actualizar el transporte `mock` (`LoopbackDispatcher`) y sus pruebas.
 
 Relación: [[Integración con Accounting]], [[Estado actual del código]] (gaps 6, 22 y 23), [[Roadmap de trabajo]] (P0 1, 1b y 1c), [[Eventos y Kafka]], [[Entrega at-least-once y deduplicación]].
+
+Avance en el código (2026-10-03): la PR #88 de `tpi-market` (abierta, no mergeada) implementa T01 y T02. T03 (ignorar los comandos propios, CA3) no está incluida: ver [[Revisión de PRs abiertas (2026-10-03)]].
 
 ---
 

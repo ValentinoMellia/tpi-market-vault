@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-03
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
@@ -111,6 +111,8 @@ horas: 16
 - Riesgos y mitigación (opcional): al quitar el usuario por defecto se rompen pruebas y la demostración local que dependen de él; mitigación: enviar las cabeceras en las pruebas y documentar las de dev. El respaldo `X-Roles` debe quitarse después de confirmar que ningún cliente lo usa.
 
 Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo]] (P1), [[Errores de la API]].
+
+Avance en el código (2026-10-03): la PR #86 de `tpi-market` (abierta, no mergeada, tarea #5215) implementa T01. Cubre CA1 y CA4 de los controladores existentes; CA2 (T02) y CA3 (T03) quedan pendientes. El controlador nuevo de la PR #85 repite el `contains()` y el respaldo `X-Roles`: ver [[Revisión de PRs abiertas (2026-10-03)]].
 
 ---
 

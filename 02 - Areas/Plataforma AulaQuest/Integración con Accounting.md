@@ -2,7 +2,7 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -115,6 +115,11 @@ Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e í
 Los motivos de rechazo y de release **no** figuran como diferencia: Mercado ya traduce `OrderRejectionReason.INSUFFICIENT_FUNDS` al código de cable `INSUFFICIENT_BALANCE` (y `LIFE_CAP_REACHED` a `MAX_LIVES_REACHED`) en `src/main/java/ar/edu/utn/frc/tup/p4/models/enums/OrderRejectionReason.java:33`, y siempre libera con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:62`). Lo que sí falta es el manejo de los demás motivos de rechazo (ver abajo).
 
 El plan de alineación está en [[Roadmap de trabajo]] (P0).
+
+**Estado al 2026-10-03** (código de Mercado, no el de Accounting, que no se volvió a leer):
+
+- **PR #88 (abierta, no mergeada)** implementa dos filas de la tabla: `orderId` UUID (`orderRef` persistido, usado como `orderId` del hold; las órdenes sin `orderRef` siguen enviando el id numérico) y los tópicos por defecto `accounting.events` y `market.events`. No cambia el productor ni los mensajes `ITEM_PROVISION_*`, ni descarta los comandos propios en el tópico compartido. Ver [[Revisión de PRs abiertas (2026-10-03)]].
+- **PR #78 (mergeada)**: Mercado ya publica `LIFE_PURCHASE_CONFIRMED` en `market.events`. La sección «Vidas», más arriba, lo describe como "solo en una rama sin integrar" del lado de Accounting; no se verificó si ya lo consume.
 
 ## Mensaje de accounting del 2026-10-01 y estado
 

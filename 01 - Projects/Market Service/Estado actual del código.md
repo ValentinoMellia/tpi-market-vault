@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -10,6 +10,8 @@ tags: [mercado, codigo, estado]
 > Qué hace hoy `tpi-market` (rama `develop`, commit `7528610`, PR #73). El código es la segunda fuente de verdad: lo que dice acá es lo que *es*, no necesariamente lo que *debe ser*.
 
 Actualización: `develop` avanzó a `cf988d2`, dos commits por encima de `7528610`, que solo tocan CI (la verificación del nombre de rama corre únicamente al abrir el PR); el resto de la nota sigue vigente contra `7528610`.
+
+Actualización 2026-10-03: `develop` avanzó a `276af52`. Se verificaron contra ese commit solo las cuatro PR mergeadas desde `7528610` (ver la sección «Cambios de `develop` desde `7528610`»); el resto de la nota no se volvió a verificar. Las PR abiertas #84, #85, #86 y #88 **no están en `develop`**: se revisan en [[Revisión de PRs abiertas (2026-10-03)]].
 
 ## Stack
 
@@ -38,6 +40,7 @@ Paquete base `ar.edu.utn.frc.tup.p4`, en capas clásicas (no hexagonal): `contro
 | `GET /courses/{courseId}/catalog/{itemId}` | ídem | ídem | Detalle de oferta en el curso |
 | `GET /offers/{id}` (alias `/api/v1/market/offers`) | `CatalogOfferController` | STUDENT, PROFESSOR, ADMIN, GESTOR, MS | Detalle; chequea inscripción o asignación |
 | `PATCH /offers/{id}/status` | ídem | ADMIN, GESTOR, MS | Activa o desactiva (no el profesor) |
+| `GET /courses/catalog/summary?courseIds=A,B` | `CourseCatalogSummaryController` | PROFESSOR, ADMIN, GESTOR | Resumen de vitrinas por cohorte (ofertas activas e inactivas y última modificación), una consulta para todo el lote; PR #77 |
 | `GET /courses/{courseId}/catalog/manage` | `CourseCatalogManageController` | PROFESSOR, ADMIN, GESTOR | Lista de gestión (usa `CourseInstructorClient`) |
 | `POST /courses/{courseId}/catalog/manage` | ídem | ídem | Publica oferta (201) |
 | `PATCH /courses/{courseId}/catalog/manage/{offerId}` | ídem | ídem | Edita nombre, descripción, precio, stock, activa |
@@ -65,7 +68,7 @@ No existen `admin/metrics` ni `/api/v1/market/orders`. Estas rutas son el contra
 
 ## Eventos
 
-Resumen; el detalle está en [[Eventos y Kafka]]. Envelope `EventEnvelope<T>`; tópicos `accounting.holds.commands`, `accounting.holds.events`, `inventory.items.commands`, `inventory.items.events`, `market.orders.events`. **Ninguno de esos tópicos está aprovisionado en la plataforma**; accounting usa `accounting.events` y `market.events`, que son los que Mercado debe usar ([[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]]). Se consumen respuestas de Accounting (ex Banco) y del inventario inexistente solo con transporte `kafka` (`AccountingHoldKafkaListener`, `InventoryItemKafkaListener`). Se publica con [[Patrón Outbox]] (`OutboxRelayJob`; lotes de 20, `market.messaging.relay.batch-size`). El grupo consumidor es `market-service`.
+Resumen (tópicos verificados contra `7528610`; `LIFE_PURCHASE_CONFIRMED` y los tópicos de las PR abiertas, más abajo); el detalle está en [[Eventos y Kafka]]. Envelope `EventEnvelope<T>`; tópicos `accounting.holds.commands`, `accounting.holds.events`, `inventory.items.commands`, `inventory.items.events`, `market.orders.events`. **Ninguno de esos tópicos está aprovisionado en la plataforma**; accounting usa `accounting.events` y `market.events`, que son los que Mercado debe usar ([[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]]). Se consumen respuestas de Accounting (ex Banco) y del inventario inexistente solo con transporte `kafka` (`AccountingHoldKafkaListener`, `InventoryItemKafkaListener`). Se publica con [[Patrón Outbox]] (`OutboxRelayJob`; lotes de 20, `market.messaging.relay.batch-size`). El grupo consumidor es `market-service`. Desde la PR #78 (mergeada) hay además `LIFE_PURCHASE_CONFIRMED` en `market.events`.
 
 ## Seguridad
 
@@ -82,13 +85,13 @@ Unas 636 anotaciones `@Test` contadas; el informe de verificación de T07 declar
 3. **Reconciliación apagada.** `bank-hold.reconciliation.enabled=false` porque Accounting no tiene todavía consulta de hold de monedas (`GET /api/accounting/holds/{holdId}` está en implementación este sprint; al integrarse, implementar el `BankHoldQueryClient` real y encenderla). `job/BankHoldReconciliationJob.java`. Ver [[DEC-009 - Contrato de holds e ítems según Accounting]].
 4. **`unitsSold` nunca se incrementa y editar el stock puede producir sobreventa.** `entities/CourseCatalogOfferEntity.java`; en `services/impl/CourseCatalogManageServiceImpl.java` el nuevo `availableStock` se calcula como `totalStock - unitsSold`, y como `unitsSold` es siempre 0 se devuelven al stock las unidades ya vendidas. Decidido: incrementar `unitsSold` al confirmar la orden y calcular disponible = total - vendidos - reservados ([[DEC-013 - Reglas de la tienda]], T1); falta implementarlo.
 5. **Resultado del tope de vidas sin manejar.** `LIFE_CAP_REACHED` existe en `models/enums/OrderRejectionReason.java` pero no se usa. Mercado no valida el tope: Accounting decide y reporta y Mercado reacciona ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]); falta manejar el evento que Accounting publique, cuya señal exacta está por acordar.
-6. **Contrato con Accounting desalineado.** El `orderType` `DIRECT_PURCHASE` resultó válido en accounting, pero Mercado usa tópicos que no existen (`accounting.holds.*`, `inventory.items.*`, `market.orders.events`), `orderId` numérico en lugar de UUID (bloqueante: accounting rechazaría todo `HOLD_CREATE_REQUESTED` con `MALFORMED_COMMAND`) y mensajes `ITEM_PROVISION_*` que nadie implementa. Los motivos de rechazo y de release ya coinciden en el cable: `INSUFFICIENT_FUNDS` se envía como `INSUFFICIENT_BALANCE` (`models/enums/OrderRejectionReason.java:33`) y se libera siempre con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:62`). Los tópicos se pueden apuntar a `accounting.events` con `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` (`application.properties:38-39`), sin verificar que Mercado ignore sus propios comandos en un tópico compartido. Mercado decidió alinearse al contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]); falta implementarlo. El orden de la compra sigue abierto ([[Q-008 - Orden de la saga de compra]]). Ver la tabla en [[Integración con Accounting]].
+6. **Contrato con Accounting desalineado.** El `orderType` `DIRECT_PURCHASE` resultó válido en accounting, pero Mercado usa tópicos que no existen (`accounting.holds.*`, `inventory.items.*`, `market.orders.events`), `orderId` numérico en lugar de UUID (bloqueante: accounting rechazaría todo `HOLD_CREATE_REQUESTED` con `MALFORMED_COMMAND`) y mensajes `ITEM_PROVISION_*` que nadie implementa. Los motivos de rechazo y de release ya coinciden en el cable: `INSUFFICIENT_FUNDS` se envía como `INSUFFICIENT_BALANCE` (`models/enums/OrderRejectionReason.java:33`) y se libera siempre con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:62`). Los tópicos se pueden apuntar a `accounting.events` con `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` (`application.properties:38-39`), sin verificar que Mercado ignore sus propios comandos en un tópico compartido. Mercado decidió alinearse al contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]); falta implementarlo. *Estado al 2026-10-03:* la PR #88 (abierta, no mergeada) implementa el `orderRef` UUID y los tópicos por defecto, pero no el filtro de comandos propios ni el resto del contrato ([[Revisión de PRs abiertas (2026-10-03)]]). El orden de la compra sigue abierto ([[Q-008 - Orden de la saga de compra]]). Ver la tabla en [[Integración con Accounting]].
 7. **Variable de entorno inconsistente.** La plantilla usa `KAFKA_SERVERS`; Spring espera `SPRING_KAFKA_BOOTSTRAP_SERVERS` (docker: `event-bus:29092`; prod: respaldo `localhost:9092`). `src/main/resources/application-prod.properties`, `.tpi/platform/`.
 8. **Vencimiento del hold no es seguro respecto de zonas horarias.** Usa `LocalDateTime` con `ZoneId.systemDefault()`. `services/impl/OrderHoldServiceImpl.java`.
 9. **Usuario por defecto.** Los controladores de vitrina y de órdenes asumen `usr-student-001` si falta `X-User-Id`. `controllers/StorefrontCatalogController.java`, `StudentOrderController.java`.
-10. **Sin CI en `develop`.** `.github/workflows/verify.yml` corre solo en PR a `main` o `release/**`. Los dos commits de `cf988d2` solo agregan una verificación de nombre de rama al abrir el PR. Ver [[Git workflow]].
+10. **Sin CI en `develop`.** `.github/workflows/verify.yml` corre solo en PR a `main` o `release/**`. Los dos commits de `cf988d2` solo agregan una verificación de nombre de rama al abrir el PR. Ver [[Git workflow]]. *Al 2026-10-03* sigue igual en `276af52`: `verify.yml` solo dispara en PR a `main` o `release/**`.
 11. **Restos de plantilla.** `docs/app_doc` y `.tpi/.tpi` son placeholders; `.compose/.env.example` está desactualizado.
-12. **Lectura laxa de roles.** Algunos servicios parsean la cabecera con `contains()` (subcadena), y `CourseCatalogManageServiceImpl.validateProfessorAccess` omite el chequeo si la cabecera está vacía. Sigue pendiente de corrección tras [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: quitar el respaldo `X-Roles`, endurecer el parseo y no omitir el chequeo con cabecera vacía.
+12. **Lectura laxa de roles.** Algunos servicios parsean la cabecera con `contains()` (subcadena), y `CourseCatalogManageServiceImpl.validateProfessorAccess` omite el chequeo si la cabecera está vacía. Sigue pendiente de corrección tras [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: quitar el respaldo `X-Roles`, endurecer el parseo y no omitir el chequeo con cabecera vacía. *Estado al 2026-10-03:* la PR #86 (abierta, no mergeada) corrige el parseo y quita `X-Roles` de los controladores existentes; deja el bypass por cabecera vacía para la tarea #5216. La PR #85 introduce un controlador nuevo que repite el `contains()` y el respaldo `X-Roles` ([[Revisión de PRs abiertas (2026-10-03)]]).
 
 ### Gaps agregados el 2026-10-01
 
@@ -102,7 +105,14 @@ Verificados leyendo el código:
 
 22. **Motivos de rechazo desconocidos se reportan como saldo insuficiente.** Mercado solo reconoce `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y otros caen en `REJECTED_INSUFFICIENT_FUNDS` con un log de advertencia (`services/impl/OrderHoldServiceImpl.java`, `applyRejection`, cerca de la línea 130). El payload de `HOLD_INCREASED` no se maneja (subastas, Fase 3). Decidido mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 24. **El profesor no puede fijar ni extender `publicationExpiresAt`.** Verificado: `dtos/manage/CatalogOfferPublishDto.java` y `dtos/manage/CatalogOfferUpdateDto.java` no lo contienen; solo aparece en los DTO de respuesta (`CourseCatalogManageDto`, `StorefrontOfferDto`). Decidido que puede extenderse ([[DEC-013 - Reglas de la tienda]], T6); falta aceptarlo al publicar y al actualizar.
-23. **Tópico compartido sin verificar.** Si `accounting.holds.commands` y `accounting.holds.events` apuntan ambos a `accounting.events`, el listener de Mercado recibe sus propios comandos; falta confirmar que se ignoran sin enviarlos a DLT.
+23. **Tópico compartido sin verificar.** Si `accounting.holds.commands` y `accounting.holds.events` apuntan ambos a `accounting.events`, el listener de Mercado recibe sus propios comandos; falta confirmar que se ignoran sin enviarlos a DLT. *Verificado el 2026-10-03 leyendo la PR #88:* `AccountingHoldKafkaListener` no filtra por `producer` ni por `eventType`; un comando propio solo produce un `WARN` o cae en el `default` del handler, y ninguna prueba de integración ejerce el tópico compartido (la prueba de Kafka fija de nuevo los tópicos viejos). La tarea T03 de [[S2-01 - Contrato con Accounting]] sigue pendiente.
+
+### Gaps agregados el 2026-10-03
+
+Verificados leyendo el código y los registros de CI:
+
+25. **Javadoc generado en PR de trabajo.** `COMMANDS.md` §1 limita `mvn javadoc:javadoc` a las ramas de release, pero las PR #78 y #82 (mergeadas) y #84 y #85 (abiertas) versionan cientos de archivos de `docs/java_doc`. Hace que dos PR abiertas se pisen (#84 y #85) y oculta el diff real. Ver [[Git workflow]].
+26. **`KafkaSagaIntegrationTest` falla en CI por la imagen de Kafka.** `src/test/java/ar/edu/utn/frc/tup/p4/services/KafkaSagaIntegrationTest.java` declara `new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"))` sin `asCompatibleSubstituteFor("confluentinc/cp-kafka")`; Testcontainers rechaza la imagen y la clase termina en `ExceptionInInitializerError` (ejecución de `mvn verify` del 2026-10-03: 931 pruebas, 1 error). Como `verify.yml` corre solo hacia `main` y `release/**`, el defecto aparecerá en la primera PR de release.
 
 Verificado: las respuestas duplicadas están cubiertas en dos capas, deduplicación por `eventId` en `processed_events` y guarda de estado en los manejadores (`services/impl/OrderConfirmationServiceImpl.java`, cerca de la línea 385).
 
@@ -111,7 +121,18 @@ Reportados por la documentación del equipo, sin verificar contra el código:
 18. El detalle de una oferta vencida pero activa responde 200 (origen: [[Q-015 - Reglas de la tienda]]).
 19. Una cancelación por `HOLD_NOT_SETTLED` no libera el stock.
 20. Una orden que queda en `CREATED` porque falló `requestHold` nunca se reconcilia.
-21. `KafkaSagaIntegrationTest` (13 casos) nunca se vio en verde: se omite sin Docker.
+21. `KafkaSagaIntegrationTest` (13 casos) nunca se vio en verde: se omite sin Docker. *Verificado el 2026-10-03:* en CI, que sí tiene Docker, falla con `ExceptionInInitializerError` (ver el gap 26).
+
+## Cambios de `develop` desde `7528610`
+
+Verificados contra `276af52` (2026-10-03). Son las cuatro PR mergeadas desde el commit que tomó la nota; las decisiones que quedaron sin `DEC` están listadas en [[Revisión de PRs abiertas (2026-10-03)]].
+
+| PR | Qué cambió | Dónde |
+|---|---|---|
+| #76 | El formato de cable de la API REST pasa a `snake_case` (`spring.jackson.property-naming-strategy=SNAKE_CASE`). `ErrorApi` y `FieldErrorApi` siguen en `camelCase`. El `ObjectMapper` de Kafka y del outbox no cambia. Los parámetros de consulta tampoco cambian. Según la PR, debía mergearse junto con una PR del frontend; no se verificó que eso haya ocurrido | `src/main/resources/application.properties`, `dtos/common/ErrorApi.java`; ver [[Errores de la API]] |
+| #77 | Endpoint nuevo `GET /courses/catalog/summary`, en la tabla de endpoints | `controllers/CourseCatalogSummaryController.java` |
+| #78 | La compra de vidas publica `LIFE_PURCHASE_CONFIRMED` en `market.events` (tópico `market-events` de `MessagingProperties`, productor `market-service`), una vez por orden y después de confirmar el cobro; la cantidad sale de `livesGranted` de la oferta. `ITEM_CONFIRMED` y `PURCHASE_CONFIRMED` siguen en el tópico `order-events` y con productor `tema-09-mercado` | `services/impl/OrderConfirmationServiceImpl.java`, `dtos/events/LifePurchaseConfirmedPayloadDto.java`; ver [[Eventos y Kafka]] |
+| #82 | La orden guarda `itemType` al crearse (columna nullable `item_type`) y la confirmación solo lee la oferta cuando puede publicar un evento de ítem. La métrica `market.life_purchase.event_skipped` (etiqueta `reason`) se registra en cero al arrancar y cuenta después del commit | `entities/OrderEntity.java`, `services/impl/LifePurchaseMetrics.java` |
 
 ## Relacionado
 

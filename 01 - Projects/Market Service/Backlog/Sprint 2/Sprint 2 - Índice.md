@@ -2,7 +2,7 @@
 tipo: indice
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-03
 tags: [mercado, backlog, sprint-2]
 ---
 # Sprint 2 - Índice
@@ -53,7 +53,7 @@ Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la histori
 
 ## Relacionado
 
-[[Plan del Sprint 2]] · [[Carga en Taiga - Sprints 2 y 3]] · [[Revisión del Sprint 2 en Taiga]] · [[Backlog - Índice]] · [[Roadmap de trabajo]]
+[[Plan del Sprint 2]] · [[Carga en Taiga - Sprints 2 y 3]] · [[Revisión del Sprint 2 en Taiga]] · [[Revisión de PRs abiertas (2026-10-03)]] · [[Backlog - Índice]] · [[Roadmap de trabajo]]
 
 ## Referencias en Taiga
 

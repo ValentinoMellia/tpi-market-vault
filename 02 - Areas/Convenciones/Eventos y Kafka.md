@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: DEC-008
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
@@ -30,6 +30,12 @@ Todos los mensajes usan `EventEnvelope<T>` (`dtos/events/EventEnvelope.java`): `
 Productores: `market-service` en los comandos y `tema-09-mercado` en `PURCHASE_CONFIRMED` (inconsistente; la decisión fija `market-service` en todos, tarea de código pendiente). Definidos en `configs/MessagingProperties.java`. Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service`.
 
 Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}`; `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
+
+Cambios posteriores (2026-10-03, verificados contra `develop` en `276af52` y contra las cabezas de las PR):
+
+- **Mergeado (PR #78):** la compra de vidas publica `LIFE_PURCHASE_CONFIRMED` en `market.events` (propiedad `market-events`), productor `market-service`, una vez por orden y después del cobro. Payload `{studentId, courseId, orderId, quantity}`, con `quantity` tomado de `livesGranted` de la oferta; `orderId` sigue siendo el id numérico serializado como texto. `ITEM_CONFIRMED` y `PURCHASE_CONFIRMED` siguen saliendo por la propiedad `order-events`, con productor `tema-09-mercado`. Si la oferta no existe o `livesGranted` es inválido, el evento se omite con un log de error y la métrica `market.life_purchase.event_skipped` (PR #82).
+- **Abierto (PR #88, no mergeado):** los tópicos por defecto pasan a `accounting.events` (comandos y respuestas de holds) y `market.events` (`order-events`). Con el mismo tópico para comandos y respuestas, el listener de Mercado recibe sus propios comandos y no los descarta: queda pendiente la tarea T03 de [[S2-01 - Contrato con Accounting]]. Ver [[Revisión de PRs abiertas (2026-10-03)]].
+- **Contrato de Accounting:** Accounting describe `LIFE_PURCHASE_CONFIRMED` solo en una rama sin integrar ([[Integración con Accounting]]); no se verificó que consuma el evento que Mercado ya publica.
 
 Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
 

@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, convenciones, errores, api]
 ---
 # Errores de la API
@@ -12,6 +12,12 @@ tags: [mercado, convenciones, errores, api]
 ## Forma de la respuesta
 
 `ErrorApi` (`dtos/common/ErrorApi.java`): `type` (`https://tpi.utn.frc/errors/<slug>`), `title`, `status`, `detail`, `instance`, `requestId`, `timestamp`, los campos antiguos `error` y `message` por compatibilidad, y `errors[]` con `FieldErrorApi {field, message}`. Lo arma `controllers/GlobalExceptionHandler.java`. El `requestId` viene de `X-Request-Id` (`RequestLogFilter`, que también carga `traceId` y `spanId` desde `traceparent`).
+
+## Formato de cable: `snake_case` en los éxitos, `camelCase` en los errores
+
+Desde la PR #76 (mergeada, verificado contra `develop` en `276af52`) las respuestas y los cuerpos de la API REST usan `snake_case` (`spring.jackson.property-naming-strategy=SNAKE_CASE` en `application.properties`). Los cuerpos de error no: `ErrorApi` y `FieldErrorApi` fijan `camelCase` con `@JsonNaming`, así que `requestId` y `errors[].field` conservan su forma. Los parámetros de consulta (por ejemplo `courseIds`) tampoco cambian. El `ObjectMapper` de Kafka y del outbox queda fuera del cambio. El motivo, según la PR, es que el interceptor de conversión del frontend no convierte las respuestas de error. No hay `DEC` que lo registre ([[Revisión de PRs abiertas (2026-10-03)]]).
+
+La descripción de los campos de `ErrorApi` de más arriba y la tabla de slugs se verificaron contra `7528610` y no se repitieron.
 
 ## Slugs
 

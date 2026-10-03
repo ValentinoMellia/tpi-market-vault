@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -72,3 +72,5 @@ Las subastas se especifican ya porque ambos sprints están en planificación. El
 - Eventos de notificaciones (`CATALOG_OFFER_PUBLISHED`) y consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` ([[Integración con Notificaciones]], [[Integración con Cursos]]).
 
 Backlog completo en [[Backlog - Índice]].
+
+Estado de las PR abiertas del código al 2026-10-03 (qué parte de P0 y P1 ya tiene PR y qué falta): [[Revisión de PRs abiertas (2026-10-03)]].

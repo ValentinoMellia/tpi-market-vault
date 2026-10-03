@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -52,6 +52,10 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 ## Cómo las recibe Mercado
 
 `GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`. Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS` y el resto queda como autoridad simple. Existe un respaldo con la cabecera antigua `X-Roles`. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
+
+### Parseo de roles: PR #86 pendiente
+
+Al 2026-10-03 lo anterior describe `develop` (`276af52`). La PR #86 de `tpi-market` (abierta, no mergeada) agrega `models/enums/UserRole.java` como único parser de `X-User-Roles` para el filtro y para los services: separa por comas, quita un solo `ROLE_` inicial y compara de forma exacta y con mayúsculas contra los cinco roles. Si se mergea, `X-User-Roles: ROLE_PROFESSOR` da `ROLE_PROFESSOR` (hoy da `ROLE_ROLE_PROFESSOR`), los roles desconocidos dejan de ser autoridades, `/whoami` deja de listarlos y desaparece el respaldo `X-Roles` de los controladores. Detalle y riesgos en [[Revisión de PRs abiertas (2026-10-03)]].
 
 ## Autorización en dos capas
 
