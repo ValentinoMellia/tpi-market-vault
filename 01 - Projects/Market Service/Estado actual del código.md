@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-03
+actualizado: 2026-10-04
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -100,7 +100,7 @@ Unas 636 anotaciones `@Test` contadas; el informe de verificación de T07 declar
 9. **Usuario por defecto.** Los controladores de vitrina y de órdenes asumen `usr-student-001` si falta `X-User-Id`. `controllers/StorefrontCatalogController.java`, `StudentOrderController.java`.
 10. **Sin CI en `develop`.** `.github/workflows/verify.yml` corre solo en PR a `main` o `release/**`. Los dos commits de `cf988d2` solo agregan una verificación de nombre de rama al abrir el PR. Ver [[Git workflow]].
 11. **Restos de plantilla.** `docs/app_doc` y `.tpi/.tpi` son placeholders; `.compose/.env.example` está desactualizado.
-12. **Lectura laxa de roles.** Algunos servicios parsean la cabecera con `contains()` (subcadena), y `CourseCatalogManageServiceImpl.validateProfessorAccess` omite el chequeo si la cabecera está vacía. Sigue pendiente de corrección tras [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: quitar el respaldo `X-Roles`, endurecer el parseo y no omitir el chequeo con cabecera vacía.
+12. **Lectura laxa de roles.** Algunos servicios parsean la cabecera con `contains()` (subcadena), y `CourseCatalogManageServiceImpl.validateProfessorAccess` omite el chequeo si la cabecera está vacía. Sigue pendiente de corrección tras [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: quitar el respaldo `X-Roles`, endurecer el parseo y no omitir el chequeo con cabecera vacía. Verificado el 2026-10-03 contra `276af52`: el respaldo `X-Roles` ya no está en `GatewayIdentityFilter` sino en cuatro controladores, y la subcadena es explotable (un profesor no asignado con `PROFESSOR, SYSTEMS` cambia el estado de ofertas de otro curso porque `SYSTEMS` contiene `MS`). El PR #86 (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)) corrigió el parseo y quitó `X-Roles`: desde `develop@3e2b88b` no queda ningún `contains()` sobre roles. La cabecera vacía queda para la T02. Ver [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] y [[Q-021 - Principal de servicio MS en las reglas de negocio]].
 
 ### Gaps agregados el 2026-10-01
 

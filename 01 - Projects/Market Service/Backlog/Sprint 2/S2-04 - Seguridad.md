@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-04
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
@@ -113,6 +113,24 @@ horas: 16
 Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo]] (P1), [[Errores de la API]].
 
 ---
+
+## Estado en Taiga
+
+Al 2026-10-04:
+
+| Tarea | Estado | Dónde |
+|---|---|---|
+| #5215 T01 - Parsear los roles sin contains | Closed | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
+| #5216 T02 - Eliminar el bypass por cabecera de roles vacía | New | Es la siguiente: el bypass sigue abierto en `develop` |
+| #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
+| #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
+
+Lo que dejó la T01 y la revisión del PR #86:
+
+- **Hallazgo.** La lectura por subcadena era explotable: un profesor no asignado con `X-User-Roles: PROFESSOR, SYSTEMS` cambiaba el estado de ofertas de otro curso (200, porque `SYSTEMS` contiene `MS`). Con el PR responde 403.
+- **Para la T02.** Los dos chequeos que se saltean con cabecera vacía (`validateProfessorAccess` y `CourseCatalogSummaryServiceImpl.validateRole`) quedaron sin cambios y fijados con pruebas, para que la T02 los cambie a propósito. Deben seguir mirando la cabecera cruda: si pasan a preguntar "no hay roles conocidos", un valor como `NOT_ADMIN` también se saltearía el chequeo.
+- **Decisiones.** Roles desconocidos y prefijo `ROLE_`: [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] se cerró el 2026-10-04 con la opción 1, como enmienda de [[DEC-006 - Roles y permisos según el código y los headers del gateway]]. Llamadas de servicio con `MS`: [[Q-021 - Principal de servicio MS en las reglas de negocio]], a cubrir en la matriz de la T04.
+- **Coordinación con el PR #85 de `tpi-market`** (resumen de ventas, US-1053, sin mergear). `CourseSalesSummaryServiceImpl.validateAccess` también compara roles con `contains()` y el controlador agrega `X-Roles`. Si el PR #86 entra primero, el #85 debe rebasarse y usar `UserRole`.
 
 ## Tareas
 

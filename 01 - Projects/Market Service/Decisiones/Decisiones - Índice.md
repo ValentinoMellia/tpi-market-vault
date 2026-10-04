@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-016
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -18,7 +18,7 @@ tags: [mercado, decision]
 | DEC-003 | [[DEC-003 - Holds solo por Kafka]] | [[Q-004 - Transporte de los holds]] (archivada) | 2026-10-01 |
 | DEC-004 | [[DEC-004 - Máquina de estados de la orden según el código]] | [[Q-005 - Estados de la orden]] (archivada) | 2026-10-01 |
 | DEC-005 | [[DEC-005 - Endpoints y prefijos según el código]] | [[Q-009 - Endpoints y prefijos]] (archivada) | 2026-10-01 |
-| DEC-006 | [[DEC-006 - Roles y permisos según el código y los headers del gateway]] | [[Q-010 - Roles y permisos]] (archivada) | 2026-10-01 |
+| DEC-006 | [[DEC-006 - Roles y permisos según el código y los headers del gateway]] | [[Q-010 - Roles y permisos]] (archivada; enmendada el 2026-10-04 por [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]], archivada) | 2026-10-01 |
 | DEC-007 | [[DEC-007 - Tope de vidas, Accounting decide y reporta]] | [[Q-002 - Vidas y tope de vidas]] (archivada) | 2026-10-01 |
 | DEC-008 | [[DEC-008 - Nombre de productor y tópicos de Mercado]] | [[Q-006 - Naming de eventos y topics]] (archivada) | 2026-10-01 |
 | DEC-009 | [[DEC-009 - Contrato de holds e ítems según Accounting]] | [[Q-007 - Contrato con Accounting]] (archivada) | 2026-10-01 |
@@ -43,5 +43,7 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-013 - Higiene del backlog]]: [[DEC-015 - Política del backlog de Taiga]] fija la política; falta sanear Taiga y planificar los sprints.
 
 - [[Q-018 - Alcance real del Sprint 2 en Taiga]]: el sprint de Taiga tiene historias que no están en el plan; falta decidir qué se queda, qué entra con mock y cómo se reparte el frontend.
+
+- [[Q-021 - Principal de servicio MS en las reglas de negocio]]: un servicio con `MS` pasa `@PreAuthorize`, pero los services no lo ven; hoy una ruta lo rechaza y otra lo deja pasar sin chequeo.
 
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].
