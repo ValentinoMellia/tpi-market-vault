@@ -1,0 +1,3 @@
+## [2026-10-04] ingest | Merge del PR #92 de tpi-market (US-5214 T02)
+- El PR #92 (T02 #5216 de [[S2-04 - Seguridad]]) se mergeó en `develop` el 2026-10-04 (`76a9bbd`), aprobado por tommikimmel. Las notas que lo daban como "en revisión" pasan a describirlo como código actual.
+- [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]: verificada contra `codigo@76a9bbd`. [[Gateway e identidad]]: lectura de ámbitos de servicio, autorización en dos capas y puntos débiles al día. [[Estado actual del código]] (gap 12), [[S2-04 - Seguridad]] y el seguimiento de [[DEC-006 - Roles y permisos según el código y los headers del gateway]]: PR #92 como mergeado. `node scripts/lint-vault.mjs` sin errores.

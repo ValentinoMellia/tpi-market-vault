@@ -1,13 +1,13 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-016
-actualizado: 2026-10-01
+verificado_contra: DEC-017
+actualizado: 2026-10-03
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay dieciséis decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay diecisiete decisiones registradas.
 
 ## Decisiones registradas
 
@@ -18,7 +18,7 @@ tags: [mercado, decision]
 | DEC-003 | [[DEC-003 - Holds solo por Kafka]] | [[Q-004 - Transporte de los holds]] (archivada) | 2026-10-01 |
 | DEC-004 | [[DEC-004 - Máquina de estados de la orden según el código]] | [[Q-005 - Estados de la orden]] (archivada) | 2026-10-01 |
 | DEC-005 | [[DEC-005 - Endpoints y prefijos según el código]] | [[Q-009 - Endpoints y prefijos]] (archivada) | 2026-10-01 |
-| DEC-006 | [[DEC-006 - Roles y permisos según el código y los headers del gateway]] | [[Q-010 - Roles y permisos]] (archivada) | 2026-10-01 |
+| DEC-006 | [[DEC-006 - Roles y permisos según el código y los headers del gateway]] | [[Q-010 - Roles y permisos]] (archivada; enmendada el 2026-10-04 por [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]], archivada) | 2026-10-01 |
 | DEC-007 | [[DEC-007 - Tope de vidas, Accounting decide y reporta]] | [[Q-002 - Vidas y tope de vidas]] (archivada) | 2026-10-01 |
 | DEC-008 | [[DEC-008 - Nombre de productor y tópicos de Mercado]] | [[Q-006 - Naming de eventos y topics]] (archivada) | 2026-10-01 |
 | DEC-009 | [[DEC-009 - Contrato de holds e ítems según Accounting]] | [[Q-007 - Contrato con Accounting]] (archivada) | 2026-10-01 |
@@ -29,6 +29,7 @@ tags: [mercado, decision]
 | DEC-014 | [[DEC-014 - Reglas de subastas]] | [[Q-012 - Alcance de subastas]] (archivada; actualizada el 2026-10-01 con la fase final ciega) | 2026-10-01 |
 | DEC-015 | [[DEC-015 - Política del backlog de Taiga]] | [[Q-013 - Higiene del backlog]] (sigue abierta) | 2026-10-01 |
 | DEC-016 | [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] | [[Q-017 - Qué se subasta mientras no existan ítems únicos]] (archivada) | 2026-10-01 |
+| DEC-017 | [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] | [[Q-021 - Principal de servicio MS en las reglas de negocio]] (archivada) | 2026-10-03 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

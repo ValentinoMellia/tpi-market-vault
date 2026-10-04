@@ -29,9 +29,10 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-09b - SPIKE Orden de la compra con Accounting]] | #5254 | 2 | 3 | 1 | Must |
 | [[S2-09c - SPIKE Diseño técnico de subastas]] | #5256 | 5 | 10 | 2 | Should |
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 | 2 | 4 | 1 | Should |
+| [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 | 5 | 16 | 4 | Must |
 | [[S3-01 - Subastas, lanzar y ver las abiertas]] (adelantada del Sprint 3) | #5347 | 8 | 27 | 6 | Should |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 | a completar | a completar | 6 (4 hechas) | Should |
-| **Total comprometido** | | **81** | **282** | **70** | |
+| **Total comprometido** | | **86** | **298** | **74** | |
 
 Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
 
@@ -73,6 +74,7 @@ Cargadas en el sprint "G11 - Sprint 2" (las opcionales quedan en el backlog, sin
 | [[S2-09b - SPIKE Orden de la compra con Accounting]] | #5254 |
 | [[S2-09c - SPIKE Diseño técnico de subastas]] | #5256 |
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 |
+| [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 |
 | [[S2-OPC1 - Reconciliación de compras]] | #5261 |
 | [[S2-OPC2 - Frontend de gestión del profesor]] | #5266 |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 |
