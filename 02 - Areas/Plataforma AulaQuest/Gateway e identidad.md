@@ -7,7 +7,7 @@ tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
 
-> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado. Cómo se leen los roles está en disputa en [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] y [[Q-021 - Principal de servicio MS en las reglas de negocio]].
+> Cómo llegan las peticiones a Mercado: el gateway valida el JWT y entrega la identidad como cabeceras; Mercado confía en ellas porque su puerto no está publicado. Cómo se leen los roles lo fija [[DEC-006 - Roles y permisos según el código y los headers del gateway]] (enmendada por [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]); qué ve una regla de negocio de un servicio con `MS` está en disputa en [[Q-021 - Principal de servicio MS en las reglas de negocio]].
 
 ## Camino de una petición
 
@@ -55,7 +55,7 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 **La cabecera `X-Roles`.** Mercado ya no la lee. El filtro la dejó con el change `gateway-mesh-integration`, y hasta `codigo@276af52` cuatro controladores todavía la usaban como respaldo cuando faltaba `X-User-Roles` (`CourseCatalogManageController`, `CatalogOfferController`, `StorefrontCatalogController` y `CourseCatalogSummaryController`, dos de ellos con valor por defecto `ROLE_STUDENT`); el PR #86 la quitó de todos. Ningún cliente la envía: el gateway la elimina y el frontend no la usa.
 
-**Lectura de roles desde el PR #86** (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)). `models/enums/UserRole` es el único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. Antes el filtro prefijaba sin condiciones (`ROLE_PROFESSOR` daba `ROLE_ROLE_PROFESSOR`) y convertía cualquier texto en autoridad. Si esta conducta queda como regla es lo que pregunta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]].
+**Lectura de roles desde el PR #86** (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)). `models/enums/UserRole` es el único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. Antes el filtro prefijaba sin condiciones (`ROLE_PROFESSOR` daba `ROLE_ROLE_PROFESSOR`) y convertía cualquier texto en autoridad. Esta conducta es la regla desde la enmienda de DEC-006 del 2026-10-04 ([[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]).
 
 ## Autorización en dos capas
 

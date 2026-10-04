@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: codigo@3e2b88b
+estado: archivado
+verificado_contra: DEC-006
 actualizado: 2026-10-04
-tags: [mercado, pregunta-abierta, seguridad, roles]
+tags: [mercado, pregunta-archivada, seguridad, roles]
 ---
 # Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad
 
@@ -34,4 +34,4 @@ Opción 1. Valentino Mellia la revisó en el PR #86 (2026-10-03, sin bloqueantes
 El equipo de Mercado. Si se confirma, se agrega una sección de enmienda a DEC-006 en lugar de crear una decisión nueva. No hace falta hablar con el gateway: sigue enviando los roles sin prefijo.
 
 ## Resolución
-Pendiente.
+Archivada el 2026-10-04. Opción 1, confirmada por Patricio Fernandez, registrada como enmienda de [[DEC-006 - Roles y permisos según el código y los headers del gateway]] (sin decisión nueva, como estaba previsto). El código ya la cumplía desde `develop@3e2b88b`.
