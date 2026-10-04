@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, dominio, items]
 ---
 # Tipos de item
@@ -24,7 +24,7 @@ El enumerado `ItemType` (`models/enums/ItemType.java`): `SHIELD`, `BOOST_XP`, `B
 - Verbos de efecto previstos (`ABSORB_FAILURE`, `XP_MULTIPLIER`, `COIN_MULTIPLIER`, recomendación D3 del taller); un item equipado por verbo. Los efectos no se resuelven en Mercado ([[DEC-010 - Los efectos de los ítems no son de Mercado]]).
 - Dónde vive cada efecto (código de accounting): el inventario y el escudo (`SHIELD`) los resuelve Accounting; los multiplicadores de XP y monedas, el motor de desafíos. Accounting no tiene lógica de `BOOST` ni de `LIFE` ([[Integración con Accounting]]).
 - El inventario del estudiante es de Accounting ([[DEC-001 - Accounting es dueño del inventario]]); hoy su catálogo solo acepta `ITEM-PLACEHOLDER-1` a `3` y no las plantillas `tpl-*` de Mercado.
-- El tope de vidas lo decide y reporta Accounting (hoy recorta); Mercado no lo valida y reacciona a lo que Accounting informe ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]). El `LIFE_PURCHASE_CONFIRMED` de accounting es solo una propuesta en una rama sin integrar y la señal exacta está por acordar.
+- El tope de vidas lo decide y reporta Accounting (hoy recorta); Mercado no lo valida y reacciona a lo que Accounting informe ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]). Al confirmarse una compra de vidas, Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` (omitiendo `ITEM_CONFIRMED`), y Accounting acredita hasta el tope informando con `LIFE_CREDITED` en `accounting.events` ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]).
 - Tipos nuevos propuestos (no acordados): [[Cofres y nuevos ítems]].
 
 ## Dónde vive en el código

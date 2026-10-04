@@ -1,0 +1,4 @@
+## [2026-10-02] decision | Enmienda DEC-007 y actualización de notas por compra de vidas
+- Enmienda explícita en [[DEC-007 - Tope de vidas, Accounting decide y reporta]] cerrando la señal pendiente acordada con Accounting el 2026-10-02 (`LIFE_PURCHASE_CONFIRMED` en `market.events` y `LIFE_CREDITED` en `accounting.events`).
+- Actualizadas las notas afectadas: [[Q-002 - Vidas y tope de vidas]], [[Tipos de item]], [[Orden de compra]], [[Roadmap de trabajo]], [[Integración con Accounting]] y [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]].
+- Clarificada la máquina de estados en [[Orden de compra]] y [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]: el estado previo a `CONFIRMED` es `ITEM_PROVISIONED`, momento en que se emite `LIFE_PURCHASE_CONFIRMED` y se suprime `ITEM_CONFIRMED`.
