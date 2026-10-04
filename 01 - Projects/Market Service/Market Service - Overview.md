@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-012
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, overview]
 ---
 # Market Service - Overview
@@ -38,8 +38,8 @@ Mercado es el Tema 09 y, en Taiga, el grupo G11. Accounting (ex Banco) es el Tem
 - Cómo usar este vault (con y sin agente, y flujo de PR): [[Guía del vault y la LLM wiki]].
 - Qué hace el código hoy: [[Estado actual del código]].
 - Cómo aprender el tema: [[Roadmap de entendimiento]]. Qué hacer después: [[Roadmap de trabajo]].
-- Dudas abiertas: [[Q-008 - Orden de la saga de compra]] y [[Q-013 - Higiene del backlog]]; el resto está archivado, listado en [[index]].
-- Decisiones: [[Decisiones - Índice]] (DEC-001 a DEC-013) y [[Taller de decisiones]] (qué recomendaciones están decididas).
+- Dudas abiertas: [[Q-008 - Orden de la saga de compra]], [[Q-013 - Higiene del backlog]] y [[Q-018 - Alcance real del Sprint 2 en Taiga]]; el resto está archivado, listado en [[index]].
+- Decisiones: [[Decisiones - Índice]] (DEC-001 a DEC-016) y [[Taller de decisiones]] (qué recomendaciones están decididas).
 - Propuestas de producto: [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]].
 - Backlog: [[Backlog - Índice]].
 - Plataforma: [[Mapa de servicios]], [[Gateway e identidad]], [[Integración con Accounting]].

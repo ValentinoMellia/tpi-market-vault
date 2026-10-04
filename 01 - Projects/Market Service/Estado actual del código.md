@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-03
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -113,8 +113,8 @@ Verificados leyendo el código:
 17. **El flujo SSE de órdenes lo puede abrir el dueño o ADMIN, GESTOR y MS** (`controllers/PurchaseOrderController.java`).
 
 22. **Motivos de rechazo desconocidos se reportan como saldo insuficiente.** Mercado solo reconoce `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y otros caen en `REJECTED_INSUFFICIENT_FUNDS` con un log de advertencia (`services/impl/OrderHoldServiceImpl.java`, `applyRejection`, cerca de la línea 130). El payload de `HOLD_INCREASED` no se maneja (subastas, Fase 3). Decidido mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
-24. **El profesor no puede fijar ni extender `publicationExpiresAt`.** Verificado: `dtos/manage/CatalogOfferPublishDto.java` y `dtos/manage/CatalogOfferUpdateDto.java` no lo contienen; solo aparece en los DTO de respuesta (`CourseCatalogManageDto`, `StorefrontOfferDto`). Decidido que puede extenderse ([[DEC-013 - Reglas de la tienda]], T6); falta aceptarlo al publicar y al actualizar.
 23. **Tópico compartido sin verificar.** Si `accounting.holds.commands` y `accounting.holds.events` apuntan ambos a `accounting.events`, el listener de Mercado recibe sus propios comandos; falta confirmar que se ignoran sin enviarlos a DLT.
+24. **El profesor no puede fijar ni extender `publicationExpiresAt`.** Verificado: `dtos/manage/CatalogOfferPublishDto.java` y `dtos/manage/CatalogOfferUpdateDto.java` no lo contienen; solo aparece en los DTO de respuesta (`CourseCatalogManageDto`, `StorefrontOfferDto`). Decidido que puede extenderse ([[DEC-013 - Reglas de la tienda]], T6); falta aceptarlo al publicar y al actualizar.
 
 Verificado: las respuestas duplicadas están cubiertas en dos capas, deduplicación por `eventId` en `processed_events` y guarda de estado en los manejadores (`services/impl/OrderConfirmationServiceImpl.java`, cerca de la línea 385).
 
