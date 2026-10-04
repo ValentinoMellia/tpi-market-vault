@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-02
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -32,7 +32,7 @@ Tareas de código derivadas de decisiones:
 - **Nombre del productor**: reemplazar `tema-09-mercado` (usado en `PURCHASE_CONFIRMED`) por `market-service` en todos los mensajes ([[DEC-008 - Nombre de productor y tópicos de Mercado]]).
 - **Mapear los motivos de rechazo de accounting**: `ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` a estados o mensajes propios en lugar de `REJECTED_INSUFFICIENT_FUNDS` ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]] gap 22). Falta definir con producto qué ve el estudiante.
 - **Quitar `itemValidityDays`** de la entidad de oferta, DTO, validaciones y datos de demostración ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], gap 15).
-- **Manejar el resultado de Accounting ante el tope de vidas**: reaccionar (liberar el hold o reflejarlo en la orden) al evento y motivo que Accounting publique. **Bloqueada** hasta acordar con Accounting la señal exacta. Ya no existe la tarea "Mercado valida el tope antes del hold" ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
+- **Compra de vidas y emisión de `LIFE_PURCHASE_CONFIRMED`**: señal acordada con Accounting el 2026-10-02 e incorporada como historia en el Sprint 2 ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]). Mercado publica `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el débito del hold; Accounting aplica su tope (acredita hasta el máximo o 0 si llegó al tope sin devolver monedas) y reporta con `LIFE_CREDITED` en `accounting.events` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
 - **Endurecer la autorización**: quitar el respaldo `X-Roles`, reemplazar el parseo con `contains()` por comparación exacta y no omitir el chequeo de profesor con cabecera vacía ([[DEC-006 - Roles y permisos según el código y los headers del gateway]], gap 12).
 - Tareas del código derivadas de los gaps: liberar el stock en `HOLD_NOT_SETTLED`, reconciliar órdenes que quedan en `CREATED`, idempotencia por estudiante ([[Estado actual del código]], gaps 13 a 21).
 
