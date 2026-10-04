@@ -2,7 +2,7 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-03
+actualizado: 2026-10-04
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -53,9 +53,9 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 `GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`. Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS` y el resto queda como autoridad simple. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
 
-**La cabecera `X-Roles`.** Verificado contra `codigo@276af52`: el filtro **ya no** la lee (la sacó el change `gateway-mesh-integration`), pero cuatro controladores todavía la usan como respaldo cuando falta `X-User-Roles` (`CourseCatalogManageController`, `CatalogOfferController`, `StorefrontCatalogController` y `CourseCatalogSummaryController`, dos de ellos con valor por defecto `ROLE_STUDENT`). Ningún cliente la envía: el gateway la elimina y el frontend no la usa.
+**La cabecera `X-Roles`.** Mercado ya no la lee. El filtro la dejó con el change `gateway-mesh-integration`, y hasta `codigo@276af52` cuatro controladores todavía la usaban como respaldo cuando faltaba `X-User-Roles` (`CourseCatalogManageController`, `CatalogOfferController`, `StorefrontCatalogController` y `CourseCatalogSummaryController`, dos de ellos con valor por defecto `ROLE_STUDENT`); el PR #86 la quitó de todos. Ningún cliente la envía: el gateway la elimina y el frontend no la usa.
 
-**Cambio en revisión: PR #86 de `tpi-market`** (T01 de [[S2-04 - Seguridad]], todavía sin mergear). Introduce `models/enums/UserRole` como único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. También quita `X-Roles` de los controladores. Hoy el código prefija sin condiciones (`ROLE_PROFESSOR` da `ROLE_ROLE_PROFESSOR`) y convierte cualquier texto en autoridad; si eso debe cambiar es lo que pregunta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]].
+**Lectura de roles desde el PR #86** (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)). `models/enums/UserRole` es el único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. Antes el filtro prefijaba sin condiciones (`ROLE_PROFESSOR` daba `ROLE_ROLE_PROFESSOR`) y convertía cualquier texto en autoridad. Si esta conducta queda como regla es lo que pregunta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]].
 
 ## Autorización en dos capas
 
@@ -64,12 +64,12 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Por eso un servicio con ámbito `MS` pasa la primera y la segunda lo trata como si no tuviera roles: en `develop` (`codigo@276af52`), `PATCH /offers/{id}/status` lo rechaza y la ruta de estado del curso lo deja pasar sin chequeo.
 
-**Cambio en revisión: PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], apilado sobre el PR #86). Las dos rutas de estado de oferta pasan a leer el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas; ningún chequeo de rol se saltea con la cabecera vacía, y el filtro descarta los ámbitos de servicio con forma de rol. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
+**Cambio en revisión: PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], sin mergear). Las dos rutas de estado de oferta pasan a leer el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas; ningún chequeo de rol se saltea con la cabecera vacía, y el filtro descarta los ámbitos de servicio con forma de rol. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
 
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
-- Algunos servicios leen el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` cuenta como `MS`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes en `develop`, [[Estado actual del código]]). El PR #86 corrige el primero y el PR #92 el segundo (los dos en revisión); el usuario por defecto es la T03 de [[S2-04 - Seguridad]].
+- Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. Siguen pendientes el chequeo de profesor que se omite con cabecera vacía (T02, PR #92 en revisión) y el usuario por defecto `usr-student-001` (T03) de [[S2-04 - Seguridad]] ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
 - En `develop`, un servicio cuyo `X-Service-Scopes` traiga un valor con forma de rol (`ROLE_ADMIN`) recibe esa autoridad tal cual. El PR #92 hace que el filtro descarte esos ámbitos ([[DEC-017 - Servicios con MS en las rutas de estado de oferta]]).
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
