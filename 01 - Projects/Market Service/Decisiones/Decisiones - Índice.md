@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-016
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -19,7 +19,7 @@ tags: [mercado, decision]
 | DEC-004 | [[DEC-004 - Máquina de estados de la orden según el código]] | [[Q-005 - Estados de la orden]] (archivada) | 2026-10-01 |
 | DEC-005 | [[DEC-005 - Endpoints y prefijos según el código]] | [[Q-009 - Endpoints y prefijos]] (archivada) | 2026-10-01 |
 | DEC-006 | [[DEC-006 - Roles y permisos según el código y los headers del gateway]] | [[Q-010 - Roles y permisos]] (archivada) | 2026-10-01 |
-| DEC-007 | [[DEC-007 - Tope de vidas, Accounting decide y reporta]] | [[Q-002 - Vidas y tope de vidas]] (archivada) | 2026-10-01 |
+| DEC-007 | [[DEC-007 - Tope de vidas, Accounting decide y reporta]] | [[Q-002 - Vidas y tope de vidas]] (archivada; enmendada el 2026-10-02 y el 2026-10-04: validación preventiva del tope y `LIFE_PURCHASE_REJECTED`) | 2026-10-01 |
 | DEC-008 | [[DEC-008 - Nombre de productor y tópicos de Mercado]] | [[Q-006 - Naming de eventos y topics]] (archivada) | 2026-10-01 |
 | DEC-009 | [[DEC-009 - Contrato de holds e ítems según Accounting]] | [[Q-007 - Contrato con Accounting]] (archivada) | 2026-10-01 |
 | DEC-010 | [[DEC-010 - Los efectos de los ítems no son de Mercado]] | [[Q-011 - Efectos y consumo de items]] (archivada) | 2026-10-01 |

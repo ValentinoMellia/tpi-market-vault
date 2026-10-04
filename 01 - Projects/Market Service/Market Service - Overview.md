@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-012
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, overview]
 ---
 # Market Service - Overview
@@ -21,7 +21,7 @@ Mercado **no es dueño del inventario, de las vidas ni de las monedas**: los tre
 |---|---|
 | Catálogo de plantillas y ofertas por curso | Inventario y mochila del estudiante (Accounting, [[DEC-001 - Accounting es dueño del inventario]]) |
 | Orden de compra y su ciclo de vida ([[Orden de compra]]) | Saldo de monedas y libro contable (Accounting) |
-| Coordinar el hold de monedas ([[Hold de monedas]]) | Contador y tope de vidas (Accounting decide y reporta; Mercado no valida y reacciona, [[DEC-007 - Tope de vidas, Accounting decide y reporta]]) |
+| Coordinar el hold de monedas ([[Hold de monedas]]) | Contador y tope de vidas (Accounting aplica y reporta; Mercado valida antes del hold de forma preventiva y reacciona, [[DEC-007 - Tope de vidas, Accounting decide y reporta]]) |
 | Idempotencia de la compra y stock opcional ([[DEC-002 - Stock opcional por oferta]]) | Resolver efectos de los items al resolver un desafío (escudos en Accounting, multiplicadores en el motor de desafíos, [[DEC-010 - Los efectos de los ítems no son de Mercado]]) |
 | Avisar que se confirmó la entrega del item (`ITEM_CONFIRMED`) y publicar `PURCHASE_CONFIRMED` | Notificaciones al usuario ([[Integración con Notificaciones]]) |
 

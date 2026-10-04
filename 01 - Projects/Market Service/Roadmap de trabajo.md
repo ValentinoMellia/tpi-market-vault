@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-04
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -33,6 +33,7 @@ Tareas de código derivadas de decisiones:
 - **Mapear los motivos de rechazo de accounting**: `ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` a estados o mensajes propios en lugar de `REJECTED_INSUFFICIENT_FUNDS` ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]] gap 22). Falta definir con producto qué ve el estudiante.
 - **Quitar `itemValidityDays`** de la entidad de oferta, DTO, validaciones y datos de demostración ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], gap 15).
 - **Compra de vidas y emisión de `LIFE_PURCHASE_CONFIRMED`**: señal acordada con Accounting el 2026-10-02 e incorporada como historia en el Sprint 2 ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]). Mercado publica `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el débito del hold; Accounting aplica su tope (acredita hasta el máximo o 0 si llegó al tope sin devolver monedas) y reporta con `LIFE_CREDITED` en `accounting.events` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
+- **Acuerdos de compra de vidas del 2026-10-04**: validación del tope antes del hold, `orderId` UUID unificado y manejo de `LIFE_PURCHASE_REJECTED` con orden cobrada sin acreditar ([[S2-11 - Acuerdos de compra de vidas con Accounting]]). Falta: que Accounting publique `LIFE_PURCHASE_REJECTED`, definir cómo se emite el token de servicio y consumir PAR-12 desde Backoffice en lugar de configurarlo.
 - **Endurecer la autorización**: quitar el respaldo `X-Roles`, reemplazar el parseo con `contains()` por comparación exacta y no omitir el chequeo de profesor con cabecera vacía ([[DEC-006 - Roles y permisos según el código y los headers del gateway]], gap 12).
 - Tareas del código derivadas de los gaps: liberar el stock en `HOLD_NOT_SETTLED`, reconciliar órdenes que quedan en `CREATED`, idempotencia por estudiante ([[Estado actual del código]], gaps 13 a 21).
 
