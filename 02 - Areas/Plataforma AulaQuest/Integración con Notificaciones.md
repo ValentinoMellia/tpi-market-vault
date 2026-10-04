@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: DEC-008
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, integracion, notificaciones]
 ---
 # Integración con Notificaciones
@@ -15,7 +15,7 @@ Tema 11. Según la documentación anterior, consume `CATALOG_OFFER_PUBLISHED`, `
 ## Cómo nos comunicamos
 | Dirección | Mecanismo | Mensaje / endpoint | Para qué |
 |---|---|---|---|
-| Mercado a Notificaciones | Kafka `market.events` (hoy el código publica en `market.orders.events`) | `PURCHASE_CONFIRMED` | Avisar la compra |
+| Mercado a Notificaciones | Kafka `market.events` (el código publica ahí por defecto desde el PR #88) | `PURCHASE_CONFIRMED` | Avisar la compra |
 | Mercado a Notificaciones (previsto) | Kafka | `CATALOG_OFFER_PUBLISHED` | Avisar nueva oferta |
 | Mercado a Notificaciones (Fase 3) | Kafka | eventos de subasta | Ver [[Subasta]] |
 

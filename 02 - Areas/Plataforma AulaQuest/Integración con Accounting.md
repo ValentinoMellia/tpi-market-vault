@@ -2,12 +2,12 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
 
-> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. El código de Mercado y el de accounting hoy **no hablan el mismo contrato**: Mercado decidió adoptar el de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y falta implementarlo. Lo único en disputa es el orden de la compra: [[Q-008 - Orden de la saga de compra]].
+> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. El código de Mercado y el de accounting hoy **no hablan el mismo contrato**: Mercado decidió adoptar el de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y lo implementa por partes: en `develop` (`349c8e2`) los tópicos y el `orderId` UUID de los holds ya coinciden; faltan los mensajes de ítems, el mapeo de motivos de rechazo y la consulta de hold. Lo único en disputa es el orden de la compra: [[Q-008 - Orden de la saga de compra]].
 
 ## Decisiones que gobiernan esta integración
 
@@ -98,15 +98,15 @@ Decisión ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]): Mercado **
 
 ## Diferencias entre el código de Mercado y el de accounting
 
-Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]), salvo el orden de la saga, que sigue abierto.
+Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]), salvo el orden de la saga, que sigue abierto. La columna "Mercado hoy" está verificada contra `develop` en `349c8e2` (los tópicos y el `orderId` cambiaron con el PR #88; el resto, sin cambios en el código).
 
 | Tema | Mercado hoy | Accounting |
 |---|---|---|
-| Tópicos de holds | `accounting.holds.commands` y `accounting.holds.events` | `accounting.events` |
-| Tópico propio | `market.orders.events` | `market.events` |
+| Tópicos de holds | `accounting.events` por defecto (antes `accounting.holds.commands` y `accounting.holds.events`); alineado | `accounting.events` |
+| Tópico propio | `market.events` por defecto (antes `market.orders.events`); alineado | `market.events` |
 | Provisión | `ITEM_PROVISION_REQUESTED`, `ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED` en `inventory.items.*` | `ITEM_CONFIRMED` (en `market.events`) y luego `ITEM_CREDITED` (en `accounting.events`); falla silenciosa a DLT |
 | Orden de la saga | provisión, luego confirmar débito | confirmar débito, luego `ITEM_CONFIRMED` ([[Q-008 - Orden de la saga de compra]]) |
-| `orderId` | numérico | UUID canónico |
+| `orderId` | UUID canónico (`orderRef`) en `HOLD_CREATE_REQUESTED`; numérico en `ITEM_CONFIRMED` (apagado) y en los eventos de la orden | UUID canónico |
 | Correlación del item | `correlationId` | `sourceReferenceId` = `orderId` |
 | `PURCHASE_CONFIRMED` | se publica | nadie lo consume |
 | Consulta de hold | necesaria para reconciliar | en implementación este sprint (ver abajo) |
@@ -118,12 +118,12 @@ El plan de alineación está en [[Roadmap de trabajo]] (P0).
 
 ## Mensaje de accounting del 2026-10-01 y estado
 
-Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`):
+Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`; los puntos 1 y 2 se reverificaron contra `349c8e2`):
 
 | # | Pedido de accounting | Estado en Mercado |
 |---|---|---|
-| 1 | Apuntar los tópicos de holds a `accounting.events` | Posible sin cambiar código: los tópicos se configuran con `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_EVENTS` (`src/main/resources/application.properties:38-39`). **Riesgo a verificar**: con un tópico compartido, el listener de Mercado también recibe sus propios comandos; hay que confirmar que se ignoran y no terminan en DLT como mensajes malformados o desconocidos |
-| 2 | `orderId` UUID canónico (**bloqueante**) | No cumple: Mercado envía el id numérico y todo `HOLD_CREATE_REQUESTED` se rechazaría con `MALFORMED_COMMAND`. Decidido: `orderRef` UUID persistido (D8 del [[Taller de decisiones]], [[DEC-009 - Contrato de holds e ítems según Accounting]]). Es P0 en [[Roadmap de trabajo]] |
+| 1 | Apuntar los tópicos de holds a `accounting.events` | Hecho en `develop` (PR #88): `accounting.events` es el valor por defecto de `accounting-holds-commands` y `accounting-holds-events`, con las variables `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` para cambiarlo (`src/main/resources/application.properties:46-47`, `.compose/docker-compose.yml`). **Riesgo verificado**: con el tópico compartido, el handler descarta los eventos que no consume con una lista blanca (`listeners/AccountingHoldEventHandler.java:96`), pero esa lista corre después del parseo; `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` propios no parsean como `HoldEventDto` y terminan en `accounting.events.DLT` como mensajes malformados ([[Eventos y Kafka]]) |
+| 2 | `orderId` UUID canónico (**bloqueante**) | Cumplido en el comando de hold (PR #88, US-5193): la orden guarda un `orderRef` UUID inmutable y `HOLD_CREATE_REQUESTED` lo envía como `orderId` (`entities/OrderEntity.java:116`, `services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]]). Decidido en D8 del [[Taller de decisiones]] y [[DEC-009 - Contrato de holds e ítems según Accounting]]. No cubre `ITEM_CONFIRMED`, que sigue con el `id` numérico y apagado: con el `id` numérico, el `sourceReferenceId` de `ITEM_CREDITED` (= `orderId`) no coincidiría con el `orderId` del hold |
 | 3 | `HOLD_INCREASE_REQUESTED` (envía el **total nuevo**, no la diferencia) | No implementado; las subastas son Fase 3 ([[Subasta]], [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]) |
 | 4 | Cancelar una subasta con `HOLD_RELEASE_REQUESTED` por `orderId`, sin `holdId`, con `AUCTION_CANCELLED`, liberando todos los holds de la orden | **No adoptado** ([[DEC-014 - Reglas de subastas]]): Mercado envía **un `HOLD_RELEASE_REQUESTED` por postor** (con `holdId`). **A comunicar a Accounting**; es coherente con su restricción de un hold por `orderId` y sin liberación en lote |
 | 5 | Mercado debe manejar `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y el payload de `HOLD_INCREASED` | **Brecha real**: Mercado solo reconoce `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`. Cualquier otro motivo cae en `REJECTED_INSUFFICIENT_FUNDS` con un log de advertencia (`services/impl/OrderHoldServiceImpl.java`, `applyRejection`, cerca de la línea 130), por lo que el estudiante vería "saldo insuficiente" aunque su cuenta esté inactiva. `HOLD_INCREASED` no se maneja (Fase 3) |
@@ -137,6 +137,10 @@ Postura de Mercado (2026-10-01, no es una decisión): preferir **entregar el ít
 ## Estado actual en el código de Mercado
 
 Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y `OutboxInventoryItemProvisionClient.java`; listeners `AccountingHoldKafkaListener` e `InventoryItemKafkaListener`, solo con transporte `kafka`. Con `mock` responden `MockBankHoldClient` y `MockInventoryItemProvisionClient`. `BankHoldQueryClient` solo existe simulado. Los nombres de clase conservan "Bank" por historia ([[Estado actual del código]]).
+
+### Pruebas de contrato (PR #90, US-5231 T02)
+
+`src/test/java/ar/edu/utn/frc/tup/p4/contracts/AccountingContractTest.java` fija el contrato de mensajes con archivos canónicos en `src/test/resources/contracts/accounting/` (un JSON por mensaje: los comandos `hold-create-requested`, `hold-increase-requested`, `hold-confirm-requested` y `hold-release-requested`; las respuestas `hold-created`, `hold-rejected`, `hold-increased`, `hold-confirmed`, `hold-released` y `hold-expired`; y `item-confirmed` e `item-credited`). Comprueba el envelope de 6 campos (rechaza con `MalformedEventException` un `eventId` ausente o no UUID, `eventVersion` menor que 1, `eventType` o `timestamp` ausentes, `producer` en blanco y JSON roto), las cadenas de correlación entre comandos y respuestas, la serialización real de `OutboxBankHoldClient` (alta, confirmación y liberación) contra esos archivos y el procesamiento de las respuestas con `AccountingHoldEventHandler`. Son pruebas locales contra los archivos del repositorio, no contra Accounting en ejecución, y los archivos de comandos usan `orderId: "42"`: no exigen que el `orderId` sea un UUID. No cubren el tópico compartido ni el parseo de los comandos propios como `HoldEventDto`. Historia: [[S2-07 - Pruebas integradas con Accounting]].
 
 ## Brechas del lado de accounting
 
@@ -152,7 +156,7 @@ Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y 
 - **Comunicar a Accounting** que las subastas usan un release por postor y no por `orderId` ([[DEC-014 - Reglas de subastas]]). Las ofertas superadas mantienen su hold hasta el cierre de la subasta.
 - **Señal del tope de vidas**: evento y motivo que Accounting publicará para una compra de vida con tope alcanzado ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
-- Alineación del código de Mercado: tópicos, `orderRef` UUID, mapeo de motivos de rechazo, consulta de hold ([[Roadmap de trabajo]]).
+- Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); faltan el `orderId` UUID en `ITEM_CONFIRMED`, el mapeo de motivos de rechazo, la consulta de hold y confirmar el comportamiento del tópico compartido ([[Roadmap de trabajo]]).
 - Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
 
 ## Relacionado

@@ -1,13 +1,13 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: DEC-008
-actualizado: 2026-10-01
+verificado_contra: codigo@349c8e2
+actualizado: 2026-10-04
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
 
-> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Los tópicos del **código actual** todavía no coinciden con esos: es trabajo pendiente ([[Roadmap de trabajo]]). Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
+> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; falta el resto de la alineación ([[Roadmap de trabajo]]). Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
 
 ## Regla de plataforma
 
@@ -15,19 +15,28 @@ Un dominio = un tópico `<dominio>.events` (contrato de Kafka de la plataforma, 
 
 ## Envelope
 
-Todos los mensajes usan `EventEnvelope<T>` (`dtos/events/EventEnvelope.java`): `eventId` (UUID), `eventType`, `eventVersion` (1), `timestamp`, `producer` y `payload`. Accounting usa el mismo envelope de 6 campos con `eventVersion` entero y `eventId` UUID canónico.
+Todos los mensajes usan `EventEnvelope<T>` (`dtos/events/EventEnvelope.java`): `eventId` (UUID), `eventType`, `eventVersion` (1), `timestamp`, `producer` y `payload`. Accounting usa el mismo envelope de 6 campos con `eventVersion` entero y `eventId` UUID canónico. Los payloads de Kafka y del outbox se serializan en `camelCase` con el `ObjectMapper` de `MappersConfig`; el `snake_case` de los cuerpos REST no los afecta ([[Errores de la API]], `application.properties:11-17`).
 
 ## Tópicos (como están en el código de Mercado)
 
-| Tópico | Sentido | Mensajes | En la plataforma |
-|---|---|---|---|
-| `accounting.holds.commands` | Mercado a Accounting | `HOLD_CREATE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED` | No existe; accounting usa `accounting.events` |
-| `accounting.holds.events` | Accounting a Mercado | `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED` | No existe |
-| `inventory.items.commands` | Mercado a inventario | `ITEM_PROVISION_REQUESTED` | No existe ni existirá ([[DEC-001 - Accounting es dueño del inventario]]) |
-| `inventory.items.events` | Inventario a Mercado | `ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED` | Ídem |
-| `market.orders.events` | Mercado a otros | `PURCHASE_CONFIRMED`; `ITEM_CONFIRMED` apagado por `market.events.item-confirmed.enabled=false` | No existe; el de Mercado es `market.events` |
+Valores por defecto de `application.properties:46-51` (`develop` en `349c8e2`); cada uno se cambia con su variable de entorno `MARKET_MESSAGING_TOPIC_*`, que también se pasa en `.compose/docker-compose.yml` y se documenta en `.compose/.env.example`. Se definen en `configs/MessagingProperties.java`.
 
-Productores: `market-service` en los comandos y `tema-09-mercado` en `PURCHASE_CONFIRMED` (inconsistente; la decisión fija `market-service` en todos, tarea de código pendiente). Definidos en `configs/MessagingProperties.java`. Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service`.
+| Tópico por defecto | Variable | Sentido | Mensajes | En la plataforma |
+|---|---|---|---|---|
+| `accounting.events` | `..._ACCOUNTING_HOLDS_COMMANDS` y `..._ACCOUNTING_HOLDS_EVENTS` | Mercado a Accounting y Accounting a Mercado | Comandos `HOLD_CREATE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED`; respuestas `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED` | Existe: es el tópico de Accounting |
+| `market.events` | `..._MARKET_EVENTS`; `..._ORDER_EVENTS` (si falta, usa el anterior) | Mercado a otros | `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED`; `ITEM_CONFIRMED` apagado por `market.events.item-confirmed.enabled=false` | Existe |
+| `inventory.items.commands` | `..._INVENTORY_ITEMS_COMMANDS` | Mercado a inventario | `ITEM_PROVISION_REQUESTED` | No existe ni existirá ([[DEC-001 - Accounting es dueño del inventario]]) |
+| `inventory.items.events` | `..._INVENTORY_ITEMS_EVENTS` | Inventario a Mercado | `ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED` | Ídem |
+
+Antes del PR #88 los defectos eran `accounting.holds.commands`, `accounting.holds.events` y `market.orders.events`, que la plataforma nunca aprovisionó. Los tópicos de inventario siguen sin existir en la plataforma, y Accounting no implementa `ITEM_PROVISION_*`: con transporte `kafka` esa parte de la saga no tiene contraparte ([[Integración con Accounting]]).
+
+Productores: `market-service` en los comandos de hold y en `LIFE_PURCHASE_CONFIRMED`; `tema-09-mercado` en `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` (inconsistente; la decisión fija `market-service` en todos, tarea de código pendiente, `services/impl/OrderConfirmationServiceImpl.java:67`). Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service` (`spring.kafka.consumer.group-id`).
+
+### Tópico compartido y filtro de eventos
+
+Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. `AccountingHoldEventHandler.handle` aplica una lista blanca (`CONSUMED_EVENT_TYPES`: `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`) y descarta el resto con un log de nivel `DEBUG`, sin correlación ni deduplicación (`listeners/AccountingHoldEventHandler.java:96`, `:167`).
+
+El filtro corre **después** de `SagaEventParser.parse(message, HoldEventDto.class)` (`listeners/AccountingHoldKafkaListener.java:41`), y el `ObjectMapper` de `MappersConfig` no ignora propiedades desconocidas. Verificado con una prueba descartable sobre `349c8e2` (no incluida en el repositorio) usando los archivos de `src/test/resources/contracts/accounting/`: `HOLD_CREATE_REQUESTED` (campos `orderId`, `studentId`, `courseId`, `orderType`) y `HOLD_RELEASE_REQUESTED` (`releaseReason`) lanzan `MalformedEventException` porque `HoldEventDto` no declara esos campos, mientras que `HOLD_CONFIRM_REQUESTED` (`correlationId`, `holdId`) se parsea y luego lo descarta la lista blanca. Por lo tanto, en un tópico compartido real los comandos propios de creación y liberación llegarían a `accounting.events.DLT` en lugar de ignorarse. Las pruebas existentes no lo cubren: `AccountingHoldEventHandlerTest` llama al handler directo con un `HoldEventDto` ya armado. Pendiente de confirmar en un entorno con broker ([[Estado actual del código]], gap 23).
 
 Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}`; `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
 
@@ -40,7 +49,7 @@ Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `S
 | `accounting.events` | `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED` | `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `ITEM_CREDITED` |
 | `market.events` | `ITEM_CONFIRMED` | n/a |
 
-Clave de partición en accounting: `studentId:courseId` (Mercado usa `studentId`). Campos y motivos en [[Integración con Accounting]].
+Los tópicos de esta tabla ya son los de Mercado por defecto; lo que falta es el flujo de ítems (`ITEM_CREDITED`, y `ITEM_CONFIRMED` con el `orderId` UUID, hoy numérico y apagado) y las subastas (`HOLD_INCREASE_REQUESTED`). Clave de partición en accounting: `studentId:courseId` (Mercado usa `studentId`). Campos y motivos en [[Integración con Accounting]].
 
 ## Publicación con outbox
 
@@ -48,11 +57,11 @@ Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacci
 
 ## Consumo
 
-`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
+`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero filtra por tipo de evento en el handler (ver "Tópico compartido y filtro de eventos"). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
 
 ## Fallos
 
-`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. Accounting: 3 reintentos de 2 s y luego DLT. Si accounting falla al acreditar un item no publica ningún evento de falla.
+`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. El nombre `<topic>.DLT` lo fija el PR #89 con un resolvedor explícito (`configs/KafkaConfig.java`); antes regía el sufijo `-dlt` de spring-kafka. Accounting: 3 reintentos de 2 s y luego DLT. Si accounting falla al acreditar un item no publica ningún evento de falla.
 
 ## Relacionado
 [[Integración con Accounting]], [[Integración con Notificaciones]], [[Saga]].

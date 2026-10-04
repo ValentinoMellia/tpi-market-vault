@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -14,8 +14,8 @@ tags: [mercado, roadmap]
 | # | Trabajo | Por qué | Referencias |
 |---|---|---|---|
 | 1 | **Alinear el contrato con Accounting.** Cambiar tópicos, mensajes (`ITEM_CONFIRMED` y `ITEM_CREDITED` en lugar de `ITEM_PROVISION_*`) y `orderId` UUID. El **orden de la saga** sigue abierto: la activación de `ITEM_CONFIRMED` depende de él | Hoy Mercado y Accounting no se entienden: ninguno de los mensajes del código de Mercado llega al otro lado | [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Integración con Accounting]] (tabla de diferencias) |
-| 1b | **`orderId` UUID canónico**: generar y persistir un `orderRef` UUID por orden y usarlo como `orderId` en todos los comandos | Con un id numérico, accounting rechaza todo `HOLD_CREATE_REQUESTED` con `MALFORMED_COMMAND` | [[DEC-009 - Contrato de holds e ítems según Accounting]] |
-| 1c | **Tópicos por variables de entorno**: apuntar `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` a `accounting.events` y publicar en `market.events` en lugar de `market.orders.events`; verificar antes que el listener ignora los comandos propios en el tópico compartido (sin DLT) | Los tópicos actuales no existen en la plataforma | [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]] (mensaje del 2026-10-01) |
+| 1b | **`orderId` UUID canónico**: generar y persistir un `orderRef` UUID por orden y usarlo como `orderId` en todos los comandos. **Hecho para `HOLD_CREATE_REQUESTED`** (PR #88, `develop` en `349c8e2`); falta el `orderId` de `ITEM_CONFIRMED` y de los eventos de la orden, que siguen con el `id` numérico | Con un id numérico, accounting rechaza todo `HOLD_CREATE_REQUESTED` con `MALFORMED_COMMAND` | [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Orden de compra]] |
+| 1c | **Tópicos por variables de entorno**: apuntar `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` a `accounting.events` y publicar en `market.events` en lugar de `market.orders.events`. **Hecho como valores por defecto** (PR #88, `develop` en `349c8e2`). Queda abierto lo que pedía verificar: el listener descarta por lista blanca los eventos que no consume, pero los comandos propios `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` fallan al parsearse y van a DLT ([[Eventos y Kafka]]) | Los tópicos actuales no existen en la plataforma | [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]] (mensaje del 2026-10-01) |
 | 2 | **Acordar [[Q-008 - Orden de la saga de compra]]** con Accounting. Postura de Mercado: entregar el ítem primero; exige pedir a Accounting la revocación de ítems (no existe) y un evento de error al fallar el acreditado | Define el flujo y la compensación de toda la compra | [[Q-008 - Orden de la saga de compra]], [[Saga]] |
 | 3 | Proveer `BankHoldQueryClient` bajo `kafka`: cuando accounting integre `GET /api/accounting/holds/{holdId}` (en implementación este sprint), implementar el cliente real y encender `bank-hold.reconciliation.enabled` | La app no arranca con el transporte de docker/prod; la consulta de accounting aún no está integrada | [[Estado actual del código]] (gap 1), [[DEC-009 - Contrato de holds e ítems según Accounting]] |
 | 4 | Clientes reales de Cursos usando `GET /course-cohorts/{id}/membership`; el cliente simulado es `@Primary` incluso en producción | Hoy toda inscripción es simulada | [[Integración con Cursos]] |
