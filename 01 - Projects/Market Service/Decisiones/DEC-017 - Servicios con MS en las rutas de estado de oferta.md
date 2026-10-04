@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: codigo@5e9de7d
-actualizado: 2026-10-03
+verificado_contra: codigo@76a9bbd
+actualizado: 2026-10-04
 tags: [mercado, decision, seguridad, roles, gateway]
 ---
 # DEC-017 - Servicios con MS en las rutas de estado de oferta
@@ -15,7 +15,7 @@ Un microservicio llama con `X-Principal-Type: service` y `X-Service-Scopes: MS`;
 Cerrar ese bypass, que es la T02 #5216 de [[S2-04 - Seguridad]], dejaba al servicio con 403 también en la ruta del curso. Por eso la pregunta se resolvió en la misma tarea y no en la T04, como recomendaba la pregunta.
 
 ## Decisión
-Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de Q-021), y sujeta a la revisión del PR #92 de `tpi-market` y del PR del vault que registra esta decisión.
+Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de Q-021), y el PR #92 de `tpi-market` que la implementa fue aprobado por tommikimmel y mergeado en `develop` el 2026-10-04 (`76a9bbd`). Queda sujeta a la revisión del PR del vault que registra esta decisión.
 
 - **Fuente de la identidad en las rutas de estado.** `CatalogOfferController.updateOfferStatus` y `CourseCatalogManageController.updateCourseOfferStatus` reciben el `Authentication` que arma `GatewayIdentityFilter`: el id es el nombre del principal y los roles salen de sus autoridades con `UserRole.fromAuthorities`, que solo acepta `ROLE_<rol>` exacto. Esas dos rutas dejan de leer `X-User-Id` y `X-User-Roles` como parámetros. Para un usuario no cambia nada: el nombre del principal es su `X-User-Id`.
 - **Un servicio con `MS` es administrativo en esas dos rutas** (ADMIN, GESTOR y MS, sin cambios en los conjuntos de roles): puede cambiar el estado de cualquier oferta, y en la ruta del curso no se consulta la asignación del profesor.
