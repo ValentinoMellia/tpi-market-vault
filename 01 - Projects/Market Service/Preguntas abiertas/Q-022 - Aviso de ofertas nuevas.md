@@ -5,7 +5,7 @@ verificado_contra: codigo@276af529
 actualizado: 2026-10-04
 tags: [mercado, pregunta-abierta, notificaciones, catalogo]
 ---
-# Q-020 - Aviso de ofertas nuevas
+# Q-022 - Aviso de ofertas nuevas
 
 > La historia #1052 pide avisar a los alumnos de un curso cuando el profesor publica o reactiva una oferta. La base técnica es la misma del [[Contrato de avisos de compra]], pero hay cuatro decisiones abiertas antes de definir el evento: cuántos eventos usar, quién arma la lista de destinatarios, si la activación del admin avisa y si reactivar una oferta vencida cuenta como reactivación.
 

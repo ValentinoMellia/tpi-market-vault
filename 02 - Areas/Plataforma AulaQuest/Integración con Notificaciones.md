@@ -34,7 +34,7 @@ Verificado en la rama `develop` de `tpi-notifications` el 2026-10-04 (PR #67, de
 
 ## Acuerdos pendientes
 - Que Notificaciones acepte el [[Contrato de avisos de compra]] y consuma `PURCHASE_CONFIRMED` y `PURCHASE_FAILED` con un solo destinatario.
-- Alinear el evento de ofertas nuevas: Notificaciones espera `TRADE_ITEM_PUBLISHED` con su propio payload y la lista de destinatarios, y Mercado tiene previsto `CATALOG_OFFER_PUBLISHED` (#1052). Las decisiones de Mercado están abiertas en [[Q-020 - Aviso de ofertas nuevas]].
+- Alinear el evento de ofertas nuevas: Notificaciones espera `TRADE_ITEM_PUBLISHED` con su propio payload y la lista de destinatarios, y Mercado tiene previsto `CATALOG_OFFER_PUBLISHED` (#1052). Las decisiones de Mercado están abiertas en [[Q-022 - Aviso de ofertas nuevas]].
 - Avisarles que el productor de Mercado es `market-service` y no `tema-09-...` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Hoy no validan ese campo.
 - Ya no hay aviso de vencimiento de ítems: los ítems no vencen ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
 

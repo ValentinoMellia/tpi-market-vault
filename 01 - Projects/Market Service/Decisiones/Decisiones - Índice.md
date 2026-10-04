@@ -45,4 +45,8 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 
 - [[Q-018 - Alcance real del Sprint 2 en Taiga]]: el sprint de Taiga tiene historias que no están en el plan; falta decidir qué se queda, qué entra con mock y cómo se reparte el frontend.
 
+- [[Q-019 - Aviso cuando el ítem se entregó sin cobro]]: postura provisoria de Mercado (no avisar); decide producto.
+
+- [[Q-022 - Aviso de ofertas nuevas]]: cuatro decisiones del aviso de ofertas nuevas (#1052) para discutir en el equipo antes de hablar con Notificaciones.
+
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].

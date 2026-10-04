@@ -212,7 +212,7 @@ Hoy (`develop` en `276af529`) el código no cumple este contrato. Las tareas #10
 
 ## Avisos de ofertas nuevas (#1052)
 
-Lo que sigue ya está definido por la historia #1052 o por el código. El nombre del evento y a quién va dirigido siguen abiertos en [[Q-020 - Aviso de ofertas nuevas]]. Es el punto de partida de la tarea #1058 (T01 de #1052).
+Lo que sigue ya está definido por la historia #1052 o por el código. El nombre del evento y a quién va dirigido siguen abiertos en [[Q-022 - Aviso de ofertas nuevas]]. Es el punto de partida de la tarea #1058 (T01 de #1052).
 
 ### Lo que comparte con los avisos de compra
 - Mismo transporte: tópico `market.events`, productor `market-service`, envelope de 6 campos, `eventVersion = 1` y JSON en `camelCase`.
@@ -227,8 +227,8 @@ Lo que sigue ya está definido por la historia #1052 o por el código. El nombre
 | El profesor pasa una oferta de pausada a activa | Sí, oferta reactivada |
 | Cambio de precio, stock, nombre o descripción de una oferta activa | No |
 | Pausar una oferta | No |
-| Activación desde la ruta global del admin | Abierto en [[Q-020 - Aviso de ofertas nuevas]] |
-| Reactivar una oferta vencida por fecha | Abierto en [[Q-020 - Aviso de ofertas nuevas]] |
+| Activación desde la ruta global del admin | Abierto en [[Q-022 - Aviso de ofertas nuevas]] |
+| Reactivar una oferta vencida por fecha | Abierto en [[Q-022 - Aviso de ofertas nuevas]] |
 
 El aviso de reactivación sale solo cuando la oferta pasa de `active = false` a `active = true`. Reenviar el mismo estado no genera aviso.
 
@@ -242,8 +242,8 @@ El aviso de reactivación sale solo cuando la oferta pasa de `active = false` a 
 | `price` | integer | `coinPrice` (monedas) |
 | `publishedAt` | string (ISO-8601 UTC) | Momento de la creación o de la reactivación |
 
-Quedan abiertos en [[Q-020 - Aviso de ofertas nuevas]]: el `eventType` (uno o dos eventos), los destinatarios (`courseId` solo o lista de alumnos) y, según eso, la key del mensaje.
+Quedan abiertos en [[Q-022 - Aviso de ofertas nuevas]]: el `eventType` (uno o dos eventos), los destinatarios (`courseId` solo o lista de alumnos) y, según eso, la key del mensaje.
 
 ## Relacionado
 
-[[Integración con Notificaciones]], [[Q-020 - Aviso de ofertas nuevas]], [[Eventos y Kafka]], [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Revisión del Sprint 2 en Taiga]].
+[[Integración con Notificaciones]], [[Q-022 - Aviso de ofertas nuevas]], [[Eventos y Kafka]], [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Revisión del Sprint 2 en Taiga]].
