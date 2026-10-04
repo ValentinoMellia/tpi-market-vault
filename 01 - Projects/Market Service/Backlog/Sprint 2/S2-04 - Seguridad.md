@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-03
+actualizado: 2026-10-04
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
@@ -120,7 +120,7 @@ Al 2026-10-03:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
-| #5215 T01 - Parsear los roles sin contains | Ready for test | PR #86 de `tpi-market`, sin mergear. Revisado por Valentino Mellia sin bloqueantes |
+| #5215 T01 - Parsear los roles sin contains | Ready for test | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
 | #5216 T02 - Eliminar el bypass por cabecera de roles vacía | New | Es la siguiente: el bypass sigue abierto en `develop` |
 | #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
 | #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
