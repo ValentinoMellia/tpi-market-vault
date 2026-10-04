@@ -1,13 +1,13 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-016
+verificado_contra: DEC-017
 actualizado: 2026-10-03
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay dieciséis decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay diecisiete decisiones registradas.
 
 ## Decisiones registradas
 
@@ -29,6 +29,7 @@ tags: [mercado, decision]
 | DEC-014 | [[DEC-014 - Reglas de subastas]] | [[Q-012 - Alcance de subastas]] (archivada; actualizada el 2026-10-01 con la fase final ciega) | 2026-10-01 |
 | DEC-015 | [[DEC-015 - Política del backlog de Taiga]] | [[Q-013 - Higiene del backlog]] (sigue abierta) | 2026-10-01 |
 | DEC-016 | [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] | [[Q-017 - Qué se subasta mientras no existan ítems únicos]] (archivada) | 2026-10-01 |
+| DEC-017 | [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] | [[Q-021 - Principal de servicio MS en las reglas de negocio]] (archivada) | 2026-10-03 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
@@ -43,7 +44,5 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-013 - Higiene del backlog]]: [[DEC-015 - Política del backlog de Taiga]] fija la política; falta sanear Taiga y planificar los sprints.
 
 - [[Q-018 - Alcance real del Sprint 2 en Taiga]]: el sprint de Taiga tiene historias que no están en el plan; falta decidir qué se queda, qué entra con mock y cómo se reparte el frontend.
-
-- [[Q-021 - Principal de servicio MS en las reglas de negocio]]: un servicio con `MS` pasa `@PreAuthorize`, pero los services no lo ven; hoy una ruta lo rechaza y otra lo deja pasar sin chequeo.
 
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].
