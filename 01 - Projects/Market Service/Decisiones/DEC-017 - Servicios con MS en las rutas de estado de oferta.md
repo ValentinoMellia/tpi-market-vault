@@ -1,7 +1,7 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: codigo@ede253c
+verificado_contra: codigo@5e9de7d
 actualizado: 2026-10-03
 tags: [mercado, decision, seguridad, roles, gateway]
 ---
@@ -19,7 +19,8 @@ Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de 
 
 - **Fuente de la identidad en las rutas de estado.** `CatalogOfferController.updateOfferStatus` y `CourseCatalogManageController.updateCourseOfferStatus` reciben el `Authentication` que arma `GatewayIdentityFilter`: el id es el nombre del principal y los roles salen de sus autoridades con `UserRole.fromAuthorities`, que solo acepta `ROLE_<rol>` exacto. Esas dos rutas dejan de leer `X-User-Id` y `X-User-Roles` como parámetros. Para un usuario no cambia nada: el nombre del principal es su `X-User-Id`.
 - **Un servicio con `MS` es administrativo en esas dos rutas** (ADMIN, GESTOR y MS, sin cambios en los conjuntos de roles): puede cambiar el estado de cualquier oferta, y en la ruta del curso no se consulta la asignación del profesor.
-- **Cabecera de roles vacía o ausente se deniega.** `validateProfessorAccess` (listar, publicar, editar y el estado por curso) y el chequeo de lector de `CourseCatalogSummaryServiceImpl` ya no omiten el control: sin roles responden 403 `professor-not-assigned`, igual que con un rol que no es docente.
+- **Cabecera de roles vacía o ausente se deniega.** `validateProfessorAccess` (listar, publicar, editar y el estado por curso) y el chequeo de lector de `CourseCatalogSummaryServiceImpl` ya no omiten el control: sin roles responden 403 `professor-not-assigned`, igual que con un rol que no es docente. Tampoco se omite el chequeo de asignación cuando falta el id del usuario.
+- **Un servicio solo tiene un rol a través de `MS`.** `GatewayIdentityFilter` descarta los ámbitos que empiezan con `ROLE_`, así que `X-Service-Scopes: ROLE_ADMIN` no da `ROLE_ADMIN` (pedido en la revisión del PR #92).
 - El resto de las rutas (listar, publicar, editar, resumen y vitrina) sigue leyendo `X-User-Roles`; ninguna de ellas permite `MS` en `@PreAuthorize`, salvo la vitrina, que queda fuera de esta decisión.
 
 ## Alternativas descartadas
@@ -32,7 +33,7 @@ Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de 
 - `PATCH /offers/{id}/status` pasa de 403 a 200 para un servicio con `MS`; la ruta del curso deja de ser un bypass y aplica una regla explícita.
 - En Swagger, el `PATCH` por curso deja de listar `X-User-Id` y `X-User-Roles` como parámetros (el gateway las sigue enviando).
 - `CourseCatalogManageService` queda con firmas mixtas: las dos de estado reciben `Set<UserRole>` y el resto la cabecera. Alinear el resto queda para cuando haga falta.
-- Pendiente para la T04 de [[S2-04 - Seguridad]]: si un servicio recibe un ámbito con forma de rol (`X-Service-Scopes: ROLE_ADMIN`), el filtro lo convierte en esa autoridad y ahora también cuenta en la regla de estado. Es la confianza en el gateway que fija DEC-006.
+- Quedan para la T03 y la T04 de [[S2-04 - Seguridad]] los GET de detalle de la vitrina, que permiten `MS` pero todavía evalúan al servicio como el alumno por defecto `usr-student-001`.
 - Sigue abierta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]], que esta decisión no cubre.
 
 ## Notas afectadas

@@ -136,7 +136,8 @@ Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
 
 - **Cabecera vacía.** `validateProfessorAccess` y el chequeo de lector del resumen ya no se saltean sin roles: responden 403 `professor-not-assigned`. Se quitó la condición en lugar de reescribirla como "no hay roles conocidos", tal como pedía la T01. Para un usuario ya respondía 403 la capa de `@PreAuthorize`; el único llamador real del bypass era un servicio con `MS`.
 - **Q-021 adelantada.** Cerrar el bypass dejaba a ese servicio con 403 en la ruta del curso, así que se resolvió acá en vez de en la T04: [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Las dos rutas de estado leen el principal autenticado y `MS` es administrativo en ambas.
-- **Para la T03 y la T04.** `validateProfessorAccess` todavía omite el chequeo de asignación si `userId` viene vacío (hoy no se alcanza por HTTP). Un ámbito de servicio con forma de rol (`ROLE_ADMIN`) se toma como esa autoridad. Los dos quedan para la matriz de la T04.
+- **Revisión del PR #92 (2026-10-04).** Se sumaron dos correcciones: el filtro descarta los ámbitos de servicio con forma de rol (`ROLE_ADMIN`) y `validateProfessorAccess` deniega cuando falta el id del usuario.
+- **Para la T03 y la T04.** Los GET de detalle de la vitrina (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) permiten `MS` pero evalúan al servicio como `usr-student-001` (la T03 quita ese valor por defecto; la T04 decide si pasan a leer el principal). `MS` en los roles lectores del resumen nunca coincide porque su `@PreAuthorize` no lo permite. ADMIN y GESTOR siguen pasando por el chequeo de asignación al listar, publicar y editar. Todo va a la matriz de la T04.
 
 ## Tareas
 

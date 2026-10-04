@@ -64,13 +64,13 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Por eso un servicio con ámbito `MS` pasa la primera y la segunda lo trata como si no tuviera roles: en `develop` (`codigo@276af52`), `PATCH /offers/{id}/status` lo rechaza y la ruta de estado del curso lo deja pasar sin chequeo.
 
-**Cambio en revisión: PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], apilado sobre el PR #86). Las dos rutas de estado de oferta pasan a leer el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas, y ningún chequeo de rol se saltea con la cabecera vacía. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
+**Cambio en revisión: PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], apilado sobre el PR #86). Las dos rutas de estado de oferta pasan a leer el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas; ningún chequeo de rol se saltea con la cabecera vacía, y el filtro descarta los ámbitos de servicio con forma de rol. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
 
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
 - Algunos servicios leen el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` cuenta como `MS`; el chequeo de profesor se omite con cabecera vacía; hay usuario por defecto `usr-student-001` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; estos defectos siguen pendientes en `develop`, [[Estado actual del código]]). El PR #86 corrige el primero y el PR #92 el segundo (los dos en revisión); el usuario por defecto es la T03 de [[S2-04 - Seguridad]].
-- Un servicio cuyo `X-Service-Scopes` traiga un valor con forma de rol (`ROLE_ADMIN`) recibe esa autoridad tal cual. Depende de que el gateway solo emita ámbitos válidos; queda para la T04 de [[S2-04 - Seguridad]].
+- En `develop`, un servicio cuyo `X-Service-Scopes` traiga un valor con forma de rol (`ROLE_ADMIN`) recibe esa autoridad tal cual. El PR #92 hace que el filtro descarte esos ámbitos ([[DEC-017 - Servicios con MS en las rutas de estado de oferta]]).
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
 
