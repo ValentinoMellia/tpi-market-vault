@@ -1,0 +1,2 @@
+## [2026-10-04] estructura | Gateway e identidad deja de estar en disputa
+- Con [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] cerrada (enmienda de [[DEC-006 - Roles y permisos según el código y los headers del gateway]]) y [[Q-021 - Principal de servicio MS en las reglas de negocio]] resuelta por [[DEC-017 - Servicios con MS en las rutas de estado de oferta]], [[Gateway e identidad]] pasa a `vigente`. [[Decisiones - Índice]] ya no lista preguntas abiertas sobre identidad. `node scripts/lint-vault.mjs` sin errores.

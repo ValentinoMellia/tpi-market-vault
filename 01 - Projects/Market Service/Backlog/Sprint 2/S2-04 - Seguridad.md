@@ -129,7 +129,7 @@ Lo que dejó la T01 y la revisión del PR #86:
 
 - **Hallazgo.** La lectura por subcadena era explotable: un profesor no asignado con `X-User-Roles: PROFESSOR, SYSTEMS` cambiaba el estado de ofertas de otro curso (200, porque `SYSTEMS` contiene `MS`). Con el PR responde 403.
 - **Para la T02.** Los dos chequeos que se saltean con cabecera vacía (`validateProfessorAccess` y `CourseCatalogSummaryServiceImpl.validateRole`) quedaron sin cambios y fijados con pruebas, para que la T02 los cambie a propósito. Deben seguir mirando la cabecera cruda: si pasan a preguntar "no hay roles conocidos", un valor como `NOT_ADMIN` también se saltearía el chequeo.
-- **Decisiones abiertas.** Roles desconocidos y prefijo `ROLE_`: [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]. Las llamadas de servicio con `MS` ([[Q-021 - Principal de servicio MS en las reglas de negocio]]) quedaron resueltas en la T02, ver abajo.
+- **Decisiones.** Roles desconocidos y prefijo `ROLE_`: [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]] se cerró el 2026-10-04 con la opción 1, como enmienda de [[DEC-006 - Roles y permisos según el código y los headers del gateway]]. Las llamadas de servicio con `MS` ([[Q-021 - Principal de servicio MS en las reglas de negocio]]) quedaron resueltas en la T02, ver abajo.
 - **Coordinación con el PR #85 de `tpi-market`** (resumen de ventas, US-1053, sin mergear). `CourseSalesSummaryServiceImpl.validateAccess` también compara roles con `contains()` y el controlador agrega `X-Roles`. Si el PR #86 entra primero, el #85 debe rebasarse y usar `UserRole`.
 
 Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
