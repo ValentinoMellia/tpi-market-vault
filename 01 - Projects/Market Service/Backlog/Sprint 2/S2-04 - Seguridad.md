@@ -122,7 +122,7 @@ Al 2026-10-04:
 |---|---|---|
 | #5215 T01 - Parsear los roles sin contains | Closed | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
 | #5216 T02 - Eliminar el bypass por cabecera de roles vacía | Closed | PR #92 de `tpi-market`, mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel), con las correcciones de la revisión de Patinio y tommikimmel |
-| #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
+| #5217 T03 - Quitar el usuario por defecto usr-student-001 | Ready for test | PR #93 de `tpi-market`, en revisión (2026-10-04) |
 | #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
 
 Lo que dejó la T01 y la revisión del PR #86:
@@ -138,6 +138,14 @@ Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
 - **Q-021 adelantada.** Cerrar el bypass dejaba a ese servicio con 403 en la ruta del curso, así que se resolvió acá en vez de en la T04: [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Las dos rutas de estado leen el principal autenticado y `MS` es administrativo en ambas.
 - **Revisión del PR #92 (2026-10-04).** Se sumaron dos correcciones: el filtro descarta los ámbitos de servicio con forma de rol (`ROLE_ADMIN`) y `validateProfessorAccess` deniega cuando falta el id del usuario.
 - **Para la T03 y la T04.** Los GET de detalle de la vitrina (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) permiten `MS` pero evalúan al servicio como `usr-student-001` (la T03 quita ese valor por defecto; la T04 decide si pasan a leer el principal). `MS` en los roles lectores del resumen nunca coincide porque su `@PreAuthorize` no lo permite. ADMIN y GESTOR siguen pasando por el chequeo de asignación al listar, publicar y editar. Todo va a la matriz de la T04.
+
+Lo que dejó la T03 (PR #93 de `tpi-market`, en revisión desde el 2026-10-04):
+
+- **Identidad ausente → 400 `missing-header`.** La tarea dejaba a confirmar entre 400 y 401. Se eligió 400 porque ya había precedente (`POST /courses/{courseId}/orders` exige `X-User-Id` con el mismo error de [[Errores de la API]]) y porque a un usuario sin `X-User-Id` ya le responde 401 el filtro, antes del controlador. `X-User-Id` pasa a ser obligatoria, sin valor por defecto, en `GET /courses/{courseId}/catalog`, `GET /courses/{courseId}/catalog/{itemId}`, `GET /offers/{id}`, `GET /orders` y `GET /orders/{orderId}`.
+- **Quién lo nota.** Un usuario sin `X-User-Id` ya recibía 401 y lo sigue recibiendo (escenario BDD 3). El único que alcanzaba el valor por defecto era un servicio con `MS` en los tres GET de la vitrina: se lo evaluaba como el alumno `usr-student-001` y el catálogo respondía 200 con la vista de ese alumno (reproducido por HTTP antes del arreglo). Con el PR recibe 400.
+- **Sin referencias en producción.** `git grep usr-student-001 -- src/main` da 0: el último uso era el ejemplo de Swagger de `createOrder`, que pasó a `usr-student-002`. Un sembrador de datos de demo local que usa ese alumno no está versionado.
+- **Swagger.** La cabecera deja de estar oculta y figura como obligatoria en los cinco endpoints, con las respuestas 400 y 401.
+- **Para la T04.** Si la vitrina debe atender a `MS` leyendo el principal (como hizo [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] con las rutas de estado) y no la cabecera. `CourseCatalogManageController` (listar, publicar, editar) y `CourseCatalogSummaryController` siguen con `X-User-Id` opcional, sin valor por defecto: con `null` el service deniega o devuelve una lista vacía, así que no se inventa una identidad. Matriz por rol y endpoint con y sin `X-User-Id`.
 
 ## Tareas
 

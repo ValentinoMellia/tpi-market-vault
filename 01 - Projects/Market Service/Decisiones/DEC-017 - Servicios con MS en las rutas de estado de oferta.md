@@ -33,7 +33,7 @@ Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de 
 - `PATCH /offers/{id}/status` pasa de 403 a 200 para un servicio con `MS`; la ruta del curso deja de ser un bypass y aplica una regla explícita.
 - En Swagger, el `PATCH` por curso deja de listar `X-User-Id` y `X-User-Roles` como parámetros (el gateway las sigue enviando).
 - `CourseCatalogManageService` queda con firmas mixtas: las dos de estado reciben `Set<UserRole>` y el resto la cabecera. Alinear el resto queda para cuando haga falta.
-- Quedan para la T03 y la T04 de [[S2-04 - Seguridad]] los GET de detalle de la vitrina, que permiten `MS` pero todavía evalúan al servicio como el alumno por defecto `usr-student-001`.
+- Quedan para la T03 y la T04 de [[S2-04 - Seguridad]] los GET de detalle de la vitrina, que permiten `MS` pero todavía evalúan al servicio como el alumno por defecto `usr-student-001`. Seguimiento del 2026-10-04: con el PR #93 de `tpi-market` (T03, en revisión) un servicio sin `X-User-Id` recibe 400 `missing-header` en esos GET; si deben leer el principal queda para la T04.
 - Sigue abierta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]], que esta decisión no cubre.
 
 ## Notas afectadas

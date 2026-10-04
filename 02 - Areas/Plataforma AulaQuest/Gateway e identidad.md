@@ -69,7 +69,7 @@ Las dos capas no leen igual la identidad: la primera usa las autoridades del fil
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
-- Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. El chequeo de profesor que se omitía con cabecera vacía lo cerró el PR #92 (T02); sigue pendiente el usuario por defecto `usr-student-001` (T03) de [[S2-04 - Seguridad]] ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
+- Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. El chequeo de profesor que se omitía con cabecera vacía lo cerró el PR #92 (T02); el usuario por defecto `usr-student-001` lo quita el PR #93 (T03 de [[S2-04 - Seguridad]], en revisión): sin `X-User-Id`, las lecturas responden 400 `missing-header` y un usuario sigue recibiendo 401 del filtro ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
 - Hasta el PR #92, un servicio cuyo `X-Service-Scopes` trajera un valor con forma de rol (`ROLE_ADMIN`) recibía esa autoridad tal cual; desde ese PR el filtro descarta esos ámbitos ([[DEC-017 - Servicios con MS en las rutas de estado de oferta]]).
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
