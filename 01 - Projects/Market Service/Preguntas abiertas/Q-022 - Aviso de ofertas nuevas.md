@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: codigo@276af529
-actualizado: 2026-10-04
-tags: [mercado, pregunta-abierta, notificaciones, catalogo]
+estado: archivado
+verificado_contra: DEC-018
+actualizado: 2026-10-05
+tags: [mercado, pregunta-archivada, notificaciones, catalogo]
 ---
 # Q-022 - Aviso de ofertas nuevas
 
@@ -51,10 +51,14 @@ Hoy el código es inconsistente: `updateOffer` rechaza reactivar una oferta venc
 2. **Sí**: para el alumno vuelve a estar disponible. Implica quitar la validación de `updateOffer`.
 
 ## Recomendación
-Sin recomendación cerrada: es una discusión del equipo. La pregunta 2 hay que llevarla a Notificaciones con una postura de Mercado ya definida, porque cambia su listener.
+Se discutió en el equipo de Mercado antes de hablar con Notificaciones, para llevar la pregunta 2 con una postura definida, porque cambia su listener.
 
 ## Quién decide / con qué equipo hay que hablar
 El equipo de Mercado, las cuatro preguntas. La 2 se negocia además con Notificaciones ([[Integración con Notificaciones]]) y con Cursos ([[Integración con Cursos]]).
 
 ## Resolución
-Pendiente.
+Archivada el 2026-10-05. Resuelta por [[DEC-018 - Aviso de ofertas nuevas]]:
+1. Dos eventos, `CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED` (opción 1).
+2. Mercado manda solo `courseId` y Notificaciones resuelve los alumnos con Cursos (opción 1).
+3. La activación del admin no avisa (opción 2), con el criterio de quién actúa: solo avisa un usuario con rol `PROFESSOR`, por cualquier ruta.
+4. Una oferta vencida no se reactiva por ningún camino (opción 1).
