@@ -17,6 +17,7 @@ Tomada por Lucio Wiesek, responsable de #1051 y #1052, el 2026-10-05, antes de e
 
 - **Dos eventos.** `CATALOG_OFFER_PUBLISHED` cuando se crea una oferta (queda activa al crearse) y `CATALOG_OFFER_REACTIVATED` cuando una oferta pasa de `active = false` a `active = true`. Los dos llevan el mismo payload, así Notificaciones redacta un texto distinto para cada hecho sin leer campos.
 - **Destinatario: el curso.** El evento lleva `courseId` y no lleva lista de alumnos. Notificaciones resuelve los alumnos del curso con Cursos, que es el dueño de la matrícula. La key del mensaje es `courseId`.
+- **Sin stock.** El aviso dice que hay una oferta, no cuántas unidades quedan: la US-1052 no lo pide y un cambio de stock no genera aviso. La tarea #1058 original pedía "disponibilidad de stock"; se descartó el 2026-10-05 al reescribir las tareas.
 - **Solo avisa la acción de un profesor.** El criterio es quién actúa, no la ruta: se avisa si el usuario que publica o reactiva tiene el rol `PROFESSOR`, por cualquiera de las tres rutas del curso. Un ADMIN, GESTOR o servicio con `MS` no genera aviso por ninguna ruta, incluida la ruta global `PATCH /offers/{id}/status`, porque puede estar probando ofertas y no debe notificar a todo el curso. Si el usuario tiene `PROFESSOR` además de otro rol, avisa.
 - **Una oferta vencida no se reactiva.** Una oferta cuya `publicationExpiresAt` ya pasó no vuelve a activarse por ningún camino; el profesor publica una nueva, como ya exige `updateOffer` ("Una oferta vencida no puede reactivarse; publique una nueva oferta"). El aviso de reactivación cubre solo ofertas pausadas. Mientras las rutas de estado no tengan esa validación, Mercado no publica el aviso para una oferta vencida.
 
@@ -24,6 +25,7 @@ Tomada por Lucio Wiesek, responsable de #1051 y #1052, el 2026-10-05, antes de e
 - **Un evento con un campo `trigger` (`NEW` o `REACTIVATED`)**: un tipo menos, pero obliga a Notificaciones a leer el campo para cambiar el texto y se aparta de un `eventType` por hecho.
 - **Mercado manda `studentIds`**: encaja con la regla BR-01 de Notificaciones, pero Mercado no puede listar alumnos (`CourseEnrollmentClient` solo responde si un alumno está inscripto y es un mock), el mensaje crece con el curso y la lista queda congelada al publicar.
 - **Avisar también en la activación del admin**: para el alumno sería una oferta nueva, pero un admin que prueba ofertas notificaría a todo el curso.
+- **Incluir el stock disponible** (lo pedía la #1058 original): cambia con cada venta y la historia no lo pide.
 - **Criterio por ruta** (avisan las tres rutas del curso sin mirar el rol): un admin que prueba desde la ruta del curso igual notificaría.
 - **Permitir reactivar ofertas vencidas con aviso**: obliga a quitar la validación de `updateOffer` y a definir qué pasa con `publicationExpiresAt` al reactivar.
 

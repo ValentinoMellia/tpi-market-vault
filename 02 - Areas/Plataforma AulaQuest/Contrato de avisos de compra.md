@@ -185,6 +185,8 @@ El criterio es quién actúa: avisa un usuario con rol `PROFESSOR`, aunque tenga
 | `price` | integer | Sí | Precio en monedas (`coinPrice`) |
 | `publishedAt` | string (ISO-8601 UTC) | Sí | Momento en que la oferta quedó disponible: su creación o su reactivación |
 
+El aviso no informa stock ([[DEC-018 - Aviso de ofertas nuevas]]).
+
 ```json
 {
   "eventId": "5e7a9c1b-3d2f-4a6e-8b0c-1f2e3d4c5b6a",
