@@ -1,0 +1,3 @@
+## [2026-10-06] ingest | Q-023: stock de una compra cancelada por HOLD_NOT_SETTLED
+- Nueva [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]]. La T01 #5220 de [[S2-05 - Robustez de la compra]] y [[S2-OPC1 - Reconciliación de compras]] piden devolver la unidad al stock; el código la retiene a propósito desde la US-138 T05 (el ítem ya se entregó) y el PR #113 de `tpi-market` (US-5207) la trata como entrega en cuarentena.
+- Notas tocadas: [[Estado actual del código]] (gap 19 verificado contra `f7457882`), [[Decisiones - Índice]] (preguntas abiertas). `node scripts/lint-vault.mjs` sin errores.
