@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-05
 tags: [mercado, decision, tienda, stock, oferta]
 ---
 # DEC-013 - Reglas de la tienda
@@ -19,9 +19,22 @@ Confirmada por el usuario el 2026-10-01:
 - **T3 aprobada.** El `courseId` de la tienda es la cohorte del curso: cada cursada tiene su propia tienda.
 - **T4 aprobada.** Las ofertas no se borran, solo se desactivan; así se conserva el historial de compras.
 - **T5 aprobada.** Al publicar se valida que la plantilla exista y esté activa, que el tipo de ítem coincida con el de la plantilla y que el multiplicador esté dentro del rango.
-- **T6 modificada** (reemplaza la recomendación del taller y lo dicho en [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). `publicationExpiresAt` **puede extenderse**. Hecho verificado: hoy ni `dtos/manage/CatalogOfferPublishDto.java` ni `dtos/manage/CatalogOfferUpdateDto.java` contienen `publicationExpiresAt`; solo aparece en los DTO de respuesta (`CourseCatalogManageDto` y `StorefrontOfferDto`). Por eso hoy el profesor no puede fijarlo ni extenderlo por la API.
+- **T6 modificada** (reemplaza la recomendación del taller y lo dicho en [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). `publicationExpiresAt` **puede extenderse**. Hecho verificado en `7528610`: ni `dtos/manage/CatalogOfferPublishDto.java` ni `dtos/manage/CatalogOfferUpdateDto.java` contienen `publicationExpiresAt`; solo aparece en los DTO de respuesta (`CourseCatalogManageDto` y `StorefrontOfferDto`). En ese snapshot el profesor no puede fijarlo ni extenderlo por la API.
 
-Detalle pendiente, no decidido: si al extender solo se aceptan fechas posteriores a la vigente.
+## Aclaración de implementación — 2026-10-05
+
+La posibilidad de extender sigue siendo la decisión confirmada del 2026-10-01. El siguiente contrato propuesto de US-5207 se registra en esta misma decisión, sin crear otra DEC ni reabrir [[Q-015 - Reglas de la tienda]]:
+
+| Operación | Contrato propuesto |
+|---|---|
+| Publicar (`POST`) | `publicationExpiresAt`, cuando se informa, debe ser estrictamente futura. No puede enviarse junto con `publicationTtlMinutes`: la combinación responde 400. |
+| Compatibilidad de publicación | Se conserva el TTL positivo existente. Si no se informa fecha ni TTL, la publicación no tiene vencimiento automático. |
+| Editar (`PATCH`) sin fecha | Campo omitido o `null`: conserva el vencimiento actual; no lo borra. |
+| Editar con fecha | Debe ser futura. Si la oferta no tenía vencimiento, admite la primera fecha futura; si ya tenía uno, solo admite una fecha estrictamente posterior (igual o anterior responde 400). |
+
+**Ratificación pendiente:** la restricción de extensión estrictamente posterior es el criterio **provisional de T06** de [[S2-03 - Reglas de la tienda]], no una nueva decisión ratificada por el equipo. Se conserva ese alcance hasta confirmación explícita.
+
+**Estado:** implementación propuesta en [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (rama `feature/us-5207-store-rules`, fuente original `669ba7d0`), pendiente de aprobación e integración en `develop`. La rama del PR incorpora `origin/develop@e50f3b5c` y ajustes de revisión en `e86290d7`, enviado al remoto; sigue pendiente de aprobación e integración en `develop`. Rutas de contraste en `tpi-market`: `src/main/java/ar/edu/utn/frc/tup/p4/dtos/manage/CatalogOfferPublishDto.java`, `dtos/manage/CatalogOfferUpdateDto.java` y `services/impl/CourseCatalogManageServiceImpl.java` bajo el mismo paquete. [[Estado actual del código]] registra el seguimiento separado del snapshot base.
 
 ## Alternativas descartadas
 - **T6 original (no extender; publicar una oferta nueva)**: el usuario prefirió poder extender la publicación de la misma oferta.
@@ -30,7 +43,7 @@ Detalle pendiente, no decidido: si al extender solo se aceptan fechas posteriore
 ## Consecuencias
 - **Tareas de código** ([[Roadmap de trabajo]]):
   - Incrementar `unitsSold` al confirmar la orden y calcular el disponible con vendidos y reservados (`services/impl/CourseCatalogManageServiceImpl.java`, `entities/CourseCatalogOfferEntity.java`).
-  - Aceptar `publicationExpiresAt` al publicar y al actualizar (`CatalogOfferPublishDto`, `CatalogOfferUpdateDto`): **pendiente de implementar**. Pendiente decidir si al extender solo se aceptan fechas posteriores.
+  - Aceptar `publicationExpiresAt` al publicar y al actualizar (`CatalogOfferPublishDto`, `CatalogOfferUpdateDto`): **propuesto en PR #113, pendiente de integración**; contrato y ratificación pendientes según la aclaración anterior.
   - Completar las validaciones de plantilla activa, tipo y rango del multiplicador al publicar (`validation/ValidOfferConfigurationValidator.java`).
   - Quitar o dejar de usar el borrado lógico (`deleted`) de la oferta; solo se usa `active`.
 - **Frontend**: confirmar que `courseId` es el identificador de cohorte ([[Q-009 - Endpoints y prefijos]]).

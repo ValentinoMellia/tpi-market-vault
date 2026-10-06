@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+actualizado: 2026-10-05
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -114,7 +114,7 @@ Verificados leyendo el código:
 
 22. **Motivos de rechazo desconocidos se reportan como saldo insuficiente.** Mercado solo reconoce `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y otros caen en `REJECTED_INSUFFICIENT_FUNDS` con un log de advertencia (`services/impl/OrderHoldServiceImpl.java`, `applyRejection`, cerca de la línea 130). El payload de `HOLD_INCREASED` no se maneja (subastas, Fase 3). Decidido mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 23. **Tópico compartido sin verificar.** Si `accounting.holds.commands` y `accounting.holds.events` apuntan ambos a `accounting.events`, el listener de Mercado recibe sus propios comandos; falta confirmar que se ignoran sin enviarlos a DLT.
-24. **El profesor no puede fijar ni extender `publicationExpiresAt`.** Verificado: `dtos/manage/CatalogOfferPublishDto.java` y `dtos/manage/CatalogOfferUpdateDto.java` no lo contienen; solo aparece en los DTO de respuesta (`CourseCatalogManageDto`, `StorefrontOfferDto`). Decidido que puede extenderse ([[DEC-013 - Reglas de la tienda]], T6); falta aceptarlo al publicar y al actualizar.
+24. **En el snapshot `7528610`, el profesor no puede fijar ni extender `publicationExpiresAt`.** Verificado en ese snapshot: `dtos/manage/CatalogOfferPublishDto.java` y `dtos/manage/CatalogOfferUpdateDto.java` no lo contienen; solo aparece en los DTO de respuesta (`CourseCatalogManageDto`, `StorefrontOfferDto`). Decidido que puede extenderse ([[DEC-013 - Reglas de la tienda]], T6); falta aceptarlo al publicar y al actualizar.
 
 Verificado: las respuestas duplicadas están cubiertas en dos capas, deduplicación por `eventId` en `processed_events` y guarda de estado en los manejadores (`services/impl/OrderConfirmationServiceImpl.java`, cerca de la línea 385).
 
@@ -128,3 +128,14 @@ Reportados por la documentación del equipo, sin verificar contra el código:
 ## Relacionado
 
 [[Market Service - Overview]], [[Roadmap de trabajo]], [[Orden de compra]], [[Eventos y Kafka]], [[Errores de la API]], [[Integración con Accounting]].
+
+## Propuesta US-5207 en revisión — 2026-10-05
+
+[PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) propone las reglas de tienda en `feature/us-5207-store-rules` (fuente original `669ba7d0`), **sin integración en `develop` ni aprobación declarada**. El gap 24 describe el snapshot base, no la copia de trabajo de esta rama. El contrato de publicación y edición se registra en [[DEC-013 - Reglas de la tienda]]; tareas T05/T06 en [[S2-03 - Reglas de la tienda]].
+
+El commit `e86290d7`, enviado a la rama del PR, integra `origin/develop@e50f3b5c` y contiene estos ajustes propuestos, todavía no integrados en `develop`:
+- Disponibilidad efectiva compartida para ofertas históricas `deleted`/`null`, respuestas de detalle y acceso estudiantil (`src/main/java/ar/edu/utn/frc/tup/p4/entities/CourseCatalogOfferEntity.java`, DTO de detalle y servicios de catálogo).
+- Nombres de consultas de ofertas acordes con la inclusión de registros históricos y preflight SQL no mutante que muestra déficits reales de capacidad y exige detener la reconciliación si existen.
+- Conservación de las guardas de cierre de curso incorporadas desde `develop`.
+
+La verificación local reportada para esa copia fue: 1372 pruebas, 0 fallos, 0 errores, 11 omisiones por Docker; Checkstyle y PMD sin infracciones, cobertura 95,44 %. Es evidencia local comunicada durante la revisión, **no un resultado de CI, aprobación o merge**. Revalidar el commit final y la integración antes de actualizar el estado global de esta nota.

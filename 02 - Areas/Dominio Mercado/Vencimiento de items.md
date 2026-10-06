@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: DEC-012
-actualizado: 2026-10-01
+actualizado: 2026-10-05
 tags: [mercado, dominio, vencimiento]
 ---
 # Vencimiento de items
@@ -14,7 +14,7 @@ Esta nota distingue dos vencimientos que se confundían:
 
 | Vencimiento | Estado |
 |---|---|
-| De la **oferta** (`publicationExpiresAt`) | Vigente: hasta cuándo se publica la oferta; **puede extenderse** ([[DEC-013 - Reglas de la tienda]]), aunque hoy la API no permite fijarlo ni extenderlo |
+| De la **oferta** (`publicationExpiresAt`) | Vigente: hasta cuándo se publica la oferta; **puede extenderse** ([[DEC-013 - Reglas de la tienda]]), el snapshot `7528610` todavía no permitía fijarlo ni extenderlo por la API |
 | Del **ítem** en el inventario | **Descartado**: ningún ítem vence |
 
 La intención original era una regla opcional por oferta (fecha fija o 1 a 180 días desde la recepción), con aviso 24 horas antes y consulta de vencidos. Quedó descartada.
@@ -34,3 +34,7 @@ La intención original era una regla opcional por oferta (fecha fija o 1 a 180 d
 
 ## Relacionado
 [[Épica 770 - Vencimiento de items]] (descartada), [[Oferta de catálogo]].
+
+## Propuesta de publicación — 2026-10-05
+
+US-5207 propone fecha futura o TTL excluyentes al publicar; al editar, omisión/`null` no cambia la fecha y admite la primera futura cuando no existía vencimiento. La extensión estrictamente posterior sigue provisional, pendiente de ratificación ([[DEC-013 - Reglas de la tienda]]). [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (fuente original `669ba7d0`) no está integrado en `develop`; véase [[Estado actual del código]]. Esto no modifica la decisión de que los ítems comprados no vencen.
