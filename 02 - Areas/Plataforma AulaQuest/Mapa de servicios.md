@@ -51,3 +51,10 @@ El compose de la plataforma tiene la creación automática activada: eso contrad
 - Nombre de la materia: Programación IV en la mayoría de las fuentes y Metodología de Sistemas I en una de ellas.
 
 Ver [[Market Service - Overview]] y [[Eventos y Kafka]].
+
+## Contrato de API
+
+Para que los otros equipos puedan consumir el servicio, el contrato OpenAPI (Swagger) se encuentra publicado a través del `api-gateway`. Dado que el Gateway enruta todas las peticiones con el prefijo `/api/market`, las URL de acceso para los consumidores son:
+
+- **Swagger UI:** `http://<host-del-gateway>:8080/api/market/swagger-ui.html`
+- **OpenAPI JSON:** `http://<host-del-gateway>:8080/api/market/v3/api-docs`
