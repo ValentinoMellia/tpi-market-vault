@@ -131,7 +131,7 @@ Al 2026-10-06:
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5220 T01 - Liberar el stock al cancelar por HOLD_NOT_SETTLED | New | — |
-| #5221 T02 - Guardar el vencimiento del hold en UTC | Ready for test | PR #118 de `tpi-market`, en revisión |
+| #5221 T02 - Guardar el vencimiento del hold en UTC | Closed | PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel), con las correcciones de la revisión de Valentino Mellia |
 | #5222 T03 - Mapear a 4xx las excepciones que hoy responden 500 | New | — |
 | #5223 T04 - Responder 409 ante una oferta vencida | New | — |
 | #5224 T05 - Hacer la clave de idempotencia única por estudiante | New | — |
@@ -140,12 +140,12 @@ Al 2026-10-06:
 
 La historia sigue con 5 puntos en Taiga; este plan ya la cuenta con 8.
 
-Lo que dejó la T02 (PR #118 de `tpi-market`, en revisión):
+Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel)):
 
 - **Guardado y comparación, no solo guardado.** La tarea pedía cambiar la conversión de `OrderHoldServiceImpl`, pero el CA2 dice "se persiste y se compara en UTC". La reconciliación (`services/impl/BankHoldReconciliationServiceImpl.java`) comparaba `holdExpiresAt` contra `LocalDateTime.now()`, en la zona del servidor: si solo se cambiaba el guardado, con el servidor en hora argentina los holds vencidos se reconciliaban 3 h tarde. El PR cambia las dos cosas.
 - **Cómo queda.** `holdExpiresAt` sigue siendo `LocalDateTime` (sin cambio de schema) y guarda la hora UTC del `Instant` de Accounting. La reconciliación toma el `Clock` de la aplicación y compara `holdExpiresAt` contra ese instante en UTC. El corte de las filas viejas sin vencimiento sigue comparando `updatedAt` en la zona de la aplicación, porque `updatedAt` se escribe en esa zona.
 - **Prueba del CA2.** Con un `Clock` fijo en `America/Argentina/Cordoba` y valores UTC escritos a mano, sin cambiar la zona de la JVM ni el `-Duser.timezone` de la suite.
-- **Revisión del PR #118 (Valentino Mellia, 2026-10-06).** Aprobado sin bloqueantes. Se sumó un Javadoc en `configs/ClockConfig.java`: el `Clock` tiene que quedar en la zona del sistema, porque `updatedAt` se escribe en esa zona y el corte de las filas viejas se compara contra él. Se dejó escrito que, con la JVM en ART, las filas previas al deploy se reconcilian 3 h antes de vencer (impacto bajo: se consulta a Accounting antes de vencer y un hold dura 5 min). El CA2 se reformuló para decir cómo se prueba de verdad.
+- **Revisión del PR #118 (Valentino Mellia, 2026-10-06).** Aprobado sin bloqueantes; tras las correcciones lo aprobó y mergeó tommikimmel. Se sumó un Javadoc en `configs/ClockConfig.java`: el `Clock` tiene que quedar en la zona del sistema, porque `updatedAt` se escribe en esa zona y el corte de las filas viejas se compara contra él. Se dejó escrito que, con la JVM en ART, las filas previas al deploy se reconcilian 3 h antes de vencer (impacto bajo: se consulta a Accounting antes de vencer y un hold dura 5 min). El CA2 se reformuló para decir cómo se prueba de verdad.
 - **Fuera de alcance.** `createdAt`, `updatedAt` y el resto de los timestamps siguen en la zona del servidor; pasarlos a UTC sería otra tarea. No hay backfill: las filas guardadas antes del deploy quedan con su valor; en Docker (UTC) es el mismo.
 - **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pide devolverlo. Hay que resolverlo antes de arrancar la T01.
 
