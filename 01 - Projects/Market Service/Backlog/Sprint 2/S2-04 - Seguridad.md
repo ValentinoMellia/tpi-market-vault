@@ -139,6 +139,11 @@ Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
 - **Revisión del PR #92 (2026-10-04).** Se sumaron dos correcciones: el filtro descarta los ámbitos de servicio con forma de rol (`ROLE_ADMIN`) y `validateProfessorAccess` deniega cuando falta el id del usuario.
 - **Para la T03 y la T04.** Los GET de detalle de la vitrina (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) permiten `MS` pero evalúan al servicio como `usr-student-001` (la T03 quita ese valor por defecto; la T04 decide si pasan a leer el principal). `MS` en los roles lectores del resumen nunca coincide porque su `@PreAuthorize` no lo permite. ADMIN y GESTOR siguen pasando por el chequeo de asignación al listar, publicar y editar. Todo va a la matriz de la T04.
 
+Lo que dejó la exploración de la T04 (2026-10-06, sin PR todavía):
+
+- **Alcance.** La T04 solo agrega pruebas: una matriz de rol por endpoint que fija el comportamiento actual. Los cambios de comportamiento que T01 a T03 le habían derivado pasan a una tarea nueva, **#6807 T05 - Corregir los accesos derivados de la matriz de seguridad** (creada el 2026-10-05): la vitrina con `MS`, `X-User-Id` obligatorio en los dos resúmenes, `MS` como lector del resumen, la asignación de ADMIN y GESTOR, el rol `MS` en un usuario y el listado de la vitrina para ADMIN.
+- **GESTOR.** El código lo trata igual que a ADMIN en todas las rutas, pero Cursos lo devuelve por asignación a una cohorte: [[Q-024 - Qué es el rol GESTOR]]. Hasta que se decida, la matriz marca las celdas de GESTOR como dependientes de esa pregunta y la T05 no lo toca.
+
 ## Tareas
 
 ### T01 - Parsear los roles sin contains
