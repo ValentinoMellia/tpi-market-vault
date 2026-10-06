@@ -1,0 +1,3 @@
+## [2026-10-06] ingest | Merge del PR #93 de tpi-market (US-5214 T03)
+- El PR #93 (T03 #5217 de [[S2-04 - Seguridad]]) se mergeó en `develop` el 2026-10-06 (`011fe7d6`), aprobado y mergeado por Lucio Wiesek. Las notas que lo daban como "en revisión" pasan a describirlo como código actual.
+- Se suma la corrección de su revisión: con `X-User-Id` vacía, los detalles de la vitrina ya no saltean la matrícula ni la asignación (403). Notas tocadas: [[S2-04 - Seguridad]], [[Estado actual del código]] (gap 9), [[Gateway e identidad]], seguimientos en [[DEC-006 - Roles y permisos según el código y los headers del gateway]] y [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. `node scripts/lint-vault.mjs` sin errores.
