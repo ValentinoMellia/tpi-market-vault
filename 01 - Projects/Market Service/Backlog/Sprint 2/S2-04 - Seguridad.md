@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
@@ -116,13 +116,13 @@ Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo
 
 ## Estado en Taiga
 
-Al 2026-10-04:
+Al 2026-10-06:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5215 T01 - Parsear los roles sin contains | Closed | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
 | #5216 T02 - Eliminar el bypass por cabecera de roles vacía | Closed | PR #92 de `tpi-market`, mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel), con las correcciones de la revisión de Patinio y tommikimmel |
-| #5217 T03 - Quitar el usuario por defecto usr-student-001 | Ready for test | PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek), con la corrección de la revisión de Lucio Wiesek. Revisado también por tommikimmel |
+| #5217 T03 - Quitar el usuario por defecto usr-student-001 | Closed | PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek), con la corrección de la revisión de Lucio Wiesek. Revisado también por tommikimmel |
 | #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
 
 Lo que dejó la T01 y la revisión del PR #86:
