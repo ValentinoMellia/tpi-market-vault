@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-06
 tags: [mercado, dominio, hold, accounting]
 ---
 # Hold de monedas
@@ -16,7 +16,7 @@ Un compromiso de Accounting de reservar el monto de la compra. Mercado guarda su
 | Campo | Significado |
 |---|---|
 | `holdId` | Identificador entregado por Accounting |
-| `holdExpiresAt` | Vencimiento fijado por Accounting (hoy guardado como `LocalDateTime` en zona del sistema) |
+| `holdExpiresAt` | Vencimiento fijado por Accounting (hoy guardado como `LocalDateTime` en zona del sistema; el PR #118 de `tpi-market`, T02 de [[S2-05 - Robustez de la compra]], en revisión, lo pasa a UTC) |
 | `BankHoldStatus` | `PENDING`, `COMMITTED`, `RELEASED`, `UNKNOWN` (consulta de estado, que accounting no ofrece) |
 | Motivo de liberación | `BankHoldReleaseReason` en Mercado; en accounting: `AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED` |
 | `orderType` | `DIRECT_PURCHASE` o `AUCTION_BID` |

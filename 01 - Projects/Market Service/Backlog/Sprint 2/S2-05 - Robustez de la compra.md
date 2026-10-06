@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
@@ -35,7 +35,7 @@ horas: 29
 - [ ] Seguridad (roles, permisos, datos sensibles): evitar que un estudiante reutilice la clave de otro para obtener su orden: con clave por estudiante, la misma clave de dos estudiantes crea dos órdenes independientes.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
 - [ ] Outbox (absorbe #1012): hoy OutboxEventEntity solo tiene el booleano processed: no hay contador de intentos, espera creciente entre reintentos, máximo de intentos ni estado de fallo. OutboxRelayServiceImpl corta el ciclo en el primer fallo, de modo que un mensaje que nunca se puede enviar bloquea todos los que vienen detrás. Tampoco hay forma de consultar cuántos avisos esperan salir (OutboxEventRepository solo tiene findByProcessedFalseOrderByCreatedAtAscIdAsc). El resto de #1012 ya está en el código: guardado antes de enviar, deduplicación por eventId en los dos listeners y studentId como clave de Kafka para conservar el orden.
-- [ ] Otros: OrderHoldServiceImpl convierte granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 112); debe guardarse en UTC. Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
+- [ ] Otros: OrderHoldServiceImpl convierte granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 129 en `develop@e50f3b5c`); debe guardarse en UTC. Lo resuelve la T02 (ver «Estado en Taiga»). Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
 
 ---
 
@@ -121,6 +121,32 @@ horas: 29
 - Riesgos y mitigación (opcional): interacción con [[S2-03 - Reglas de la tienda]] (stock vendido y reservado) y con [[S2-01 - Contrato con Accounting]] (`orderRef`); ordenar los merges para evitar conflictos en `OrderEntity`.
 
 Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07), [[Entrega at-least-once y deduplicación]], [[Eventos y Kafka]], [[Orden de compra]], [[Estado actual del código]] (gaps 8, 13, 18 y 19), [[Errores de la API]], [[Bloqueo optimista]].
+
+---
+
+## Estado en Taiga
+
+Al 2026-10-06:
+
+| Tarea | Estado | Dónde |
+|---|---|---|
+| #5220 T01 - Liberar el stock al cancelar por HOLD_NOT_SETTLED | New | — |
+| #5221 T02 - Guardar el vencimiento del hold en UTC | Ready for test | PR #118 de `tpi-market`, en revisión |
+| #5222 T03 - Mapear a 4xx las excepciones que hoy responden 500 | New | — |
+| #5223 T04 - Responder 409 ante una oferta vencida | New | — |
+| #5224 T05 - Hacer la clave de idempotencia única por estudiante | New | — |
+| #5344 T06 - Outbox con reintentos acotados y estado de fallo | New | Asignada a Valentino Mellia |
+| #5345 T07 - Contador de avisos pendientes del outbox | New | Asignada a Valentino Mellia |
+
+La historia sigue con 5 puntos en Taiga; este plan ya la cuenta con 8.
+
+Lo que dejó la T02 (PR #118 de `tpi-market`, en revisión):
+
+- **Guardado y comparación, no solo guardado.** La tarea pedía cambiar la conversión de `OrderHoldServiceImpl`, pero el CA2 dice "se persiste y se compara en UTC". La reconciliación (`services/impl/BankHoldReconciliationServiceImpl.java`) comparaba `holdExpiresAt` contra `LocalDateTime.now()`, en la zona del servidor: si solo se cambiaba el guardado, con el servidor en hora argentina los holds vencidos se reconciliaban 3 h tarde. El PR cambia las dos cosas.
+- **Cómo queda.** `holdExpiresAt` sigue siendo `LocalDateTime` (sin cambio de schema) y guarda la hora UTC del `Instant` de Accounting. La reconciliación toma el `Clock` de la aplicación y compara `holdExpiresAt` contra ese instante en UTC. El corte de las filas viejas sin vencimiento sigue comparando `updatedAt` en la zona de la aplicación, porque `updatedAt` se escribe en esa zona.
+- **Prueba del CA2.** Con un `Clock` fijo en `America/Argentina/Cordoba` y valores UTC escritos a mano, sin cambiar la zona de la JVM ni el `-Duser.timezone` de la suite.
+- **Fuera de alcance.** `createdAt`, `updatedAt` y el resto de los timestamps siguen en la zona del servidor; pasarlos a UTC sería otra tarea. No hay backfill: las filas guardadas antes del deploy quedan con su valor; en Docker (UTC) es el mismo.
+- **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pide devolverlo. Hay que resolverlo antes de arrancar la T01.
 
 ---
 

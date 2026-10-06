@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+actualizado: 2026-10-06
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -96,7 +96,7 @@ Unas 636 anotaciones `@Test` contadas; el informe de verificación de T07 declar
 5. **Resultado del tope de vidas sin manejar.** `LIFE_CAP_REACHED` existe en `models/enums/OrderRejectionReason.java` pero no se usa. Mercado no valida el tope: Accounting decide y reporta y Mercado reacciona ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]); falta manejar el evento que Accounting publique, cuya señal exacta está por acordar.
 6. **Contrato con Accounting desalineado.** El `orderType` `DIRECT_PURCHASE` resultó válido en accounting, pero Mercado usa tópicos que no existen (`accounting.holds.*`, `inventory.items.*`, `market.orders.events`), `orderId` numérico en lugar de UUID (bloqueante: accounting rechazaría todo `HOLD_CREATE_REQUESTED` con `MALFORMED_COMMAND`) y mensajes `ITEM_PROVISION_*` que nadie implementa. Los motivos de rechazo y de release ya coinciden en el cable: `INSUFFICIENT_FUNDS` se envía como `INSUFFICIENT_BALANCE` (`models/enums/OrderRejectionReason.java:33`) y se libera siempre con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:62`). Los tópicos se pueden apuntar a `accounting.events` con `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` (`application.properties:38-39`), sin verificar que Mercado ignore sus propios comandos en un tópico compartido. Mercado decidió alinearse al contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]); falta implementarlo. El orden de la compra sigue abierto ([[Q-008 - Orden de la saga de compra]]). Ver la tabla en [[Integración con Accounting]]. Actualización: en `develop` (`349c8e2`, PR #88) los tópicos por defecto ya son `accounting.events` y `market.events`, y la orden guarda un `orderRef` UUID que se envía a Accounting; el resto de este punto no se reverificó.
 7. **Variable de entorno inconsistente.** La plantilla usa `KAFKA_SERVERS`; Spring espera `SPRING_KAFKA_BOOTSTRAP_SERVERS` (docker: `event-bus:29092`; prod: respaldo `localhost:9092`). `src/main/resources/application-prod.properties`, `.tpi/platform/`.
-8. **Vencimiento del hold no es seguro respecto de zonas horarias.** Usa `LocalDateTime` con `ZoneId.systemDefault()`. `services/impl/OrderHoldServiceImpl.java`.
+8. **Vencimiento del hold no es seguro respecto de zonas horarias.** Usa `LocalDateTime` con `ZoneId.systemDefault()`. `services/impl/OrderHoldServiceImpl.java`. La reconciliación también comparaba contra `LocalDateTime.now()` en la zona del servidor (`services/impl/BankHoldReconciliationServiceImpl.java`). El PR #118 (T02 de [[S2-05 - Robustez de la compra]], en revisión) guarda el vencimiento en UTC y lo compara en UTC con el `Clock` de la aplicación.
 9. **Usuario por defecto.** Los controladores de vitrina y de órdenes asumen `usr-student-001` si falta `X-User-Id`. `controllers/StorefrontCatalogController.java`, `StudentOrderController.java`.
 10. **Sin CI en `develop`.** `.github/workflows/verify.yml` corre solo en PR a `main` o `release/**`. Los dos commits de `cf988d2` solo agregan una verificación de nombre de rama al abrir el PR. Ver [[Git workflow]].
 11. **Restos de plantilla.** `docs/app_doc` y `.tpi/.tpi` son placeholders; `.compose/.env.example` está desactualizado.
