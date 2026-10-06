@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
@@ -12,7 +12,7 @@ horas: 29
 ---
 # S2-05 - Robustez de la compra
 
-> Corregir los defectos de la compra que dejan stock retenido, vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 29 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo.
+> Corregir los defectos de la compra: vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 29 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo. El de la T01 (stock en `HOLD_NOT_SETTLED`) resultó no ser un defecto: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
 
 ## [G11] — Robustez de la compra
 
@@ -28,7 +28,7 @@ horas: 29
 
 ## Notas / Observaciones
 
-- [ ] Reglas de negocio: una orden cancelada por HOLD_NOT_SETTLED debe devolver el stock reservado (OrderConfirmationServiceImpl, cerca de la línea 358, order.cancel(OrderCancellationReason.HOLD_NOT_SETTLED)). La clave de idempotencia es única por estudiante, no global ([[Idempotencia]]).
+- [ ] Reglas de negocio: una orden cancelada por HOLD_NOT_SETTLED **retiene** su unidad: el ítem ya se entregó, así que no vuelve al stock ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]; `cancelUnsettled` en OrderConfirmationServiceImpl). La clave de idempotencia es única por estudiante, no global ([[Idempotencia]]).
 - [ ] Validaciones: el detalle de una oferta vencida pero activa debe responder 409 catalog-offer-expired, no 200 ([[Q-015 - Reglas de la tienda]], reportado sin verificar). Las excepciones no previstas deben mapearse a su estado HTTP correcto en GlobalExceptionHandler; hoy algunas caen en unexpected-error (500). Se inventarían en la tarea 3.
 - [ ] Datos obligatorios: idempotencyKey en el cuerpo de POST /api/market/courses/{courseId}/orders; studentId desde X-User-Id.
 - [ ] Performance (tiempos, volumen, límites): el índice único pasa de uk_orders_idempotency_key (solo clave) a clave más estudiante; sin impacto de volumen esperado.
@@ -41,7 +41,7 @@ horas: 29
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: tras una cancelación por HOLD_NOT_SETTLED, el availableStock de la oferta vuelve al valor previo a la reserva; probado con una oferta de stock finito.
+- [ ] **CA1**: tras una cancelación por HOLD_NOT_SETTLED, el availableStock de la oferta **no** vuelve al valor previo a la reserva (la unidad queda retenida, [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]); probado con una oferta de stock finito.
 - [ ] **CA2**: holdExpiresAt se persiste y se compara en UTC: el resultado no cambia al ejecutar las pruebas con -Duser.timezone distinto de UTC.
 - [ ] **CA3**: ningún flujo de error previsto de compra, vitrina o gestión responde 500; cada excepción de la lista de la tarea 3 responde su estado 4xx con problem+json.
 - [ ] **CA4**: GET /api/market/courses/{courseId}/catalog/{itemId} de una oferta activa con publicationExpiresAt pasado responde 409 catalog-offer-expired.
@@ -60,7 +60,7 @@ horas: 29
 
 - **Dado**: una orden en `ITEM_PROVISIONED` con una unidad de stock reservada y un hold que Accounting reporta como liberado
 - **Cuando**: la reconciliación o `HOLD_CONFIRMED` fallido cancela la orden con `HOLD_NOT_SETTLED`
-- **Entonces**: la orden queda `CANCELLED` y la unidad reservada vuelve al `availableStock`
+- **Entonces**: la orden queda `CANCELLED` y la unidad reservada **no** vuelve al `availableStock`, porque el estudiante ya tiene el ítem
 
 **Escenario 2**  
 
@@ -126,13 +126,13 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 
 ## Tareas
 
-### T01 - Liberar el stock al cancelar por HOLD_NOT_SETTLED
+### T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED
 
-**Objetivo:** Corregir la cancelación que no devuelve la reserva de stock.
+**Objetivo:** Dejar probado y documentado que la cancelación por `HOLD_NOT_SETTLED` no devuelve la unidad, según [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]. (Antes: "Liberar el stock al cancelar por HOLD_NOT_SETTLED".)
 
-- Reproducir el defecto con una prueba (`OrderConfirmationServiceImpl`, `order.cancel(OrderCancellationReason.HOLD_NOT_SETTLED)`)
-- Liberar la reserva al cancelar
-- Hecho cuando: una orden cancelada por `HOLD_NOT_SETTLED` devuelve el stock a la oferta
+- Prueba con una oferta de stock finito: tras `order.cancel(OrderCancellationReason.HOLD_NOT_SETTLED)` en `OrderConfirmationServiceImpl`, `availableStock` no vuelve al valor previo
+- Si el PR #113 ya está mergeado, la prueba verifica también que `unitsSold` no sube
+- Hecho cuando: la prueba fija el comportamiento y el gap 19 queda cerrado
 
 Estimación: 5 h
 
