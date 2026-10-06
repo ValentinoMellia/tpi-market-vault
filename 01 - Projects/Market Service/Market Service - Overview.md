@@ -44,7 +44,7 @@ Mercado es el Tema 09 y, en Taiga, el grupo G11. Accounting (ex Banco) es el Tem
 - Backlog: [[Backlog - Índice]].
 - Plataforma: [[Mapa de servicios]], [[Gateway e identidad]], [[Integración con Accounting]].
 - Dominio: [[Plantilla base]], [[Oferta de catálogo]], [[Orden de compra]], [[Hold de monedas]], [[Tipos de item]], [[Subasta]], [[Vencimiento de items]].
-- Convenciones: [[Eventos y Kafka]], [[Errores de la API]], [[Git workflow]], [[Calidad de código]].
+- Convenciones: [[Eventos y Kafka]], [[Errores de la API]], [[Git workflow]], [[Calidad de código]], [[Documentación OpenAPI]].
 - Conceptos y vocabulario: [[Glosario]], [[Saga]], [[Patrón Outbox]], [[Idempotencia]].
 - Historia de ideas: [[Ideas descartadas]].
 
