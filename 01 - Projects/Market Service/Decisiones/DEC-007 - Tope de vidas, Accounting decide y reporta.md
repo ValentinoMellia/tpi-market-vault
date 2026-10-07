@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: equipo-accounting@2026-10-04
-actualizado: 2026-10-04
+verificado_contra: codigo@74e671ef
+actualizado: 2026-10-06
 tags: [mercado, decision, vidas, accounting]
 ---
 # DEC-007 - Tope de vidas, Accounting decide y reporta
@@ -30,14 +30,14 @@ Se acordó formalmente con el equipo de Accounting (Tema 08, grupo G12) la seña
 - Esta enmienda formaliza y cierra el acuerdo que DEC-007 y [[Q-002 - Vidas y tope de vidas]] dejaban pendiente de definición inter-servicio.
 
 ### Enmienda del 2026-10-04 (acuerdos de compra de vidas, US-6268)
-Se acordaron con Accounting los puntos que la señal de 2026-10-02 dejaba abiertos. Reemplazan la viñeta "Mercado no valida antes del hold ni consulta las vidas del estudiante" de la decisión original; el resto sigue vigente (Accounting igual recorta al acreditar).
+Se acordaron con Accounting los puntos que la señal de 2026-10-02 dejaba abiertos. Origen: Accounting los propuso el 2026-10-03 (lo registra su repositorio `tpi-accounting`, citado en las reviews de `tpi-market` #96 y #98) y Mercado los aceptó al implementarlos en US-6268 (`tpi-market` #94 a #98, en `develop` desde el 2026-10-04). Falta que Tema 11 ratifique `LIFE_PURCHASE_REJECTED` en `contratos-kafka`. Reemplazan la viñeta "Mercado no valida antes del hold ni consulta las vidas del estudiante" de la decisión original; el resto sigue vigente (Accounting igual recorta al acreditar).
 
 1. **Validación preventiva en Mercado, antes del hold.** Si el alumno ya tiene el máximo, Accounting acredita 0 y no devuelve monedas; al emitir `LIFE_PURCHASE_CONFIRMED` ya se cobró, así que la validación tiene que ser previa al hold.
    - Vidas actuales: `GET /api/accounting/courses/{courseId}/accounts/{studentId}/equip-summary`, por el Gateway con token de servicio; devuelve `currentLives` y `reservedLives`.
    - Máximo: PAR-12, parámetro global de Backoffice ([[Integración con Backoffice]]). Accounting no lo expone.
-   - Cuántas puede comprar: `max(0, maxLives − currentLives)`.
+   - Cuántas puede comprar: `max(0, maxLives − currentLives)`. En el código, Mercado suma a `currentLives` las vidas de sus órdenes de vidas todavía en vuelo, que Accounting aún no acreditó ([[S2-11 - Acuerdos de compra de vidas con Accounting]]).
    - Es preventiva: entre la consulta y la acreditación las vidas pueden cambiar (por ejemplo, si el alumno gana o pierde un desafío). Por eso Accounting igual recorta al máximo.
-2. **Identificadores.** `courseId` es la misma cohorte que el `HOLD_CREATE_REQUESTED` de la orden. `orderId` es el mismo de la orden y del hold (el `orderRef` UUID, como máximo 36 caracteres): así el crédito de vidas y el débito `DIRECT_PURCHASE_DEBIT` quedan unidos por la misma referencia, que es lo que permite encontrar el débito si hay que devolverlo.
+2. **Identificadores.** `courseId` es la misma cohorte que el `HOLD_CREATE_REQUESTED` de la orden. `orderId` es el mismo de la orden y del hold (el `orderRef` UUID, como máximo 36 caracteres, igual que `studentId` y `courseId`): así el crédito de vidas y el débito `DIRECT_PURCHASE_DEBIT` quedan unidos por la misma referencia, que es lo que permite encontrar el débito si hay que devolverlo.
 3. **Cantidad.** Sin tope por orden: la decide Mercado. Accounting exige un entero `>= 1` y acredita como mucho hasta el máximo.
 4. **Compra cobrada sobre una cuenta inexistente o inactiva.** Accounting no acredita ni reintenta: publica `LIFE_PURCHASE_REJECTED {orderId, studentId, courseId, quantity, reason, message}` en `accounting.events`, con `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE` (los mismos motivos de `HOLD_REJECTED`). Un reenvío con el mismo `eventId` no se procesa otra vez.
    - Inactiva: la cuenta se dio de baja entre la confirmación del hold y el procesamiento del evento (crear el hold exige cuenta activa y una baja libera los holds pendientes).

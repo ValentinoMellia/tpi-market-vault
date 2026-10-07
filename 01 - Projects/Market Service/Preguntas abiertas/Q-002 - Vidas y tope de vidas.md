@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: archivado
 verificado_contra: DEC-007
-actualizado: 2026-10-04
+actualizado: 2026-10-06
 tags: [mercado, pregunta-abierta, vidas]
 ---
 # Q-002 - Vidas y tope de vidas
@@ -27,7 +27,7 @@ D1: que Accounting rechace con `LIFE_CAP_REACHED` y que Mercado libere el hold. 
 - Mercado no es responsable del contador ([[Market Service - Overview]]).
 
 ## Qué hace hoy el código de Mercado
-Con US-6268 (pendiente de merge), Mercado consulta `equip-summary` de Accounting, compara con PAR-12 y rechaza con 422 `LIFE_CAP_REACHED` antes del hold; además consume `LIFE_PURCHASE_REJECTED`. Ver [[Tipos de item]] y [[S2-11 - Acuerdos de compra de vidas con Accounting]].
+Con US-6268 (en `develop` desde el 2026-10-04, verificado contra `74e671ef`), Mercado consulta `equip-summary` de Accounting, suma las vidas de sus órdenes de vidas en vuelo, compara con PAR-12 y rechaza con 422 `LIFE_CAP_REACHED` antes del hold; además consume `LIFE_PURCHASE_REJECTED`. Ver [[Tipos de item]] y [[S2-11 - Acuerdos de compra de vidas con Accounting]].
 
 ## Opciones
 1. **Accounting rechaza (D1).** Error claro y sin acoplar Mercado al contador; la compra falla tarde y obliga a liberar el hold. Exige cambiar el código de accounting.

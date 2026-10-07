@@ -2,7 +2,7 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-04
+actualizado: 2026-10-06
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -98,14 +98,14 @@ Decisión original ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]): M
 
 ### Acuerdos del 2026-10-04 (enmienda a DEC-007, US-6268)
 
-Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máximo, Mercado valida antes del hold ([[S2-11 - Acuerdos de compra de vidas con Accounting]]):
+Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máximo, Mercado valida antes del hold ([[S2-11 - Acuerdos de compra de vidas con Accounting]]). Accounting propuso estos puntos el 2026-10-03 y Mercado los aceptó al implementarlos; falta la ratificación de `LIFE_PURCHASE_REJECTED` por Tema 11 en `contratos-kafka`. La columna de Mercado está verificada contra `develop` (`74e671ef`).
 
 | Punto | Acuerdo | Cómo lo implementa Mercado |
 |---|---|---|
 | Vidas actuales | `GET /api/accounting/courses/{courseId}/accounts/{studentId}/equip-summary` por el Gateway con token de servicio; devuelve `currentLives` y `reservedLives` | `AccountingEquipSummaryClient` (`clients/impl/GatewayAccountingEquipSummaryClient.java`, activo con `MARKET_ACCOUNTING_CLIENT=gateway` y `ACCOUNTING_SERVICE_TOKEN`); por defecto `MockAccountingEquipSummaryClient` |
 | Máximo | PAR-12 de Backoffice; Accounting no lo expone | `market.lives.max-lives` (`MARKET_LIVES_MAX_LIVES`, por defecto 3) en `configs/LifeCapProperties.java` |
-| Cuántas puede comprar | `max(0, maxLives − currentLives)`, validación preventiva | `PurchaseValidationService.validateLifeCap`: si la oferta otorga más vidas, 422 `LIFE_CAP_REACHED` antes de crear la orden y el hold. Sin cuenta (404) no bloquea: el hold se rechaza con `ACCOUNT_NOT_FOUND`. Accounting caído: 503 |
-| Identificadores | `courseId` igual al del hold; `orderId` igual al de la orden y el hold, como máximo 36 caracteres | `LIFE_PURCHASE_CONFIRMED.orderId` = `orderRef` UUID (`OrderEntity.bankOrderId()`), validado por `dtos/events/ExternalOrderId.java` también en `HOLD_CREATE_REQUESTED` |
+| Cuántas puede comprar | `max(0, maxLives − currentLives)`, validación preventiva | `PurchaseValidationServiceImpl.validateLifeCap` calcula `max(0, maxLives − (currentLives + livesInFlight))`, donde `livesInFlight` son las vidas de las órdenes de vidas propias todavía en vuelo (`CREATED`, `HOLD_REQUESTED`, `HOLD_GRANTED`, `ITEM_PROVISION_REQUESTED`, `ITEM_PROVISIONED`; `OrderRepository.sumLivesInFlight`): dos compras seguidas se frenan aunque Accounting no haya acreditado la primera. `reservedLives` se lee pero no se usa. Si la oferta otorga más vidas, 422 `LIFE_CAP_REACHED` antes de crear la orden y el hold, con el texto de US-142 si no entra ninguna o con cuántas entran si entran algunas. Sin cuenta (404) no bloquea: el hold se rechaza con `ACCOUNT_NOT_FOUND`. Accounting caído: 503 |
+| Identificadores | `courseId` igual al del hold; `orderId` igual al de la orden y el hold, como máximo 36 caracteres | `LIFE_PURCHASE_CONFIRMED.orderId` = `orderRef` UUID (`OrderEntity.bankOrderId()`). `dtos/events/ExternalId.java` valida `orderId`, `studentId` y `courseId` (36 caracteres como máximo) en `HOLD_CREATE_REQUESTED` y en `LIFE_PURCHASE_CONFIRMED`; `PurchaseOrderServiceImpl` responde 400 si `studentId` o `courseId` se pasan |
 | Cantidad | Sin tope por orden; entero `>= 1` | `quantity` = `livesGranted` de la oferta |
 | Cuenta inexistente o inactiva | `LIFE_PURCHASE_REJECTED {orderId, studentId, courseId, quantity, reason, message}` en `accounting.events`, `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE`; sin crédito ni reintento | `AccountingLifePurchaseEventHandler`: deduplica por `eventId` y marca la orden `SETTLED_UNCREDITED` con alerta de auditoría y métrica `market_life_purchase_uncredited_total`. La devolución la pide un ADMIN desde BackOffice (`COIN_LEDGER_REVERSAL_REQUESTED`), solo con la cuenta activa |
 | Prevención | `LIFE_PURCHASE_CONFIRMED` solo después de `HOLD_CONFIRMED`, nunca tras `HOLD_RELEASED` o `HOLD_REJECTED` | Se publica en la misma transacción que pasa la orden a `CONFIRMED` al recibir `HOLD_CONFIRMED` |
@@ -150,7 +150,7 @@ Postura de Mercado (2026-10-01, no es una decisión): preferir **entregar el ít
 
 ## Estado actual en el código de Mercado
 
-El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`) lee primero el `eventType` y enruta: eventos de hold a `AccountingHoldEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, y el resto de los eventos del tópico compartido (por ejemplo `LIFE_CREDITED` o los comandos de Mercado) se ignoran en lugar de ir al DLT como malformados. Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y `OutboxInventoryItemProvisionClient.java`; listeners `AccountingHoldKafkaListener` e `InventoryItemKafkaListener`, solo con transporte `kafka`. Con `mock` responden `MockBankHoldClient` y `MockInventoryItemProvisionClient`. `BankHoldQueryClient` solo existe simulado. Los nombres de clase conservan "Bank" por historia ([[Estado actual del código]]).
+El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`, método `onMessage`) primero descarta por `producer` los mensajes que publicó el propio `market-service` (US-5193 T03, `a4e6ac76`): así se ignoran los comandos de Mercado en el tópico compartido. Después enruta por `eventType`: `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y el resto (por ejemplo `LIFE_CREDITED`) se ignora en lugar de ir al DLT como malformado. Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y `OutboxInventoryItemProvisionClient.java`; listeners `AccountingHoldKafkaListener` e `InventoryItemKafkaListener`, solo con transporte `kafka`. Con `mock` responden `MockBankHoldClient` y `MockInventoryItemProvisionClient`. `BankHoldQueryClient` solo existe simulado. Los nombres de clase conservan "Bank" por historia ([[Estado actual del código]]).
 
 ## Brechas del lado de accounting
 

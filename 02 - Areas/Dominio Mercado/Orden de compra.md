@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+actualizado: 2026-10-06
 tags: [mercado, dominio, orden, saga]
 ---
 # Orden de compra
@@ -57,7 +57,7 @@ stateDiagram-v2
 - Si Accounting rechaza la confirmación con `INVALID_HOLD_STATE`, `reconcileHoldStatus` consulta el estado: `COMMITTED` confirma, `RELEASED` cancela con `HOLD_NOT_SETTLED` (hoy la consulta es simulada, el job está apagado y accounting no tiene la consulta). Esa cancelación además no libera el stock (gap 19 de [[Estado actual del código]], sin verificar).
 - El `id` interno de la orden es numérico; hacia Accounting viaja el `orderRef` UUID (`OrderEntity.bankOrderId()`), que es el mismo `orderId` en `HOLD_CREATE_REQUESTED` y en `LIFE_PURCHASE_CONFIRMED`, con como máximo 36 caracteres ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]).
 - El estudiante solo ve sus propias órdenes; las ajenas responden 404.
-- Rechazos posibles (`OrderRejectionReason`): `INSUFFICIENT_FUNDS` (viaja como `INSUFFICIENT_BALANCE`; cualquier otro motivo de accounting cae igualmente en `REJECTED_INSUFFICIENT_FUNDS`, ver [[Estado actual del código]], gap 22), `PROVISION_FAILED`, y `LIFE_CAP_REACHED`. Desde la enmienda del 2026-10-04 Mercado valida el tope de vidas antes de vender: si la oferta otorga más vidas que `max(0, maxLives − currentLives)`, responde 422 `LIFE_CAP_REACHED` sin crear la orden ni el hold; si pasa, emite `LIFE_PURCHASE_CONFIRMED` tras `HOLD_CONFIRMED` y Accounting acredita hasta su tope ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]); y todos los motivos de rechazo de accounting deben mapearse ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
+- Rechazos posibles (`OrderRejectionReason`): `INSUFFICIENT_FUNDS` (viaja como `INSUFFICIENT_BALANCE`; cualquier otro motivo de accounting cae igualmente en `REJECTED_INSUFFICIENT_FUNDS`, ver [[Estado actual del código]], gap 22), `PROVISION_FAILED`, y `LIFE_CAP_REACHED`. Desde la enmienda del 2026-10-04 Mercado valida el tope de vidas antes de vender: si la oferta otorga más vidas que `max(0, maxLives − (currentLives + livesInFlight))` (`livesInFlight`: vidas de las órdenes de vidas propias todavía en vuelo), responde 422 `LIFE_CAP_REACHED` sin crear la orden ni el hold; si pasa, emite `LIFE_PURCHASE_CONFIRMED` tras `HOLD_CONFIRMED` y Accounting acredita hasta su tope ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]); y todos los motivos de rechazo de accounting deben mapearse ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 
 ## Dónde vive en el código
 `models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`), `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `OrderConfirmationServiceImpl.java`, `BankHoldReconciliationServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`, `InventoryItemEventHandler.java`.
