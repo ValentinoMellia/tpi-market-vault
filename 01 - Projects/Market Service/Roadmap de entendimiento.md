@@ -2,12 +2,12 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-03
 tags: [mercado, onboarding]
 ---
 # Roadmap de entendimiento
 
-> Camino de lectura ordenado para quien se suma al equipo. Seis etapas; al final de cada una deberías poder responder lo que se indica.
+> Camino de lectura ordenado para quien se suma al equipo. Siete etapas, de la 0 a la 6; al final de cada una deberías poder responder lo que se indica.
 
 ## Etapa 0. Cómo funciona este vault
 
