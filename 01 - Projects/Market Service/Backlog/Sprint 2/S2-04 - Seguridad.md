@@ -1,7 +1,7 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
+verificado_contra: codigo@011fe7d6
 actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2]
 sprint: 2
@@ -146,7 +146,7 @@ Lo que dejó la T03 (PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06
 - **Sin usuario por defecto en producción.** El PR dejó en 0 `git grep usr-student-001 -- src/main`: el último uso era el ejemplo de Swagger de `createOrder`, que pasó a `usr-student-002`. Un sembrador de datos de demo local que usa ese alumno no está versionado. Después, el PR #99 (saldo del Banco simulado) agregó la cadena como `example` de Swagger en `dtos/dev/MockBankBalanceResponseDto.java`; es un ejemplo de un endpoint de desarrollo, no una identidad por defecto, así que el CA3 se sigue cumpliendo. Verificado contra `codigo@011fe7d6`.
 - **Swagger.** La cabecera deja de estar oculta y figura como obligatoria en los cinco endpoints, con las respuestas 400 y 401.
 - **Revisión del PR #93 (2026-10-05).** Lucio Wiesek encontró una regresión: con `X-User-Id` presente pero vacía, Spring entrega `""` y los dos GET de detalle (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) se salteaban el chequeo de matrícula, así que un servicio con `MS` recibía 200; antes el valor por defecto convertía `""` en `usr-student-001`. Se corrigió en el mismo PR: `validateStudentAccess` y `validateProfessorAccess` de `services/impl/StorefrontCatalogServiceImpl.java` deniegan un id nulo o vacío (403 `student-not-enrolled` y `professor-not-assigned`) en lugar de saltear el chequeo, igual que hizo la T02 en gestión. tommikimmel pidió además quitar la atribución de IA de la descripción del PR.
-- **Para la T04.** Si la vitrina debe atender a `MS` leyendo el principal (como hizo [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] con las rutas de estado) y no la cabecera. `CourseCatalogManageController` (listar, publicar, editar) y `CourseCatalogSummaryController` siguen con `X-User-Id` opcional, sin valor por defecto: con `null` el service deniega o devuelve una lista vacía, así que no se inventa una identidad. Matriz por rol y endpoint con y sin `X-User-Id`.
+- **Lo que pasó a la T05 (#6807).** La T04 quedó en solo pruebas (PR #120) y los cambios de comportamiento que había dejado la T03 pasaron a la T05: que los GET de detalle de la vitrina evalúen a un servicio con `MS` por el principal autenticado, como hace [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] en las rutas de estado, y que `X-User-Id` sea obligatorio en el resumen de catálogo y en el resumen de ventas. Hoy los dos la declaran `required = false` y sin valor por defecto (`controllers/CourseCatalogSummaryController.java:93`, `controllers/CourseSalesSummaryController.java:97`); con un id nulo o vacío, el resumen de catálogo devuelve una lista vacía (`services/impl/CourseCatalogSummaryServiceImpl.java:163`) y el de ventas deniega (`services/impl/CourseSalesSummaryServiceImpl.java:135`). `CourseCatalogManageController` (listar, publicar y editar, líneas 137, 269 y 336) también la declara opcional, y `validateProfessorAccess` deniega sin id (`services/impl/CourseCatalogManageServiceImpl.java:368`); la T05 no lo incluye. Verificado contra `codigo@74e671ef`.
 
 ## Tareas
 
