@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, decision, kafka, topicos, convenciones]
 ---
 # DEC-008 - Nombre de productor y tópicos de Mercado
@@ -34,6 +34,13 @@ Decidida por el líder del equipo de Mercado el 2026-10-01:
 - Los eventos de `inventory.items.*` desaparecen: el inventario es de Accounting ([[DEC-001 - Accounting es dueño del inventario]]).
 - Notificaciones publica su estándar en `HYPHEN-CASE`; hay que informarles de esta decisión para los eventos de Mercado ([[Integración con Notificaciones]]).
 - Resuelve la recomendación D7 del taller ([[Taller de decisiones]]).
+
+## Estado de implementación (2026-10-04)
+Nota de seguimiento, verificada contra `develop` en `349c8e2`; no cambia la decisión.
+
+- **Tópicos, hecho como valores por defecto** (PR #88, US-5193): `accounting-holds-commands` y `accounting-holds-events` valen `accounting.events`, `market-events` vale `market.events` y `order-events` toma por defecto el de `market-events` (`src/main/resources/application.properties:46-51`, `configs/MessagingProperties.java`). Las variables `MARKET_MESSAGING_TOPIC_*` siguen permitiendo cambiarlos y el compose las pasa (`.compose/docker-compose.yml`, `.compose/.env.example`). Los tópicos `inventory.items.*` siguen configurados.
+- **Verificación del tópico compartido, cerrada**: tras el PR #88 los comandos propios `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` iban a `accounting.events.DLT`. Desde `a4e6ac76` (US-5193 T03) el listener los descarta por `producer` antes de parsear ([[Eventos y Kafka]]).
+- **Productor, pendiente**: `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` siguen con `tema-09-mercado` (`services/impl/OrderConfirmationServiceImpl.java:67`); los comandos de hold y `LIFE_PURCHASE_CONFIRMED` ya usan `market-service`.
 
 ## Notas afectadas
 [[Eventos y Kafka]], [[Mapa de servicios]], [[Integración con Accounting]], [[Integración con Notificaciones]], [[Estado actual del código]], [[Integración con Backoffice]], [[Integración con Cursos]], [[Roadmap de trabajo]], [[Taller de decisiones]], [[Decisiones - Índice]].
