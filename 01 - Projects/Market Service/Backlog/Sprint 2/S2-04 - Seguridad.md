@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+verificado_contra: codigo@011fe7d6
+actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
@@ -116,13 +116,13 @@ Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo
 
 ## Estado en Taiga
 
-Al 2026-10-04:
+Al 2026-10-06:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5215 T01 - Parsear los roles sin contains | Closed | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
 | #5216 T02 - Eliminar el bypass por cabecera de roles vacía | Closed | PR #92 de `tpi-market`, mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel), con las correcciones de la revisión de Patinio y tommikimmel |
-| #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
+| #5217 T03 - Quitar el usuario por defecto usr-student-001 | Closed | PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek), con la corrección de la revisión de Lucio Wiesek. Revisado también por tommikimmel |
 | #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
 
 Lo que dejó la T01 y la revisión del PR #86:
@@ -138,6 +138,15 @@ Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
 - **Q-021 adelantada.** Cerrar el bypass dejaba a ese servicio con 403 en la ruta del curso, así que se resolvió acá en vez de en la T04: [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Las dos rutas de estado leen el principal autenticado y `MS` es administrativo en ambas.
 - **Revisión del PR #92 (2026-10-04).** Se sumaron dos correcciones: el filtro descarta los ámbitos de servicio con forma de rol (`ROLE_ADMIN`) y `validateProfessorAccess` deniega cuando falta el id del usuario.
 - **Para la T03 y la T04.** Los GET de detalle de la vitrina (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) permiten `MS` pero evalúan al servicio como `usr-student-001` (la T03 quita ese valor por defecto; la T04 decide si pasan a leer el principal). `MS` en los roles lectores del resumen nunca coincide porque su `@PreAuthorize` no lo permite. ADMIN y GESTOR siguen pasando por el chequeo de asignación al listar, publicar y editar. Todo va a la matriz de la T04.
+
+Lo que dejó la T03 (PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)):
+
+- **Identidad ausente → 400 `missing-header`.** La tarea dejaba a confirmar entre 400 y 401. Se eligió 400 porque ya había precedente (`POST /courses/{courseId}/orders` exige `X-User-Id` con el mismo error de [[Errores de la API]]) y porque a un usuario sin `X-User-Id` ya le responde 401 el filtro, antes del controlador. `X-User-Id` pasa a ser obligatoria, sin valor por defecto, en `GET /courses/{courseId}/catalog`, `GET /courses/{courseId}/catalog/{itemId}`, `GET /offers/{id}`, `GET /orders` y `GET /orders/{orderId}`.
+- **Quién lo nota.** Un usuario sin `X-User-Id` ya recibía 401 y lo sigue recibiendo (escenario BDD 3). El único que alcanzaba el valor por defecto era un servicio con `MS` en los tres GET de la vitrina: se lo evaluaba como el alumno `usr-student-001` y el catálogo respondía 200 con la vista de ese alumno (reproducido por HTTP antes del arreglo). Con el PR recibe 400.
+- **Sin usuario por defecto en producción.** El PR dejó en 0 `git grep usr-student-001 -- src/main`: el último uso era el ejemplo de Swagger de `createOrder`, que pasó a `usr-student-002`. Un sembrador de datos de demo local que usa ese alumno no está versionado. Después, el PR #99 (saldo del Banco simulado) agregó la cadena como `example` de Swagger en `dtos/dev/MockBankBalanceResponseDto.java`; es un ejemplo de un endpoint de desarrollo, no una identidad por defecto, así que el CA3 se sigue cumpliendo. Verificado contra `codigo@011fe7d6`.
+- **Swagger.** La cabecera deja de estar oculta y figura como obligatoria en los cinco endpoints, con las respuestas 400 y 401.
+- **Revisión del PR #93 (2026-10-05).** Lucio Wiesek encontró una regresión: con `X-User-Id` presente pero vacía, Spring entrega `""` y los dos GET de detalle (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) se salteaban el chequeo de matrícula, así que un servicio con `MS` recibía 200; antes el valor por defecto convertía `""` en `usr-student-001`. Se corrigió en el mismo PR: `validateStudentAccess` y `validateProfessorAccess` de `services/impl/StorefrontCatalogServiceImpl.java` deniegan un id nulo o vacío (403 `student-not-enrolled` y `professor-not-assigned`) en lugar de saltear el chequeo, igual que hizo la T02 en gestión. tommikimmel pidió además quitar la atribución de IA de la descripción del PR.
+- **Lo que pasó a la T05 (#6807).** La T04 quedó en solo pruebas (PR #120) y los cambios de comportamiento que había dejado la T03 pasaron a la T05: que los GET de detalle de la vitrina evalúen a un servicio con `MS` por el principal autenticado, como hace [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] en las rutas de estado, y que `X-User-Id` sea obligatorio en el resumen de catálogo y en el resumen de ventas. Hoy los dos la declaran `required = false` y sin valor por defecto (`controllers/CourseCatalogSummaryController.java:93`, `controllers/CourseSalesSummaryController.java:97`); con un id nulo o vacío, el resumen de catálogo devuelve una lista vacía (`services/impl/CourseCatalogSummaryServiceImpl.java:163`) y el de ventas deniega (`services/impl/CourseSalesSummaryServiceImpl.java:135`). `CourseCatalogManageController` (listar, publicar y editar, líneas 137, 269 y 336) también la declara opcional, y `validateProfessorAccess` deniega sin id (`services/impl/CourseCatalogManageServiceImpl.java:368`); la T05 no lo incluye. Verificado contra `codigo@74e671ef`.
 
 ## Tareas
 
