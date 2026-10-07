@@ -1,0 +1,5 @@
+## [2026-10-04] decision | Segunda enmienda de DEC-007: acuerdos de compra de vidas con Accounting (US-6268)
+- Enmienda del 2026-10-04 en [[DEC-007 - Tope de vidas, Accounting decide y reporta]]: Mercado valida el tope de vidas antes del hold (`equip-summary` de Accounting y PAR-12), usa el mismo `orderId` UUID (máximo 36 caracteres) y `courseId` en el hold y en `LIFE_PURCHASE_CONFIRMED`, y ante `LIFE_PURCHASE_REJECTED` (`ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`) marca la orden `SETTLED_UNCREDITED`; la devolución la pide un ADMIN desde BackOffice (`COIN_LEDGER_REVERSAL_REQUESTED`).
+- Nueva historia [[S2-11 - Acuerdos de compra de vidas con Accounting]] (#6268, tareas #6269 a #6273) y fila en [[Sprint 2 - Índice]].
+- Actualizadas: [[Integración con Accounting]], [[Integración con Backoffice]], [[Orden de compra]], [[Tipos de item]], [[Q-002 - Vidas y tope de vidas]], [[Estado actual del código]], [[Market Service - Overview]], [[Roadmap de trabajo]], [[Épica 137 - Compra directa]] y [[Decisiones - Índice]].
+- Origen: PRs de `tpi-market` #94 (T01), #97 (T02), #95 (T03), #96 (T04) y #98 (T05).

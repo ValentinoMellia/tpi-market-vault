@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+verificado_contra: codigo@349c8e2
+actualizado: 2026-10-04
 tags: [mercado, convenciones, errores, api]
 ---
 # Errores de la API
@@ -11,7 +11,18 @@ tags: [mercado, convenciones, errores, api]
 
 ## Forma de la respuesta
 
-`ErrorApi` (`dtos/common/ErrorApi.java`): `type` (`https://tpi.utn.frc/errors/<slug>`), `title`, `status`, `detail`, `instance`, `requestId`, `timestamp`, los campos antiguos `error` y `message` por compatibilidad, y `errors[]` con `FieldErrorApi {field, message}`. Lo arma `controllers/GlobalExceptionHandler.java`. El `requestId` viene de `X-Request-Id` (`RequestLogFilter`, que también carga `traceId` y `spanId` desde `traceparent`).
+`ErrorApi` (`dtos/common/ErrorApi.java`): `type` (`https://tpi.utn.frc/errors/<slug>`), `title`, `status`, `detail`, `instance`, `requestId` (en el cable, `request_id`), `timestamp`, los campos antiguos `error` y `message` por compatibilidad, y `errors[]` con `FieldErrorApi {field, message}`. Lo arma `controllers/GlobalExceptionHandler.java`. El `requestId` viene de `X-Request-Id` (`RequestLogFilter`, que también carga `traceId` y `spanId` desde `traceparent`).
+
+## Formato de cable: `snake_case`
+
+Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y también los de entrada: `spring.jackson.property-naming-strategy=SNAKE_CASE` (`src/main/resources/application.properties:17`; el archivo de pruebas lo repite porque tapa al principal). Lo introdujo el PR #76 y el PR #91 lo extendió a los errores: antes `ErrorApi` estaba fijado en `camelCase` y ahora el identificador de traza sale como `request_id`. Ejemplos: `order_id` y `sse_stream_url` en la respuesta de compra, `offer_id` e `idempotency_key` en su cuerpo, `total_elements` en la paginación. Lo que no cambia:
+
+- Los valores de `errors[].field` siguen siendo rutas Java en `camelCase` (por ejemplo `offerId`); solo `field` y `message` son claves de ese objeto.
+- Los nombres de los parámetros de consulta y de las cabeceras no se tocan (`courseIds`, `itemType`, `X-User-Id`).
+- Los payloads de Kafka y del outbox usan otro `ObjectMapper` y siguen en `camelCase` ([[Eventos y Kafka]]).
+- Las respuestas 401 y 403 que escribe `SecurityConfig` son un texto JSON fijo con claves de una sola palabra (`type`, `title`, `status`, `detail`, `instance`): no pasan por `ErrorApi` y no llevan `request_id` (`configs/SecurityConfig.java`).
+
+`RestWireFormatIntegrationTest` fija el comportamiento con el contexto real de la aplicación. El frontend convierte las claves de vuelta con un interceptor (según la descripción del PR #91, que se coordinó con un PR del frontend; no verificado aquí). Ver [[Estado actual del código]].
 
 ## Slugs
 

@@ -30,7 +30,7 @@ Pedido (`HOLD_CREATE_REQUESTED`), creado (`HOLD_CREATED`) o rechazado (`HOLD_REJ
 - Accounting fija el TTL: 300 s para `DIRECT_PURCHASE` (ignora `ttlSeconds`); en `AUCTION_BID` es obligatorio y mayor que 0.
 - Un hold por `orderId` para siempre (`UNIQUE(account_id, order_id)`); no hay liberación en lote ni captura parcial.
 - Accounting aún no ofrece consulta del estado de un hold de monedas: `GET /api/accounting/holds/{holdId}` está en implementación este sprint (D5) y el listener de comandos está apagado por defecto.
-- `orderId` debe ser UUID canónico; hoy Mercado envía el id numérico y accounting rechazaría el comando con `MALFORMED_COMMAND` ([[Integración con Accounting]]).
+- `orderId` debe ser UUID canónico, o accounting rechaza el comando con `MALFORMED_COMMAND`. Desde el PR #88 (`develop` en `349c8e2`) Mercado envía el `orderRef` UUID de la orden (`services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]], [[Integración con Accounting]]).
 - Mercado solo reconoce los rechazos `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; los demás motivos se reportan como saldo insuficiente ([[Estado actual del código]], gap 22). Decidido: mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 - Contrato adoptado: [[DEC-009 - Contrato de holds e ítems según Accounting]]; transporte solo por Kafka: [[DEC-003 - Holds solo por Kafka]]. Lo único en disputa de esta nota es el orden de la compra ([[Q-008 - Orden de la saga de compra]]).
 - Con holds, las monedas no se debitan hasta `HOLD_CONFIRM_REQUESTED`: antes de confirmar, devolver las monedas es liberar el hold.
