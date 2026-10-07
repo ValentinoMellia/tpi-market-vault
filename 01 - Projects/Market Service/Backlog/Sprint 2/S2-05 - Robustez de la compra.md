@@ -134,7 +134,9 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 - Si el PR #113 ya está mergeado, la prueba verifica también que `unitsSold` no sube
 - Hecho cuando: la prueba fija el comportamiento y el gap 19 queda cerrado
 
-Estimación: 5 h
+Estimación: 2 h (antes 5 h)
+
+**Avance (2026-10-07):** PR #123 de `tpi-market`, en revisión; #5220 en *Ready for test*. Agrega `OrderConfirmationHoldNotSettledStockIntegrationTest`: una oferta con 10 unidades reserva una de verdad (queda en 9), Accounting responde `RELEASED` y, tras cancelar por `HOLD_NOT_SETTLED`, `availableStock` sigue en 9 y `unitsSold` en 0, releídos de la base. Corre con `releaseReason` `ITEM_PROVISION_FAILED` y `TTL_EXPIRED`. Como el PR #113 sigue abierto y en `develop` nada incrementa `unitsSold`, esa aserción hoy pasa sola; cuando entre el #113 pasa a ser un control real. Sin cambios en el código de producción; la spec `order-confirmation` suma el escenario con los valores.
 
 ### T02 - Guardar el vencimiento del hold en UTC
 
