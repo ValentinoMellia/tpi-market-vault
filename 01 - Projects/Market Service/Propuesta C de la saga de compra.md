@@ -7,12 +7,22 @@ tags: [mercado, saga, accounting, propuesta]
 ---
 # Propuesta C de la saga de compra
 
-> Propuesta para cerrar [[Q-008 - Orden de la saga de compra]]: retener las monedas, acreditar el ítem y recién después confirmar el débito. Nunca se cobra sin entregar y se usan los mensajes que Accounting ya tiene; a Accounting solo se le piden eventos nuevos. Es un borrador para presentar al equipo, no una decisión.
+> Propuesta para cerrar [[Q-008 - Orden de la saga de compra]]: retener las monedas, acreditar el ítem y recién después confirmar el débito; si la orden no se confirma dentro de un plazo, Mercado deshace todo (ítem, monedas y stock). Nunca se cobra sin entregar y a Accounting solo se le piden dos eventos nuevos. Es un borrador para presentar al equipo, no una decisión.
 
 ## Contexto
 La compra directa necesita coordinar dos pasos en Accounting: confirmar el débito del [[Hold de monedas]] y acreditar el ítem en el inventario. Hay tres órdenes posibles (A, B y C, ver [[Q-008 - Orden de la saga de compra]]). Esta nota desarrolla el orden C, recomendado por el [[Taller de decisiones]] (D2 y D9), como insumo de [[S2-09b - SPIKE Orden de la compra con Accounting]].
 
+La propuesta tiene dos partes independientes:
+
+| Parte | Pregunta que responde | Qué propone |
+|---|---|---|
+| **Orden** | ¿Qué va primero, acreditar o cobrar? | Acreditar el ítem y después confirmar el débito (C) |
+| **Compensación** | ¿Cómo se deshace cuando algo falla? | Rollback completo por plazo: revocar el ítem, liberar las monedas y liberar el stock |
+
 **Alcance:** compra directa de ítems. La compra de vidas no cambia: sigue con `HOLD_CONFIRMED` y luego `LIFE_PURCHASE_CONFIRMED` ([[S2-11 - Acuerdos de compra de vidas con Accounting]]).
+
+## Estado actual de la saga
+La saga ya existe en Mercado: máquina de estados de la [[Orden de compra]], envío con [[Patrón Outbox]], deduplicación de respuestas y compensaciones para hold rechazado, hold vencido y fallo al proveer el ítem. Corre completa con el transporte `mock`. Contra Accounting real no cierra: usa el orden A con `ITEM_PROVISION_*`, mensajes que Accounting no conoce, y faltan compensaciones (reconciliación apagada, órdenes trabadas en `CREATED`, sin revocación de ítems; ver [[Estado actual del código]]). Esta propuesta define cómo terminarla, no cómo empezarla.
 
 ## Flujo feliz
 
@@ -31,6 +41,40 @@ sequenceDiagram
 
 Todos los mensajes viajan por Kafka ([[DEC-003 - Holds solo por Kafka]]) y Mercado los publica con [[Patrón Outbox]].
 
+## Rollback completo por plazo
+Mercado fija un plazo interno para que la orden llegue a `CONFIRMED` (por ejemplo, 120 s desde `ITEM_CONFIRMED`, por debajo de los 300 s del TTL). Si el plazo vence sin confirmación completa, Mercado deshace la compra en los tres lugares donde dejó efectos:
+
+| Qué se deshace | Dónde vive | Cómo |
+|---|---|---|
+| Ítem acreditado | Inventario del estudiante, en Accounting | `ITEM_REVOKE_REQUESTED` por `orderId` |
+| Monedas retenidas | Hold, en Accounting | `HOLD_RELEASE_REQUESTED` (o el vencimiento del TTL) |
+| Stock de la oferta | Mercado (`stockReservationId`) | Mercado lo libera |
+
+La orden pasa a `CANCELLED` y cualquier `ITEM_CREDITED` o `HOLD_CONFIRMED` que llegue después se ignora, porque la orden ya está en un estado terminal.
+
+```mermaid
+sequenceDiagram
+    participant M as Mercado
+    participant A as Accounting
+    M->>A: ITEM_CONFIRMED (orderId)
+    Note over M: Vence el plazo sin confirmación completa
+    M->>A: ITEM_REVOKE_REQUESTED (orderId)
+    M->>A: HOLD_RELEASE_REQUESTED (holdId)
+    Note over M: Libera el stock, orden CANCELLED
+    A-->>M: ITEM_REVOKED (o "nada que revocar")
+    A-->>M: HOLD_RELEASED
+```
+
+**Por qué el plazo lo maneja Mercado y no el TTL.** El TTL solo deshace las monedas: si el ítem ya se acreditó, el estudiante se queda con él gratis. Además, Accounting discute en su documento si el planificador de `HOLD_EXPIRED` existe. Con un plazo propio, Mercado no depende de ese planificador y deshace también el ítem.
+
+**Condiciones para que sea seguro:**
+
+1. **Revocación idempotente.** Revocar una orden sin ítem acreditado responde "nada que revocar", no un error.
+2. **Bloqueo de acreditaciones tardías.** Si `ITEM_CONFIRMED` quedó demorado en Kafka y Accounting lo procesa después de la revocación, no debe acreditar. Dos formas: Accounting recuerda las `orderId` revocadas, o solo acredita si el hold de esa orden sigue `ACTIVE` (la más robusta, porque Accounting es dueño de los dos).
+3. **Ítem ya usado.** Si dentro de la ventana el estudiante equipó o consumió el ítem (`EQUIPPED`, `RESERVED`, `CONSUMED`), se revoca solo si está `AVAILABLE`; en otro caso se acepta la pérdida y queda marcado para revisión de un ADMIN.
+
+Esta compensación no es exclusiva de C: sirve para cualquier orden que entregue antes de cobrar, incluido A.
+
 ## Fallos y compensaciones
 
 | # | Qué falla | Momento | Qué hace Mercado | ¿Existe hoy? |
@@ -38,54 +82,49 @@ Todos los mensajes viajan por Kafka ([[DEC-003 - Holds solo por Kafka]]) y Merca
 | 1 | `HOLD_REJECTED` | Antes de entregar | `REJECTED_INSUFFICIENT_FUNDS` y libera el stock | Sí |
 | 2 | `HOLD_EXPIRED` antes de entregar | Antes de entregar | `EXPIRED` y libera el stock | Sí |
 | 3 | Accounting no puede acreditar el ítem | Antes de cobrar | `CANCELLED`, `HOLD_RELEASE_REQUESTED` y libera el stock | No: hace falta `ITEM_CREDIT_FAILED` (hoy el fallo va a DLT sin evento) |
-| 4 | `ITEM_CREDITED` no llega | Incierto | Consulta a Accounting y decide (ver abajo) | No: hace falta consultar el ítem por `orderId` |
-| 5 | `HOLD_CONFIRM_REQUESTED` falla o el hold vence después de acreditar | Entregado sin cobrar | Pide revocar el ítem | No: hace falta `ITEM_REVOKE_REQUESTED` |
-
-El caso 5 es el riesgo residual de esta opción y se presenta como tal.
+| 4 | `ITEM_CREDITED` no llega | Incierto | Rollback completo por plazo | No: hace falta `ITEM_REVOKE_REQUESTED` |
+| 5 | `HOLD_CONFIRM_REQUESTED` falla o el hold vence después de acreditar | Entregado sin cobrar | Rollback completo por plazo | No: hace falta `ITEM_REVOKE_REQUESTED` |
 
 ### Caso 4 en detalle: la respuesta que no llega
-Mercado envió `ITEM_CONFIRMED` y espera `ITEM_CREDITED`, pero no llega. El problema es que el mismo síntoma ("no llegó nada") corresponde a dos situaciones opuestas en Accounting:
+Mercado envió `ITEM_CONFIRMED` y espera `ITEM_CREDITED`, pero no llega. El mismo síntoma ("no llegó nada") corresponde a dos situaciones opuestas en Accounting:
 
-| Qué pasó en Accounting | ¿El estudiante tiene el ítem? | Qué corresponde hacer |
+| Qué pasó en Accounting | ¿El estudiante tiene el ítem? |
+|---|---|
+| a) Acreditó, pero la respuesta se perdió o se demoró | Sí |
+| b) No acreditó (falló o terminó en DLT) | No |
+
+Mercado no puede distinguirlas, y cualquier decisión basada en adivinar falla en uno de los dos casos:
+
+- **Esperar al TTL:** devuelve las monedas en los dos casos. En a, el estudiante se queda con el ítem gratis.
+- **Confirmar el débito:** en b, cobra sin entregar, justo lo que la propuesta quiere evitar.
+
+El rollback completo por plazo **no necesita saber cuál de las dos pasó**: deshace todo y el resultado es correcto en ambas.
+
+| Qué pasó | Efecto de la revocación | Resultado |
 |---|---|---|
-| a) Acreditó, pero la respuesta se perdió o se demoró | Sí | Cobrar: `HOLD_CONFIRM_REQUESTED` |
-| b) No acreditó (falló o terminó en DLT) | No | Devolver las monedas: `HOLD_RELEASE_REQUESTED` |
+| a) Acreditó | Quita el ítem | Sin ítem y sin cobro |
+| b) No acreditó | Nada que revocar | Sin ítem y sin cobro |
 
-Si Mercado adivina, puede equivocarse en cualquiera de los dos sentidos:
+El estudiante ve la compra cancelada y puede volver a intentarla con una orden nueva. Si Accounting publica `ITEM_CREDIT_FAILED` (caso 3), la situación b deja de ser silenciosa y el caso 4 queda reducido a mensajes realmente perdidos o demorados.
 
-- Supone b y era a: libera las monedas y el estudiante se queda con el ítem gratis.
-- Supone a y era b: cobra sin entregar, justo lo que la propuesta quiere evitar.
-
-Además, el tiempo corre: si Mercado espera sin límite, el hold vence solo (300 s) y, si era a, se termina en el caso 5.
-
-**Solución: preguntar en lugar de adivinar.**
-
-1. Mercado fija un plazo interno para recibir `ITEM_CREDITED` (por ejemplo, 120 s desde `ITEM_CONFIRMED`).
-2. Si vence el plazo, consulta a Accounting si existe un ítem acreditado para esa `orderId`.
-3. Si existe, cobra (`HOLD_CONFIRM_REQUESTED`). Si no existe, libera el hold y el stock.
-
-Hoy esa consulta no es posible: las lecturas de ítems de Accounting son por estudiante (`GET /{studentId}/items`, solo ADMIN), y `GET /api/accounting/holds/{holdId}` informa el estado del hold, no si se entregó el ítem. Por eso se pide una consulta del ítem por `orderId`; `inventory_items` ya guarda `order_id` ([[Integración con Accounting]]).
-
-Si Accounting publica `ITEM_CREDIT_FAILED` (caso 3), la situación b deja de ser silenciosa y el caso 4 queda reducido a mensajes realmente perdidos o demorados. Por eso `ITEM_CREDIT_FAILED` es el pedido principal y la consulta por `orderId` es la red de seguridad.
+**Alternativa descartada en esta propuesta:** consultar a Accounting si existe un ítem acreditado para la `orderId` y decidir según la respuesta. Funciona, pero exige un endpoint nuevo y lógica de reconciliación; el rollback completo da el mismo resultado seguro con un pedido menos.
 
 ## Restricciones que condicionan la propuesta
-- **Un hold por orden para siempre.** Accounting impone `UNIQUE(account_id, order_id)`. Si el hold vence después de acreditar, no se puede crear otro para la misma orden: la compensación del caso 5 es revocar el ítem, no reintentar el cobro.
-- **Presupuesto de tiempo.** Acreditar y confirmar deben terminar dentro de los 300 s del TTL de `DIRECT_PURCHASE`. El plazo interno del caso 4 evita que el caso 5 se vuelva frecuente.
+- **Un hold por orden para siempre.** Accounting impone `UNIQUE(account_id, order_id)`. Si el hold vence después de acreditar, no se puede crear otro para la misma orden: la compensación es deshacer, no reintentar el cobro.
+- **Presupuesto de tiempo.** Acreditar y confirmar deben terminar dentro de los 300 s del TTL de `DIRECT_PURCHASE`. El plazo interno de Mercado tiene que quedar por debajo.
 
 ## Pedidos a Accounting
-1. **`ITEM_CREDIT_FAILED`** (`sourceReferenceId`, `reason`) en lugar del fallo silencioso a DLT. Sin este evento la propuesta no es segura.
-2. **`ITEM_REVOKE_REQUESTED`** por `orderId`, con respuestas `ITEM_REVOKED` e `ITEM_REVOKE_FAILED`. Hay que acordar qué pasa si el ítem ya está `EQUIPPED`, `RESERVED` o `CONSUMED`; se sugiere revocar solo si está `AVAILABLE` y, en otro caso, aceptar la pérdida y dejarla marcada para revisión de un ADMIN.
-3. **Consulta del ítem por `orderId`**, para resolver el caso 4.
-4. Deseable: `correlationId` en `ITEM_CREDITED`. Hoy se correlaciona por `sourceReferenceId`, que alcanza.
+1. **`ITEM_CREDIT_FAILED`** (`sourceReferenceId`, `reason`) en lugar del fallo silencioso a DLT.
+2. **`ITEM_REVOKE_REQUESTED`** por `orderId`, con respuestas `ITEM_REVOKED` e `ITEM_REVOKE_FAILED`, idempotente y que bloquee las acreditaciones tardías de esa orden.
+3. Deseable: `correlationId` en `ITEM_CREDITED`. Hoy se correlaciona por `sourceReferenceId`, que alcanza.
 
 ## Cambios en Mercado
 - Reordenar la saga: `ITEM_CONFIRMED` después de `HOLD_CREATED` y `HOLD_CONFIRM_REQUESTED` después de `ITEM_CREDITED`. Desaparecen `ITEM_PROVISION_*`.
 - `ITEM_CONFIRMED` debe llevar el `orderRef` UUID; hoy lleva el `id` numérico ([[Orden de compra]], [[Roadmap de trabajo]]).
 - Encender `market.events.item-confirmed.enabled`.
 - Mantener los nombres de los estados: `ITEM_PROVISION_REQUESTED` pasa a significar "esperando `ITEM_CREDITED`" e `ITEM_PROVISIONED`, "acreditado". En PostgreSQL el `CHECK` del enum de `status` no se amplía con `ddl-auto=update`, y un estado nuevo exige migración.
-- Caso 5: repetir el patrón de `SETTLED_UNCREDITED` ([[Orden de compra]]): la orden queda `CANCELLED` con `HOLD_NOT_SETTLED` y una marca (por ejemplo, `CREDITED_UNSETTLED`) mientras se pide la revocación.
-- Deduplicar `ITEM_CREDITED` por `sourceReferenceId`, porque no trae `correlationId` ([[Idempotencia]]).
-- Plazo interno y reconciliación del caso 4, junto con la reconciliación de holds pendiente de [[S2-OPC1 - Reconciliación de compras]].
+- Plazo interno de confirmación y rollback completo al vencer: `ITEM_REVOKE_REQUESTED`, `HOLD_RELEASE_REQUESTED`, liberar el stock y `CANCELLED`.
+- Ignorar `ITEM_CREDITED` y `HOLD_CONFIRMED` tardíos en órdenes terminadas, y deduplicar `ITEM_CREDITED` por `sourceReferenceId`, porque no trae `correlationId` ([[Idempotencia]]).
 
 ## Comparación con A y B
 
@@ -93,15 +132,16 @@ Si Accounting publica `ITEM_CREDIT_FAILED` (caso 3), la situación b deja de ser
 |---|---|---|---|
 | ¿Accounting conoce los mensajes? | No | Sí | Sí |
 | ¿Puede cobrar sin entregar? | No | Sí, sin aviso | No |
-| Riesgo residual | Entregar sin cobrar | Cobrar sin entregar | Entregar sin cobrar, solo si falla la confirmación |
-| Qué pide a Accounting | Mensajes nuevos y revocación | Reembolso (no existe) | Eventos nuevos, sin cambiar los existentes |
+| Riesgo residual | Entregar sin cobrar | Cobrar sin entregar | Ítem ya usado al revocar (raro: ventana de segundos) |
+| Qué pide a Accounting | Mensajes nuevos y revocación | Reembolso (no existe) | Dos eventos nuevos, sin cambiar los existentes |
 
-Argumento principal: con monedas de juego, entregar un ítem por error es menos grave que cobrarle a un estudiante sin entregarle nada, y C es la única opción que no obliga a Accounting a cambiar lo que ya hace.
+Argumento principal: C es la única opción que no cobra sin entregar y no obliga a Accounting a cambiar lo que ya hace; el rollback completo por plazo cierra el riesgo de entregar sin cobrar.
 
 ## Preguntas para la reunión con Accounting
-1. ¿Pueden publicar `ITEM_CREDIT_FAILED` este sprint?
-2. ¿Qué se hace con un ítem ya usado cuando corresponde revocarlo?
-3. ¿Qué plazo interno se acuerda para `ITEM_CREDITED`?
+1. ¿Pueden publicar `ITEM_CREDIT_FAILED` e `ITEM_REVOKE_REQUESTED` este sprint?
+2. ¿Cómo bloquean una acreditación tardía después de revocar: recordando la `orderId` o exigiendo el hold `ACTIVE`?
+3. ¿Qué se hace con un ítem ya usado cuando corresponde revocarlo?
+4. ¿Qué plazo interno se acuerda para confirmar la orden?
 
 ## Alternativa a tener presente
 Accounting es dueño del hold y del inventario ([[DEC-001 - Accounting es dueño del inventario]]), así que lo más robusto sería que acredite y cobre en una sola transacción local. Esa era la idea de `PURCHASE_SETTLEMENT_REQUESTED`, descartada porque ninguno de los dos lados la implementa ([[Ideas descartadas]]). Si Accounting no acepta la revocación, es el argumento para reabrirla.
