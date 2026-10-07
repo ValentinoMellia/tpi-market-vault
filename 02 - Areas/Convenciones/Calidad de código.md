@@ -26,4 +26,4 @@ El archivo `COMMANDS.md` lista los comandos: `javadoc`, `pmd`, `cpd`, `test`, `v
 Javadoc obligatorio, mensajes de error en español, identificadores en inglés. Estructura en [[Estado actual del código]]. Dónde corre en CI: [[Git workflow]].
 
 ## Relacionado
-[[Errores de la API]].
+[[Errores de la API]], [[Documentación OpenAPI]].
