@@ -42,13 +42,22 @@ sequenceDiagram
 Todos los mensajes viajan por Kafka ([[DEC-003 - Holds solo por Kafka]]) y Mercado los publica con [[Patrón Outbox]].
 
 ## Rollback completo por plazo
-Mercado fija un plazo interno para que la orden llegue a `CONFIRMED` (por ejemplo, 120 s desde `ITEM_CONFIRMED`, por debajo de los 300 s del TTL). Si el plazo vence sin confirmación completa, Mercado deshace la compra en los tres lugares donde dejó efectos:
+Mercado calcula un plazo a partir del vencimiento del hold que informa Accounting:
 
-| Qué se deshace | Dónde vive | Cómo |
-|---|---|---|
-| Ítem acreditado | Inventario del estudiante, en Accounting | `ITEM_REVOKE_REQUESTED` por `orderId` |
-| Monedas retenidas | Hold, en Accounting | `HOLD_RELEASE_REQUESTED` (o el vencimiento del TTL) |
-| Stock de la oferta | Mercado (`stockReservationId`) | Mercado lo libera |
+> plazo = `holdExpiresAt` − margen (por ejemplo, 60 s)
+
+Así el plazo se apoya en el mismo TTL y se ajusta solo si Accounting cambia los 300 s. Lo único que hay que acordar es el margen. Ese único momento cumple dos funciones:
+
+1. **Corte para confirmar.** Si `ITEM_CREDITED` llega antes del plazo, Mercado envía `HOLD_CONFIRM_REQUESTED`; si llega después, no confirma y deshace. Así cada confirmación sale con al menos el margen de tiempo para llegar antes de que venza el hold.
+2. **Disparador del rollback.** Si `ITEM_CREDITED` no llega nunca (caso 4), el plazo le indica a Mercado que deje de esperar, sin depender de que llegue `HOLD_EXPIRED`.
+
+Al vencer el plazo sin confirmación completa, Mercado deshace la compra en los tres lugares donde dejó efectos:
+
+| Qué se deshace     | Dónde vive                               | Cómo                                                |
+| ------------------ | ---------------------------------------- | --------------------------------------------------- |
+| Ítem acreditado    | Inventario del estudiante, en Accounting | `ITEM_REVOKE_REQUESTED` por `orderId`               |
+| Monedas retenidas  | Hold, en Accounting                      | `HOLD_RELEASE_REQUESTED` (o el vencimiento del TTL) |
+| Stock de la oferta | Mercado (`stockReservationId`)           | Mercado lo libera                                   |
 
 La orden pasa a `CANCELLED` y cualquier `ITEM_CREDITED` o `HOLD_CONFIRMED` que llegue después se ignora, porque la orden ya está en un estado terminal.
 
@@ -65,7 +74,16 @@ sequenceDiagram
     A-->>M: HOLD_RELEASED
 ```
 
-**Por qué el plazo lo maneja Mercado y no el TTL.** El TTL solo deshace las monedas: si el ítem ya se acreditó, el estudiante se queda con él gratis. Además, Accounting discute en su documento si el planificador de `HOLD_EXPIRED` existe. Con un plazo propio, Mercado no depende de ese planificador y deshace también el ítem.
+**Por qué no alcanza con esperar al TTL.** El vencimiento del hold solo deshace las monedas: si el ítem ya se acreditó, el estudiante se queda con él gratis. Además, apuntar justo al segundo 300 es apuntar a un borde que cada servicio ve en un momento distinto: el TTL lo cuenta Accounting con su reloj, Mercado se entera con la latencia de `HOLD_CREATED`, y hoy convierte `expiresAt` con la zona del sistema en lugar de UTC ([[S2-05 - Robustez de la compra]]). Por último, Accounting discute en su documento si el planificador de `HOLD_EXPIRED` existe.
+
+**El plazo previene; el rollback garantiza.** El margen no asegura que la confirmación llegue a tiempo: si Kafka o Accounting la demoran más que el margen, Accounting la rechaza porque el hold ya venció. Ese es el caso 5, y Mercado responde con el mismo rollback completo. El plazo hace que esa situación sea rara, y el rollback cubre la que igual ocurra. Sin plazo, cualquier Accounting algo lento haría que se revoquen ítems con frecuencia.
+
+| Pieza | Rol |
+|---|---|
+| Plazo (`holdExpiresAt` − margen) | Prevención: la confirmación tardía es rara |
+| Rollback completo | Garantía: si igual ocurre, se deshace todo |
+
+**Tradeoff del margen.** Muy chico: vuelve el riesgo de confirmar tarde. Muy grande: se cancelan compras que habrían salido bien con un Accounting algo lento.
 
 **Condiciones para que sea seguro:**
 
@@ -111,7 +129,7 @@ El estudiante ve la compra cancelada y puede volver a intentarla con una orden n
 
 ## Restricciones que condicionan la propuesta
 - **Un hold por orden para siempre.** Accounting impone `UNIQUE(account_id, order_id)`. Si el hold vence después de acreditar, no se puede crear otro para la misma orden: la compensación es deshacer, no reintentar el cobro.
-- **Presupuesto de tiempo.** Acreditar y confirmar deben terminar dentro de los 300 s del TTL de `DIRECT_PURCHASE`. El plazo interno de Mercado tiene que quedar por debajo.
+- **Presupuesto de tiempo.** Acreditar y confirmar deben terminar dentro de los 300 s del TTL de `DIRECT_PURCHASE`. Por eso el plazo de Mercado se define como `holdExpiresAt` menos un margen.
 
 ## Pedidos a Accounting
 1. **`ITEM_CREDIT_FAILED`** (`sourceReferenceId`, `reason`) en lugar del fallo silencioso a DLT.
@@ -123,7 +141,7 @@ El estudiante ve la compra cancelada y puede volver a intentarla con una orden n
 - `ITEM_CONFIRMED` debe llevar el `orderRef` UUID; hoy lleva el `id` numérico ([[Orden de compra]], [[Roadmap de trabajo]]).
 - Encender `market.events.item-confirmed.enabled`.
 - Mantener los nombres de los estados: `ITEM_PROVISION_REQUESTED` pasa a significar "esperando `ITEM_CREDITED`" e `ITEM_PROVISIONED`, "acreditado". En PostgreSQL el `CHECK` del enum de `status` no se amplía con `ddl-auto=update`, y un estado nuevo exige migración.
-- Plazo interno de confirmación y rollback completo al vencer: `ITEM_REVOKE_REQUESTED`, `HOLD_RELEASE_REQUESTED`, liberar el stock y `CANCELLED`.
+- Plazo de confirmación (`holdExpiresAt` − margen, con `holdExpiresAt` guardado en UTC) y rollback completo al vencer: `ITEM_REVOKE_REQUESTED`, `HOLD_RELEASE_REQUESTED`, liberar el stock y `CANCELLED`. El mismo rollback responde a un `HOLD_CONFIRM_REQUESTED` rechazado.
 - Ignorar `ITEM_CREDITED` y `HOLD_CONFIRMED` tardíos en órdenes terminadas, y deduplicar `ITEM_CREDITED` por `sourceReferenceId`, porque no trae `correlationId` ([[Idempotencia]]).
 
 ## Comparación con A y B
@@ -141,7 +159,7 @@ Argumento principal: C es la única opción que no cobra sin entregar y no oblig
 1. ¿Pueden publicar `ITEM_CREDIT_FAILED` e `ITEM_REVOKE_REQUESTED` este sprint?
 2. ¿Cómo bloquean una acreditación tardía después de revocar: recordando la `orderId` o exigiendo el hold `ACTIVE`?
 3. ¿Qué se hace con un ítem ya usado cuando corresponde revocarlo?
-4. ¿Qué plazo interno se acuerda para confirmar la orden?
+4. ¿Qué margen se acuerda antes del vencimiento del hold para dejar de confirmar?
 
 ## Alternativa a tener presente
 Accounting es dueño del hold y del inventario ([[DEC-001 - Accounting es dueño del inventario]]), así que lo más robusto sería que acredite y cobre en una sola transacción local. Esa era la idea de `PURCHASE_SETTLEMENT_REQUESTED`, descartada porque ninguno de los dos lados la implementa ([[Ideas descartadas]]). Si Accounting no acepta la revocación, es el argumento para reabrirla.
