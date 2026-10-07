@@ -1,0 +1,3 @@
+## [2026-10-05] estructura | Tareas de US-1051 y US-1052 reescritas en Taiga
+- Las 8 tareas (#1054 a #1061) venían del Sprint 1 y contradecían el contrato: estados `COMPLETED` y `FAILED` que no existen, eventos `OFFER_PUBLISHED`/`OFFER_ACTIVATED` y stock en el aviso. Se reescribieron sus descripciones en Taiga según [[Contrato de avisos de compra]] y [[DEC-018 - Aviso de ofertas nuevas]]; la #1054 también cambió de título ("Definir el contrato del aviso de compra confirmada y de compra fallida"). No se tocaron estados, asignaciones ni historias.
+- Decidido el 2026-10-05: el aviso de ofertas no informa stock. Se agregó a [[DEC-018 - Aviso de ofertas nuevas]] y a [[Contrato de avisos de compra]].
