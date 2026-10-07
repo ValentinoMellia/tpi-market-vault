@@ -1,0 +1,3 @@
+## [2026-10-06] lint | Codificación rota por el PR #20
+- El PR #20 (`a8be2bb`) dejó `main` con el lint en rojo. [[Git workflow]] tenía las líneas anteriores con los acentos codificados dos veces y un BOM, lo que rompía dos wikilinks; se decodificaron sin tocar la sección nueva "Protocolo de Trabajo Iterativo". [[Documentación OpenAPI]] se escribió desde PowerShell y los backticks se interpretaron como escapes (tab, NUL, tab vertical, salto de línea): se restauraron el código en línea y los bloques `java`, se quitó el BOM y se le agregó la sección "Relacionado".
+- La nota quedaba huérfana: ahora la enlaza [[Calidad de código]]. `node scripts/lint-vault.mjs` sin errores.

@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+verificado_contra: equipo-accounting@2026-10-02
+actualizado: 2026-10-02
 tags: [mercado, decision, vidas, accounting]
 ---
 # DEC-007 - Tope de vidas, Accounting decide y reporta
@@ -22,14 +22,21 @@ Decidida por el líder del equipo de Mercado el 2026-10-01:
 
 Esta decisión **reemplaza** la recomendación D1 del taller (Accounting rechaza con `LIFE_CAP_REACHED` y Mercado libera el hold) y la historia #142 (validar con 422 `MAX_LIVES_REACHED`) ([[Taller de decisiones]]).
 
+### Enmienda del 2026-10-02 (Cierre de la señal pendiente con Accounting)
+Se acordó formalmente con el equipo de Accounting (Tema 08, grupo G12) la señal que la decisión original dejaba pendiente:
+- Mercado publica `LIFE_PURCHASE_CONFIRMED` en el tópico `market.events` una vez confirmada la orden y debitadas las monedas en el hold (`COMMITTED`).
+- Accounting aplica su regla de tope de vidas (acreditando hasta el máximo permitido, o 0 si ya alcanzó el tope sin reintegro de monedas).
+- Accounting reporta las vidas efectivamente acreditadas emitiendo `LIFE_CREDITED` en `accounting.events`.
+- Esta enmienda formaliza y cierra el acuerdo que DEC-007 y [[Q-002 - Vidas y tope de vidas]] dejaban pendiente de definición inter-servicio.
+
 ## Alternativas descartadas
 - **Mercado valida antes del hold**: mejor experiencia, pero acopla Mercado al contador y requiere una consulta de vidas que Accounting no ofrece.
 - **Accounting rechaza (D1)**: no se adopta como obligación; si Accounting decide rechazar en el futuro, Mercado reaccionará igual al evento correspondiente.
 
 ## Consecuencias
-- Se elimina de las tareas pendientes "Mercado valida el tope antes del hold".
-- **Tarea de código**: Mercado debe manejar el resultado (evento y motivo) que Accounting publique para una compra de vida con tope alcanzado. Hoy existe `LIFE_CAP_REACHED` en `models/enums/OrderRejectionReason.java` sin uso, y `LIFE_PURCHASE_CONFIRMED` solo existe en una rama sin integrar de Accounting (`feature/lives-purchase-credit`).
-- **A acordar con Accounting**: la señal exacta (nombre del evento, motivo y cómo se refleja el hecho de que el estudiante no recibe todas las vidas pagadas). Hasta entonces, no implementar el manejo. Ver [[Integración con Accounting]].
+- **Enmienda de señal acordada el 2026-10-02**: Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` (contratos-kafka v5 con sobre canónico de 6 campos, 4 campos obligatorios en payload con `quantity >= 1`, particionado por `studentId` y deduplicación por `eventId`).
+- **Accounting procesa el tope e informa**: Accounting consume `LIFE_PURCHASE_CONFIRMED` y reporta con `LIFE_CREDITED` en `accounting.events`.
+- **Implementación**: Registrada en [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] y detallada en [[Integración con Accounting]].
 - Aprovechar el mapeo de todos los motivos de rechazo de [[DEC-009 - Contrato de holds e ítems según Accounting]].
 - La historia #142 cambia de enfoque ([[Épica 137 - Compra directa]]).
 

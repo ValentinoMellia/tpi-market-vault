@@ -33,3 +33,8 @@ Conventional commits (`feat:`, `fix:`, `docs:`...). Sin atribución a herramient
 
 ## Relacionado
 [[Calidad de código]], [[Estado actual del código]].
+
+## Protocolo de Trabajo Iterativo (Agentes de IA)
+
+- **Una iteración no es una orden:** Cuando se propone una solución, se pide explorar alternativas, o se pide un ajuste en el código de forma iterativa, el agente DEBE proponer la solución sin aplicarla ni realizar un commit.
+- **Prohibición de Commits no autorizados:** Queda absolutamente prohibido ejecutar git commit, git push o dar por cerrada una tarea de Spec-Driven Development (SDD) sin la confirmación explícita del usuario para realizar ese commit en particular.
