@@ -34,9 +34,13 @@ Productores: `market-service` en los comandos de hold y en `LIFE_PURCHASE_CONFIR
 
 ### Tópico compartido y filtro de eventos
 
-Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. `AccountingHoldEventHandler.handle` aplica una lista blanca (`CONSUMED_EVENT_TYPES`: `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`) y descarta el resto con un log de nivel `DEBUG`, sin correlación ni deduplicación (`listeners/AccountingHoldEventHandler.java:96`, `:167`).
+Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102) `onMessage` filtra **antes** de parsear el payload:
 
-El filtro corre **después** de `SagaEventParser.parse(message, HoldEventDto.class)` (`listeners/AccountingHoldKafkaListener.java:41`), y el `ObjectMapper` de `MappersConfig` no ignora propiedades desconocidas. Verificado con una prueba descartable sobre `349c8e2` (no incluida en el repositorio) usando los archivos de `src/test/resources/contracts/accounting/`: `HOLD_CREATE_REQUESTED` (campos `orderId`, `studentId`, `courseId`, `orderType`) y `HOLD_RELEASE_REQUESTED` (`releaseReason`) lanzan `MalformedEventException` porque `HoldEventDto` no declara esos campos, mientras que `HOLD_CONFIRM_REQUESTED` (`correlationId`, `holdId`) se parsea y luego lo descarta la lista blanca. Por lo tanto, en un tópico compartido real los comandos propios de creación y liberación llegarían a `accounting.events.DLT` en lugar de ignorarse. Las pruebas existentes no lo cubren: `AccountingHoldEventHandlerTest` llama al handler directo con un `HoldEventDto` ya armado. Pendiente de confirmar en un entorno con broker ([[Estado actual del código]], gap 23).
+1. Lee el `producer` del envelope con `SagaEventParser.producerOf` y descarta, con log `DEBUG`, los mensajes de `market-service` (los comandos propios).
+2. Lee el `eventType` con `SagaEventParser.eventTypeOf` y, si `AccountingHoldEventHandler.consumes(eventType)` es falso, descarta con log `DEBUG` el evento que Mercado no consume.
+3. Solo entonces parsea como `HoldEventDto` y llama al handler, que repite la lista blanca (`CONSUMED_EVENT_TYPES`: `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`) sin correlación ni deduplicación.
+
+Con esto los comandos propios `HOLD_CREATE_REQUESTED`, `HOLD_RELEASE_REQUESTED` y `HOLD_CONFIRM_REQUESTED` ya no lanzan `MalformedEventException` ni llegan a `accounting.events.DLT`. Verificado en `origin/develop` (`74e671ef`) y cubierto por `AccountingHoldKafkaListenerTest` y por `KafkaSagaIntegrationTest` (broker real con Testcontainers: ningún comando propio en el DLT). Antes de `a4e6ac76` el filtro corría después del parseo y esos comandos sí iban al DLT; ese era el gap 23 de [[Estado actual del código]], hoy cerrado.
 
 Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}`; `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
 
@@ -57,7 +61,7 @@ Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacci
 
 ## Consumo
 
-`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero filtra por tipo de evento en el handler (ver "Tópico compartido y filtro de eventos"). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
+`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero descarta los comandos propios y los eventos no consumidos antes de parsear (ver "Tópico compartido y filtro de eventos"). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
 
 ## Fallos
 

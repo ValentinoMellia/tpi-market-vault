@@ -39,7 +39,7 @@ Decidida por el líder del equipo de Mercado el 2026-10-01:
 Nota de seguimiento, verificada contra `develop` en `349c8e2`; no cambia la decisión.
 
 - **Tópicos, hecho como valores por defecto** (PR #88, US-5193): `accounting-holds-commands` y `accounting-holds-events` valen `accounting.events`, `market-events` vale `market.events` y `order-events` toma por defecto el de `market-events` (`src/main/resources/application.properties:46-51`, `configs/MessagingProperties.java`). Las variables `MARKET_MESSAGING_TOPIC_*` siguen permitiendo cambiarlos y el compose las pasa (`.compose/docker-compose.yml`, `.compose/.env.example`). Los tópicos `inventory.items.*` siguen configurados.
-- **Verificación del tópico compartido, abierta**: el handler descarta con una lista blanca los eventos que no consume, pero los comandos propios `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` no parsean como `HoldEventDto` y van a `accounting.events.DLT` ([[Eventos y Kafka]]).
+- **Verificación del tópico compartido, cerrada**: tras el PR #88 los comandos propios `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` iban a `accounting.events.DLT`. Desde `a4e6ac76` (US-5193 T03) el listener los descarta por `producer` antes de parsear ([[Eventos y Kafka]]).
 - **Productor, pendiente**: `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` siguen con `tema-09-mercado` (`services/impl/OrderConfirmationServiceImpl.java:67`); los comandos de hold y `LIFE_PURCHASE_CONFIRMED` ya usan `market-service`.
 
 ## Notas afectadas
