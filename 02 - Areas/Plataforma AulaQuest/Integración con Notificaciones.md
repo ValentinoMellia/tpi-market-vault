@@ -15,7 +15,7 @@ Tema 11, repositorio `tpi-notifications`. Mantiene el contrato de Kafka de la pl
 ## Cómo nos comunicamos
 | Dirección | Mecanismo | Mensaje / endpoint | Para qué |
 |---|---|---|---|
-| Mercado a Notificaciones | Kafka `market.events` | `PURCHASE_CONFIRMED` y `PURCHASE_FAILED` ([[Contrato de avisos de compra]]) | Avisar el resultado de la compra |
+| Mercado a Notificaciones | Kafka `market.events` (el código publica ahí por defecto desde el PR #88) | `PURCHASE_CONFIRMED` y `PURCHASE_FAILED` ([[Contrato de avisos de compra]]) | Avisar el resultado de la compra |
 | Mercado a Notificaciones | Kafka `market.events` | `CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED` ([[DEC-018 - Aviso de ofertas nuevas]]) | Avisar una oferta nueva o reactivada a los alumnos del curso |
 | Mercado a Notificaciones (Fase 3) | Kafka | eventos de subasta | Ver [[Subasta]] |
 

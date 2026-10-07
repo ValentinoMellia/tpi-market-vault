@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+verificado_contra: codigo@349c8e2
+actualizado: 2026-10-04
 tags: [mercado, dominio, orden, saga]
 ---
 # Orden de compra
@@ -15,6 +15,7 @@ Una compra en curso o terminada: quién compró, qué oferta, a qué precio y c�
 ## Datos principales
 | Campo | Significado |
 |---|---|
+| `orderRef` | UUID canónico de la orden (columna `order_ref`, restricción única `uk_orders_order_ref`, `updatable = false`). Lo asigna `PurchaseOrderServiceImpl` al crearla; si falta, `@PrePersist` y `requestHold` lo generan. Es el `orderId` que Mercado envía a Accounting; el `id` numérico sigue siendo el que ve el cliente HTTP |
 | `courseId`, `studentId`, `offerId` | Contexto de la compra |
 | `itemType` | Tipo de ítem copiado de la oferta al crear la orden; evita leer la oferta al confirmar. Nulo en órdenes anteriores al PR #82 (ver [[Estado actual del código]]) |
 | `appliedPrice` | Precio congelado al comprar |
@@ -54,12 +55,12 @@ stateDiagram-v2
 - Ante fallo de provisión: `CANCELLED`, se libera stock y se pide `HOLD_RELEASE_REQUESTED`. Un fallo que accounting nunca informa (va a DLT sin evento) dejaría la orden esperando.
 - Ante hold vencido: `EXPIRED` y se libera stock. Accounting fija el TTL en 300 s para compras directas.
 - Si Accounting rechaza la confirmación con `INVALID_HOLD_STATE`, `reconcileHoldStatus` consulta el estado: `COMMITTED` confirma, `RELEASED` cancela con `HOLD_NOT_SETTLED` (hoy la consulta es simulada, el job está apagado y accounting no tiene la consulta). Esa cancelación además no libera el stock (gap 19 de [[Estado actual del código]], sin verificar).
-- El `orderId` del código es numérico; accounting exige UUID canónico y un hold por `orderId` para siempre. Decidido: Mercado genera y persiste un `orderRef` UUID y lo usa como `orderId` ([[DEC-009 - Contrato de holds e ítems según Accounting]]); pendiente en el código ([[Roadmap de trabajo]]).
+- Accounting exige un `orderId` UUID canónico y un hold por `orderId` para siempre. Decidido: Mercado genera y persiste un `orderRef` UUID y lo usa como `orderId` ([[DEC-009 - Contrato de holds e ítems según Accounting]]). Implementado en `develop` (PR #88, US-5193): `OrderEntity.bankOrderId()` devuelve el `orderRef` como texto (y, solo en una fila sin `orderRef`, el `id` numérico), `OrderHoldServiceImpl.requestHold` lo envía en `HOLD_CREATE_REQUESTED` y `OrderConfirmationServiceImpl.reconcileHoldStatus` lo compara con el `orderId` que devuelve la consulta del hold (si no coincide, registra el error y no reconcilia). `orderRef` **no** viaja en los eventos de la orden: `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` llevan el `id` numérico (`dtos/events/*PayloadDto.java`), y `OrderRepository.findByOrderRef` existe pero nada lo usa todavía. Ver [[Integración con Accounting]].
 - El estudiante solo ve sus propias órdenes; las ajenas responden 404.
 - Rechazos posibles (`OrderRejectionReason`): `INSUFFICIENT_FUNDS` (viaja como `INSUFFICIENT_BALANCE`; cualquier otro motivo de accounting cae igualmente en `REJECTED_INSUFFICIENT_FUNDS`, ver [[Estado actual del código]], gap 22), `PROVISION_FAILED`, y `LIFE_CAP_REACHED` (sin usar). Mercado no valida el tope de vidas antes de vender: emite `LIFE_PURCHASE_CONFIRMED` y Accounting acredita hasta su tope o reporta con `LIFE_CREDITED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]); y todos los motivos de rechazo de accounting deben mapearse ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 
 ## Dónde vive en el código
-`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`), `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `OrderConfirmationServiceImpl.java`, `BankHoldReconciliationServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`, `InventoryItemEventHandler.java`.
+`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`, `bankOrderId`), `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `OrderConfirmationServiceImpl.java`, `BankHoldReconciliationServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`, `InventoryItemEventHandler.java`.
 
 ## Relacionado
 [[Épica 137 - Compra directa]], [[Eventos y Kafka]], [[SSE]], [[Integración con Accounting]].
