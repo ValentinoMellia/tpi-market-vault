@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@6b94ef42
-actualizado: 2026-10-06
+verificado_contra: codigo@44292e6c
+actualizado: 2026-10-08
 tags: [mercado, convenciones, openapi, swagger, documentacion]
 ---
 # Documentación OpenAPI (Swagger)
@@ -14,23 +14,43 @@ tags: [mercado, convenciones, openapi, swagger, documentacion]
 Todos los DTOs expuestos en la API deben tener la anotación `@Schema` con descripciones explícitas y la propiedad `example` completada con datos de negocio realistas.
 **Motivo:** Evitar que Swagger renderice valores primitivos por defecto (como `"string"`, `0` o `true`).
 
-Ejemplo correcto:
+Ejemplo correcto (`dtos/storefront/OfferConfigurationDto.java`):
 ```java
-@Schema(description = "Resumen legible del efecto", example = "Multiplica XP x2.0 (Por 24hs)")
+@Schema(example = "Multiplica XP x2.0 (Por 2 horas)")
+@JsonProperty("effect_summary")
 private String effectSummary;
 ```
 
+El `example` es solo el valor. El nombre de la propiedad en el cable lo da el `@JsonProperty` en `snake_case`, como en el resto de los DTOs ([[Errores de la API]] explica el formato de cable).
+
 ## 2. Endpoints Dinámicos (Map/Object)
 
-Los endpoints que devuelvan estructuras dinámicas (`Map<String, Object>`), como los endpoints de diagnóstico (`/ping`, `/whoami`, etc.), deben decorar el método con un `@Operation` y un `@ApiResponse` que contenga un `@ExampleObject` en crudo (`value = "{...}"`) para mostrar el formato esperado.
+Los endpoints que devuelvan estructuras dinámicas (`Map<String, Object>`), como los endpoints de diagnóstico (`/ping`, `/whoami`, etc.), deben decorar el método con un `@Operation` y un `@ApiResponse` que contenga un `@ExampleObject` en crudo (`value = "{...}"`) para mostrar el formato esperado (`controllers/GatewayDiagnosticsController.java`).
+
+En ese JSON escrito a mano, las claves van en `snake_case`, igual que en las respuestas reales: nada lo convierte solo.
 
 ## 3. Ejemplos de Errores Específicos
 
-Las respuestas de error HTTP (400, 404, 422, etc.) deben apuntar a componentes declarados estáticamente en `SpringDocConfig.java`.
-En los controladores, la referencia debe usar la ruta estricta e incluir el atributo `name`:
+Las respuestas de error HTTP deben apuntar a los ejemplos registrados como componentes en `configs/SpringDocConfig.java`. Los nombres y las referencias están en `configs/OpenApiExamples.java`: los controladores usan esas constantes, nunca el texto escrito a mano, para que un error de tipeo no deje un ejemplo roto.
+
 ```java
-@ExampleObject(name = "UnprocessableEntity422Example", ref = "#/components/examples/UnprocessableEntity422Example")
+@ExampleObject(name = OpenApiExamples.FORBIDDEN_403, ref = OpenApiExamples.FORBIDDEN_403_REF)
 ```
+
+Ejemplos registrados hoy:
+
+| Estado | Constante | Componente |
+|---|---|---|
+| 400 | `BAD_REQUEST_400` | `BadRequest400Example` |
+| 401 | `UNAUTHORIZED_401` | `Unauthorized401Example` |
+| 403 | `FORBIDDEN_403` | `Forbidden403Example` |
+| 404 | `NOT_FOUND_404` | `NotFound404Example` |
+| 409 | `CONFLICT_409` | `Conflict409Example` |
+| 422 | `UNPROCESSABLE_ENTITY_422` | `UnprocessableEntity422Example` |
+| 500 | `INTERNAL_ERROR_500` | `InternalError500Example` |
+| 503 | `SERVICE_UNAVAILABLE_503` | `ServiceUnavailable503Example` |
+
+Cada constante tiene su par `..._REF` (`#/components/examples/<Componente>`). Para un ejemplo nuevo: agregar el nombre y su referencia en `OpenApiExamples` y registrarlo con `addExamples` en `SpringDocConfig`.
 
 ## 4. Mantenimiento y Evolución
 
