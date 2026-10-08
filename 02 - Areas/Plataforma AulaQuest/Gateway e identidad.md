@@ -66,11 +66,14 @@ Las dos capas no leen igual la identidad: la primera usa las autoridades del fil
 
 **Desde el PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel)), las dos rutas de estado de oferta leen el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas; ningún chequeo de rol se saltea con la cabecera vacía, y el filtro descarta los ámbitos de servicio con forma de rol. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
 
+**Desde el PR #120 de `tpi-market`** (T04 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`5938bd84`)), una prueba de aceptación recorre las dos capas para cada endpoint de negocio y cada tipo de llamador (`src/test/java/ar/edu/utn/frc/tup/p4/acceptance/RoleEndpointMatrixAcceptanceTest.java`) y falla si alguna vuelve a comparar roles por subcadena.
+
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
 - Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. El chequeo de profesor que se omitía con cabecera vacía lo cerró el PR #92 (T02); el usuario por defecto `usr-student-001` lo quitó el PR #93 (T03 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)): sin `X-User-Id`, las lecturas responden 400 `missing-header`, con la cabecera vacía los detalles de la vitrina responden 403, y un usuario sigue recibiendo 401 del filtro ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
 - Hasta el PR #92, un servicio cuyo `X-Service-Scopes` trajera un valor con forma de rol (`ROLE_ADMIN`) recibía esa autoridad tal cual; desde ese PR el filtro descarta esos ámbitos ([[DEC-017 - Servicios con MS en las rutas de estado de oferta]]).
+- Un usuario con `X-User-Roles: MS` recibe `ROLE_MS`, porque el filtro acepta `MS` también en los roles de usuario: pasa todas las rutas que admiten `MS` y es administrativo en las rutas de estado de oferta. Lo fija la matriz del PR #120 y lo corrige la T05 (#6807) de [[S2-04 - Seguridad]]. Qué es `GESTOR` está en [[Q-024 - Qué es el rol GESTOR]].
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
 
