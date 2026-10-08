@@ -46,7 +46,7 @@ Seguimiento: el merge del PR de Cursos (necesario para probar contra el ambiente
 ## Estado actual en el código
 Verificado en `develop@fb5f82d9` de `tpi-market`:
 
-- **Asignación de profesor:** `clients/impl/MockCourseInstructorClient.java` es `@Primary` sin condición; siempre `true` salvo el centinela `prof-unassigned`. No hay cliente real.
+- **Asignación de profesor:** `clients/impl/MockCourseInstructorClient.java` es `@Primary` sin condición; siempre `true` salvo el centinela `prof-unassigned`. `CourseInstructorClient` todavía no tiene implementación real; el único cliente HTTP hacia Cursos es el de inscripción (abajo).
 - **Inscripción:** el interruptor `market.course.client` (`MARKET_COURSE_CLIENT`, por defecto `mock`) elige entre `MockCourseEnrollmentClient` y `GatewayCourseEnrollmentClient`. El real usa `clients/impl/CourseMembershipResolver.java`, que llama a `/api/course/course-cohorts/roster-membership?courseCohortId=&userId=` con un contrato supuesto, y `models/enums/CourseMembership.java`, que trata a `GESTOR` como docente con escritura.
 - **Curso cerrado:** `services/impl/CourseClosureServiceImpl.requireOpen` rechaza con `CourseClosedException` (403) si el curso está en la tabla `course_closure`, que llena `COURSE_COHORT_ARCHIVED` (`listeners/CourseEventHandler.java`). Deja el mercado cerrado en solo lectura y la vitrina no lo chequea.
 
