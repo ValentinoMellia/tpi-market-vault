@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@f7457882
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, decision, compra, stock, hold]
 ---
 # DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida
@@ -10,7 +10,7 @@ tags: [mercado, decision, compra, stock, hold]
 > Cuando una compra termina en `CANCELLED` con `HOLD_NOT_SETTLED` (el estudiante recibió el ítem y no se le cobró), su unidad **no** vuelve al stock de la oferta: queda retenida, sin contar como disponible ni como vendida. Una unidad cuenta como usada cuando se entrega, no cuando se cobra.
 
 ## Contexto
-`HOLD_NOT_SETTLED` pasa cuando Inventory ya entregó el ítem (`ITEM_PROVISIONED`) y después falla la confirmación del cobro porque el hold de Accounting se liberó o venció. La T01 #5220 de [[S2-05 - Robustez de la compra]] y [[S2-OPC1 - Reconciliación de compras]] pedían devolver esa unidad al stock, a partir del gap 19 de [[Estado actual del código]], que estaba reportado sin verificar. Al verificarlo resultó que el código la retiene a propósito desde la US-138 T05 (decisión CD12 de su diseño) y que el PR #113 de `tpi-market` (US-5207) se apoya en eso. Pregunta de origen: [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]] (archivada).
+`HOLD_NOT_SETTLED` pasa cuando Inventory ya entregó el ítem (`ITEM_PROVISIONED`) y después falla la confirmación del cobro porque el hold de Accounting se liberó o venció. La T01 #5220 de [[S2-05 - Robustez de la compra]] y [[S2-OPC1 - Reconciliación de compras]] pedían devolver esa unidad al stock, a partir del gap 19 de [[Estado actual del código]], que estaba reportado sin verificar. Al verificarlo resultó que el código la retiene a propósito desde la US-138 T05 (decisión CD12 de su diseño) y que el PR #113 de `tpi-market` (US-5207) se apoya en eso. Pregunta de origen: [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]] (archivada). El mismo final de compra (ítem entregado sin cobro) tiene abierta otra pregunta, [[Q-019 - Aviso cuando el ítem se entregó sin cobro]], sobre si se le avisa al estudiante y cómo; esta decisión solo resuelve el stock.
 
 ## Decisión
 Acordada por Patricio Fernandez y Mateo Conte el 2026-10-06 (opción 1 de Q-023).
@@ -27,7 +27,7 @@ Acordada por Patricio Fernandez y Mateo Conte el 2026-10-06 (opción 1 de Q-023)
 - Código: ningún cambio de comportamiento. La T01 agrega una prueba que lo fija.
 - Backlog: la T01 #5220 cambia de objetivo (título, descripción y estimación en Taiga a actualizar). El CA1 y el escenario 1 de [[S2-05 - Robustez de la compra]] y el CA2 y el escenario 2 de [[S2-OPC1 - Reconciliación de compras]] pasan a pedir que la unidad quede retenida.
 - PR #113 de `tpi-market`: su regla de cuarentena queda respaldada por esta decisión.
-- Un caso `HOLD_NOT_SETTLED` sigue sin forma de resolverse: el estudiante conserva un ítem que no pagó y la unidad queda retenida. Solo queda el `ERROR` del log.
+- Un caso `HOLD_NOT_SETTLED` sigue sin forma de resolverse: el estudiante conserva un ítem que no pagó y la unidad queda retenida. Del lado de Mercado solo queda el `ERROR` del log; si además se le avisa al estudiante lo decide [[Q-019 - Aviso cuando el ítem se entregó sin cobro]].
 
 ## Notas afectadas
-[[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]], [[S2-05 - Robustez de la compra]], [[S2-OPC1 - Reconciliación de compras]], [[Estado actual del código]], [[Orden de compra]], [[Decisiones - Índice]].
+[[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]], [[S2-05 - Robustez de la compra]], [[S2-OPC1 - Reconciliación de compras]], [[Estado actual del código]], [[Orden de compra]], [[Decisiones - Índice]], [[DEC-013 - Reglas de la tienda]], [[Q-019 - Aviso cuando el ítem se entregó sin cobro]], [[Plan del Sprint 2]], [[Carga en Taiga - Sprints 2 y 3]], [[Roadmap de trabajo]], [[S2-03 - Reglas de la tienda]], [[Sprint 2 - Índice]].

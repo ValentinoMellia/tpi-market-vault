@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5207"
@@ -109,7 +109,7 @@ horas: 30
 - Módulos afectados: `entities/CourseCatalogOfferEntity.java`, `services/impl/CourseCatalogManageServiceImpl.java`, `OrderConfirmationServiceImpl.java`, `OfferStockServiceImpl.java`, `dtos/manage/CatalogOfferPublishDto.java`, `CatalogOfferUpdateDto.java`, `validation/ValidOfferConfigurationValidator.java`.
 - Otros equipos / aprobaciones: Frontend debe confirmar que `courseId` es la cohorte ([[Q-009 - Endpoints y prefijos]]).
 - Impacto en datos / migraciones: sin columnas nuevas (`unitsSold` ya existe). Las ofertas existentes con `unitsSold` en 0 y órdenes confirmadas necesitan recalcularse (script o tarea 1).
-- Riesgos y mitigación (opcional): conviene incrementar `unitsSold` junto con el cambio de estado de la orden, dentro de la misma transacción, para no desincronizarlos. La historia [[S2-05 - Robustez de la compra]] también toca el stock (liberación en `HOLD_NOT_SETTLED`): coordinar el orden de los cambios.
+- Riesgos y mitigación (opcional): conviene incrementar `unitsSold` junto con el cambio de estado de la orden, dentro de la misma transacción, para no desincronizarlos. La historia [[S2-05 - Robustez de la compra]] también toca el stock: la unidad de una compra `HOLD_NOT_SETTLED` queda retenida, sin volver a disponible ni contar como vendida ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]); coordinar el orden de los cambios.
 
 Relación: [[Oferta de catálogo]], [[Estado actual del código]] (gaps 4 y 24), [[Roadmap de trabajo]] (P1), [[Épica 090 - Catálogo por plantillas]].
 

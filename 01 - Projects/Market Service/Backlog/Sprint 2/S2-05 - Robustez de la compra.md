@@ -2,17 +2,17 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
 puntos: 8
 prioridad: Should
-horas: 29
+horas: 26
 ---
 # S2-05 - Robustez de la compra
 
-> Corregir los defectos de la compra: vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 29 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo. El de la T01 (stock en `HOLD_NOT_SETTLED`) resultó no ser un defecto: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
+> Corregir los defectos de la compra: vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 26 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo. El de la T01 (stock en `HOLD_NOT_SETTLED`) resultó no ser un defecto: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
 
 ## [G11] — Robustez de la compra
 
@@ -35,14 +35,14 @@ horas: 29
 - [ ] Seguridad (roles, permisos, datos sensibles): evitar que un estudiante reutilice la clave de otro para obtener su orden: con clave por estudiante, la misma clave de dos estudiantes crea dos órdenes independientes.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
 - [ ] Outbox (absorbe #1012): hoy OutboxEventEntity solo tiene el booleano processed: no hay contador de intentos, espera creciente entre reintentos, máximo de intentos ni estado de fallo. OutboxRelayServiceImpl corta el ciclo en el primer fallo, de modo que un mensaje que nunca se puede enviar bloquea todos los que vienen detrás. Tampoco hay forma de consultar cuántos avisos esperan salir (OutboxEventRepository solo tiene findByProcessedFalseOrderByCreatedAtAscIdAsc). El resto de #1012 ya está en el código: guardado antes de enviar, deduplicación por eventId en los dos listeners y studentId como clave de Kafka para conservar el orden.
-- [ ] Otros: OrderHoldServiceImpl convierte granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 112); debe guardarse en UTC. Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
+- [ ] Otros: OrderHoldServiceImpl convertía granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 129 en `develop@e50f3b5c`); lo resolvió la T02, mergeada en `develop@cb12210a` (ver «Estado en Taiga»). El gap 18 de [[Estado actual del código]] está sin verificar; el 19 resultó no ser un defecto ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]); el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
 
 ---
 
 ## Criterios de Aceptación (CA)
 
 - [ ] **CA1**: tras una cancelación por HOLD_NOT_SETTLED, el availableStock de la oferta **no** vuelve al valor previo a la reserva (la unidad queda retenida, [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]); probado con una oferta de stock finito.
-- [ ] **CA2**: holdExpiresAt se persiste y se compara en UTC: el resultado no cambia al ejecutar las pruebas con -Duser.timezone distinto de UTC.
+- [ ] **CA2**: holdExpiresAt se persiste y se compara en UTC: el resultado no depende de la zona horaria del servidor. Se prueba con un `Clock` fijo en una zona distinta de UTC (`America/Argentina/Cordoba`) y valores UTC escritos a mano, sin cambiar la zona de la JVM. (Antes decía "al ejecutar las pruebas con -Duser.timezone distinto de UTC"; se reformuló tras la revisión del PR #118.)
 - [ ] **CA3**: ningún flujo de error previsto de compra, vitrina o gestión responde 500; cada excepción de la lista de la tarea 3 responde su estado 4xx con problem+json.
 - [ ] **CA4**: GET /api/market/courses/{courseId}/catalog/{itemId} de una oferta activa con publicationExpiresAt pasado responde 409 catalog-offer-expired.
 - [ ] **CA5**: dos estudiantes distintos con la misma idempotencyKey crean dos órdenes; el mismo estudiante con la misma clave y otra oferta recibe 409 idempotency-key-conflict.
@@ -124,6 +124,33 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 
 ---
 
+## Estado en Taiga
+
+Al 2026-10-06:
+
+| Tarea | Estado | Dónde |
+|---|---|---|
+| #5220 T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED | New | Redefinida el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (antes: "Liberar el stock al cancelar por HOLD_NOT_SETTLED") |
+| #5221 T02 - Guardar el vencimiento del hold en UTC | Closed | PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel), con las correcciones de la revisión de Valentino Mellia |
+| #5222 T03 - Mapear a 4xx las excepciones que hoy responden 500 | New | — |
+| #5223 T04 - Responder 409 ante una oferta vencida | New | — |
+| #5224 T05 - Hacer la clave de idempotencia única por estudiante | New | — |
+| #5344 T06 - Outbox con reintentos acotados y estado de fallo | New | Asignada a Valentino Mellia |
+| #5345 T07 - Contador de avisos pendientes del outbox | New | Asignada a Valentino Mellia |
+
+La historia sigue con 5 puntos en Taiga; este plan ya la cuenta con 8.
+
+Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel)). Lo de esta sección se verificó contra `develop@cb12210a`; el resto de la nota sigue verificado contra `7528610`, como dice el frontmatter:
+
+- **Guardado y comparación, no solo guardado.** La tarea pedía cambiar la conversión de `OrderHoldServiceImpl`, pero el CA2 dice "se persiste y se compara en UTC". La reconciliación (`services/impl/BankHoldReconciliationServiceImpl.java`) comparaba `holdExpiresAt` contra `LocalDateTime.now()`, en la zona del servidor: si solo se cambiaba el guardado, con el servidor en hora argentina los holds vencidos se reconciliaban 3 h tarde. El PR cambia las dos cosas.
+- **Cómo queda.** `holdExpiresAt` sigue siendo `LocalDateTime` (sin cambio de schema) y guarda la hora UTC del `Instant` de Accounting. La reconciliación toma el `Clock` de la aplicación y compara `holdExpiresAt` contra ese instante en UTC. El corte de las filas viejas sin vencimiento sigue comparando `updatedAt` en la zona de la aplicación, porque `updatedAt` se escribe en esa zona.
+- **Prueba del CA2.** Con un `Clock` fijo en `America/Argentina/Cordoba` y valores UTC escritos a mano, sin cambiar la zona de la JVM ni el `-Duser.timezone` de la suite.
+- **Revisión del PR #118 (Valentino Mellia, 2026-10-06).** Aprobado sin bloqueantes; tras las correcciones lo aprobó y mergeó tommikimmel. Se sumó un Javadoc en `configs/ClockConfig.java`: el `Clock` tiene que quedar en la zona del sistema, porque `updatedAt` se escribe en esa zona y el corte de las filas viejas se compara contra él. Se dejó escrito que, con la JVM en ART, las filas previas al deploy se reconcilian 3 h antes de vencer (impacto bajo: se consulta a Accounting antes de vencer y un hold dura 5 min). El CA2 se reformuló para decir cómo se prueba de verdad.
+- **Fuera de alcance.** `createdAt`, `updatedAt` y el resto de los timestamps siguen en la zona del servidor; pasarlos a UTC sería otra tarea. No hay backfill: las filas guardadas antes del deploy quedan con su valor; en Docker (UTC) es el mismo.
+- **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pedía devolverlo. Resuelto el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]: la unidad queda retenida y la T01 pasa a fijarlo con una prueba.
+
+---
+
 ## Tareas
 
 ### T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED
@@ -134,7 +161,7 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 - Si el PR #113 ya está mergeado, la prueba verifica también que `unitsSold` no sube
 - Hecho cuando: la prueba fija el comportamiento y el gap 19 queda cerrado
 
-Estimación: 2 h (antes 5 h)
+Estimación: 2 h (antes 5 h; bajó al pasar de corregir un defecto a fijar el comportamiento con una prueba, [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]])
 
 **Avance (2026-10-07):** PR #123 de `tpi-market`, en revisión; #5220 en *Ready for test*. Agrega `OrderConfirmationHoldNotSettledStockIntegrationTest`: una oferta con 10 unidades reserva una de verdad (queda en 9), Accounting responde `RELEASED` y, tras cancelar por `HOLD_NOT_SETTLED`, `availableStock` sigue en 9 y `unitsSold` en 0, releídos de la base. Corre con `releaseReason` `ITEM_PROVISION_FAILED` y `TTL_EXPIRED`. Como el PR #113 sigue abierto y en `develop` nada incrementa `unitsSold`, esa aserción hoy pasa sola; cuando entre el #113 pasa a ser un control real. Sin cambios en el código de producción; la spec `order-confirmation` suma el escenario con los valores.
 
