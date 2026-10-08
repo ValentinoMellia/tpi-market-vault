@@ -60,7 +60,7 @@ Cerrar con Accounting el orden de la saga de compra y su compensación, para dec
 ## Dependencias
 
 - Servicios / equipos involucrados: Accounting (Tema 08, grupo G12 en Taiga) y el líder del equipo de Mercado.
-- Necesita antes: lectura de [[Q-008 - Orden de la saga de compra]] y [[Integración con Accounting]] por quienes asisten.
+- Necesita antes: lectura de [[Q-008 - Orden de la saga de compra]], [[Propuesta C de la saga de compra]] e [[Integración con Accounting]] por quienes asisten.
 - Desbloquea: activar `market.events.item-confirmed.enabled`, [[S2-01 - Contrato con Accounting]] (tareas 5 y 6) y la prueba punta a punta de [[S2-07 - Pruebas integradas con Accounting]].
 
 ---
