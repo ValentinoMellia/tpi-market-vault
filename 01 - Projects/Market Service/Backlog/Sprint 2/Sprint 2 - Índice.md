@@ -2,7 +2,7 @@
 tipo: indice
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 ---
 # Sprint 2 - Índice
@@ -21,7 +21,7 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-02 - Clientes reales de Cursos]] | #5202 | 5 | 22 | 4 | Must |
 | [[S2-03 - Reglas de la tienda]] | #5207 | 8 | 30 | 6 | Should |
 | [[S2-04 - Seguridad]] | #5214 | 3 | 16 | 4 | Should |
-| [[S2-05 - Robustez de la compra]] | #5219 | 8 | 29 | 7 | Should |
+| [[S2-05 - Robustez de la compra]] | #5219 | 8 | 26 | 7 | Should |
 | [[S2-06 - Plataforma y CI]] | #5225 | 3 | 15 | 5 | Must |
 | [[S2-07 - Pruebas integradas con Accounting]] | #5231 | 8 | 25 | 4 | Must |
 | [[S2-08 - Frontend de Mercado]] | #5236 | 13 | 36 | 6 | Should |
@@ -33,9 +33,11 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-11 - Acuerdos de compra de vidas con Accounting]] | #6268 | a completar | 20 | 5 | Must |
 | [[S3-01 - Subastas, lanzar y ver las abiertas]] (adelantada del Sprint 3) | #5347 | 8 | 27 | 6 | Should |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 | a completar | a completar | 6 (4 hechas) | Should |
-| **Total comprometido** | | **86** | **318** | **79** | |
+| **Total comprometido** | | **86** | **315** | **79** | |
 
-Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
+Las historias 1 a 8 suman 61 puntos, 215 h y 44 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
+
+S2-05 pasó de 29 h a 26 h el 2026-10-08: la T01 bajó de 5 h a 2 h por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]. [[Plan del Sprint 2]] conserva las 29 h porque es el plan original del sprint.
 
 ## Opcionales (si sobra capacidad)
 
