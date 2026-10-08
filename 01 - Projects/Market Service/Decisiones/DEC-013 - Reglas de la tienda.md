@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-08
 tags: [mercado, decision, tienda, stock, oferta]
 ---
 # DEC-013 - Reglas de la tienda
@@ -34,7 +34,7 @@ Detalle pendiente, no decidido: si al extender solo se aceptan fechas posteriore
   - Completar las validaciones de plantilla activa, tipo y rango del multiplicador al publicar (`validation/ValidOfferConfigurationValidator.java`).
   - Quitar o dejar de usar el borrado lógico (`deleted`) de la oferta; solo se usa `active`.
 - **Frontend**: confirmar que `courseId` es el identificador de cohorte ([[Q-009 - Endpoints y prefijos]]).
-- Los defectos relacionados sin verificar (no liberar stock en `HOLD_NOT_SETTLED`, órdenes en `CREATED` sin reconciliar) siguen en [[Estado actual del código]] (gaps 19 y 20).
+- Los defectos relacionados sin verificar (no liberar stock en `HOLD_NOT_SETTLED`, órdenes en `CREATED` sin reconciliar) siguen en [[Estado actual del código]] (gaps 19 y 20). Seguimiento del 2026-10-08 (no modifica la decisión): el gap 19 resultó no ser un defecto. La unidad de una compra `HOLD_NOT_SETTLED` queda retenida a propósito y, con la regla T1, tampoco cuenta como vendida ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]).
 
 ## Notas afectadas
 [[Oferta de catálogo]], [[Vencimiento de items]], [[Estado actual del código]], [[Roadmap de trabajo]], [[Taller de decisiones]], [[Épica 090 - Catálogo por plantillas]], [[Decisiones - Índice]], [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]].
