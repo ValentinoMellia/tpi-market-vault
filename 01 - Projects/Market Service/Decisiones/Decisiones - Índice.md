@@ -2,12 +2,12 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-019
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay dieciocho decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay diecinueve decisiones registradas.
 
 ## Decisiones registradas
 

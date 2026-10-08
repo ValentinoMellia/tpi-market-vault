@@ -2,17 +2,17 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
 puntos: 8
 prioridad: Should
-horas: 29
+horas: 26
 ---
 # S2-05 - Robustez de la compra
 
-> Corregir los defectos de la compra: vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 29 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo. El de la T01 (stock en `HOLD_NOT_SETTLED`) resultó no ser un defecto: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
+> Corregir los defectos de la compra: vencimientos mal calculados, respuestas 500 y 200 incorrectas, y una clave de idempotencia global en lugar de por estudiante. Absorbe además lo que faltaba de la historia #1012 de Taiga: el [[Patrón Outbox]] sin reintentos acotados y sin forma de ver los avisos pendientes. 7 tareas, 26 h, 8 puntos, Should. Varios defectos están reportados por el equipo y sin verificar: la primera tarea de cada uno es reproducirlo. El de la T01 (stock en `HOLD_NOT_SETTLED`) resultó no ser un defecto: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
 
 ## [G11] — Robustez de la compra
 
@@ -134,7 +134,7 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 - Si el PR #113 ya está mergeado, la prueba verifica también que `unitsSold` no sube
 - Hecho cuando: la prueba fija el comportamiento y el gap 19 queda cerrado
 
-Estimación: 5 h
+Estimación: 2 h (antes 5 h; bajó al pasar de corregir un defecto a fijar el comportamiento con una prueba, [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]])
 
 ### T02 - Guardar el vencimiento del hold en UTC
 
