@@ -2,7 +2,7 @@
 tipo: historia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-04
 tags: [mercado, backlog, epica]
 taiga: "#137"
 epica: "Compra directa"
@@ -21,7 +21,7 @@ Implementar la [[Orden de compra]] con [[Saga]], [[Hold de monedas]] e [[Idempot
 | #139 | No pagar dos veces (doble clic) | parcial (clave de idempotencia y huella implementadas) |
 | #140 | Ver el resultado de una compra en proceso | parcial (SSE envía un solo evento) |
 | #141 | Recuperar monedas si la compra no se completó | parcial (libera el hold ante fallo) |
-| #142 | Comprar una vida sin pasarse del tope | no iniciada; cambia de enfoque: Mercado no valida el tope, reacciona a lo que Accounting reporte ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]) |
+| #142 | Comprar una vida sin pasarse del tope | cubierta por [[S2-11 - Acuerdos de compra de vidas con Accounting]] (#6268): Mercado valida el tope antes del hold y Accounting recorta al acreditar ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]) |
 | #143 | Revisar compras a medias | parcial (reconciliación apagada hasta que Accounting integre la consulta de hold; ver [[DEC-009 - Contrato de holds e ítems según Accounting]]) |
 
 ## Notas
