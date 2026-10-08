@@ -20,7 +20,7 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-01 - Contrato con Accounting]] | #5193 | 13 | 45 | 8 | Must |
 | [[S2-02 - Clientes reales de Cursos]] | #5202 | 5 | 22 | 4 | Must |
 | [[S2-03 - Reglas de la tienda]] | #5207 | 8 | 30 | 6 | Should |
-| [[S2-04 - Seguridad]] | #5214 | 3 | 16 | 4 | Should |
+| [[S2-04 - Seguridad]] | #5214 | 3 | 20 | 5 | Should |
 | [[S2-05 - Robustez de la compra]] | #5219 | 8 | 29 | 7 | Should |
 | [[S2-06 - Plataforma y CI]] | #5225 | 3 | 15 | 5 | Must |
 | [[S2-07 - Pruebas integradas con Accounting]] | #5231 | 8 | 25 | 4 | Must |
