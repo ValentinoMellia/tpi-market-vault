@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
@@ -35,7 +35,7 @@ horas: 29
 - [ ] Seguridad (roles, permisos, datos sensibles): evitar que un estudiante reutilice la clave de otro para obtener su orden: con clave por estudiante, la misma clave de dos estudiantes crea dos órdenes independientes.
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
 - [ ] Outbox (absorbe #1012): hoy OutboxEventEntity solo tiene el booleano processed: no hay contador de intentos, espera creciente entre reintentos, máximo de intentos ni estado de fallo. OutboxRelayServiceImpl corta el ciclo en el primer fallo, de modo que un mensaje que nunca se puede enviar bloquea todos los que vienen detrás. Tampoco hay forma de consultar cuántos avisos esperan salir (OutboxEventRepository solo tiene findByProcessedFalseOrderByCreatedAtAscIdAsc). El resto de #1012 ya está en el código: guardado antes de enviar, deduplicación por eventId en los dos listeners y studentId como clave de Kafka para conservar el orden.
-- [ ] Otros: OrderHoldServiceImpl convierte granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 129 en `develop@e50f3b5c`); debe guardarse en UTC. Lo resuelve la T02 (ver «Estado en Taiga»). Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
+- [ ] Otros: OrderHoldServiceImpl convertía granted.expiresAt() con LocalDateTime.ofInstant(..., ZoneId.systemDefault()) (línea 129 en `develop@e50f3b5c`); lo resolvió la T02, mergeada en `develop@cb12210a` (ver «Estado en Taiga»). Los gaps 18 y 19 de [[Estado actual del código]] están sin verificar; el 20 (órdenes trabadas en CREATED) se trata en [[S2-OPC1 - Reconciliación de compras]].
 
 ---
 
@@ -140,7 +140,7 @@ Al 2026-10-06:
 
 La historia sigue con 5 puntos en Taiga; este plan ya la cuenta con 8.
 
-Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel)):
+Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel)). Lo de esta sección se verificó contra `develop@cb12210a`; el resto de la nota sigue verificado contra `7528610`, como dice el frontmatter:
 
 - **Guardado y comparación, no solo guardado.** La tarea pedía cambiar la conversión de `OrderHoldServiceImpl`, pero el CA2 dice "se persiste y se compara en UTC". La reconciliación (`services/impl/BankHoldReconciliationServiceImpl.java`) comparaba `holdExpiresAt` contra `LocalDateTime.now()`, en la zona del servidor: si solo se cambiaba el guardado, con el servidor en hora argentina los holds vencidos se reconciliaban 3 h tarde. El PR cambia las dos cosas.
 - **Cómo queda.** `holdExpiresAt` sigue siendo `LocalDateTime` (sin cambio de schema) y guarda la hora UTC del `Instant` de Accounting. La reconciliación toma el `Clock` de la aplicación y compara `holdExpiresAt` contra ese instante en UTC. El corte de las filas viejas sin vencimiento sigue comparando `updatedAt` en la zona de la aplicación, porque `updatedAt` se escribe en esa zona.
