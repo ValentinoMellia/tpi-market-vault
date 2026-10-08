@@ -2,7 +2,7 @@
 tipo: guia
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-08
 tags: [mercado, sprint, planificacion]
 ---
 # Plan del Sprint 2
@@ -22,7 +22,7 @@ tags: [mercado, sprint, planificacion]
 | # | Historia (propuesta) | Contenido | Tareas | Horas |
 |---|---|---|---|---|
 | 1 | Contrato con Accounting | `orderRef` UUID persistido; tópicos `accounting.events` y `market.events` (ignorar los propios comandos en el tópico compartido); productor `market-service`; flujo `ITEM_CONFIRMED` → `ITEM_CREDITED`; mapeo de todos los motivos de rechazo; motivos de liberación | 8 | 45 |
-| 2 | Clientes reales de Cursos | Verificación de matrícula y de profesor con `/course-cohorts/{id}/membership` y token de servicio; manejo de errores; tests ([[Integración con Cursos]]) | 4 | 22 |
+| 2 | Clientes reales de Cursos | Verificación de matrícula y de profesor con `/course-cohorts/{id}/membership` y token de servicio; manejo de errores; tests ([[Integración con Cursos]]). Replanificada el 2026-10-08: `membership?user_id=`, mercado solo con cohorte `ACTIVE`, sin simulados y "Mis mercados" ([[S2-02 - Clientes reales de Cursos]]) | 4 | 22 |
 | 3 | Reglas de la tienda | `unitsSold` y cálculo de disponible; validaciones al publicar; solo desactivar; `publicationExpiresAt` al publicar y editar | 6 | 30 |
 | 4 | Seguridad | Parseo de roles sin `contains()`; sin bypass por cabecera vacía; quitar el usuario por defecto `usr-student-001` | 4 | 16 |
 | 5 | Robustez de la compra | Liberar stock en `HOLD_NOT_SETTLED`; vencimiento del hold en UTC; excepciones que hoy responden 500; oferta vencida que responde 200; clave de idempotencia por estudiante; outbox con reintentos acotados y contador de avisos pendientes (de #1012) | 7 | 29 |

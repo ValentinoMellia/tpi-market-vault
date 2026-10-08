@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@3e2b88b
-actualizado: 2026-10-04
+actualizado: 2026-10-08
 tags: [mercado, decision, seguridad, roles]
 ---
 # DEC-006 - Roles y permisos según el código y los headers del gateway
@@ -40,6 +40,7 @@ Confirmada por el líder del equipo de Mercado el 2026-10-01:
 - **Seguimiento del 2026-10-03** (no modifica la decisión): el respaldo `X-Roles` ya no estaba en el filtro sino en cuatro controladores (verificado contra `codigo@276af52`). El PR #86 de `tpi-market` (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)) lo quita y reemplaza `contains()` por una comparación exacta. Ese PR propuso además dos cambios de conducta, que se confirmaron y forman la enmienda del 2026-10-04 ([[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]). El caso de un servicio con `MS` en las reglas de negocio está en [[Q-021 - Principal de servicio MS en las reglas de negocio]].
 - **Seguimiento del 2026-10-03, T02** (no modifica la decisión): el PR #92 de `tpi-market` (mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel)) cierra el bypass por cabecera vacía y hace que las rutas de estado lean el principal autenticado, de modo que `MS` puede cambiar el estado de una oferta como dice esta decisión. Registrado en [[DEC-017 - Servicios con MS en las rutas de estado de oferta]].
 - **Seguimiento del 2026-10-06, T03** (no modifica la decisión): el PR #93 de `tpi-market` (T03 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)) quita el usuario por defecto `usr-student-001` (gap 9 de [[Estado actual del código]]); sin `X-User-Id`, las lecturas responden 400 `missing-header`.
+- **Relación con DEC-021 (2026-10-08)** (no modifica esta decisión): en las rutas de un curso, el acceso se decide con la membresía de Cursos y el `GESTOR` de Cursos no tiene acceso al mercado ni equivale al `ADMIN` de Mercado ([[DEC-021 - Acceso al mercado por membresía de Cursos]]). El tratamiento del `GESTOR` del JWT en las rutas sin curso no cambia con esa decisión.
 
 ## Notas afectadas
 [[Gateway e identidad]], [[Estado actual del código]], [[Oferta de catálogo]], [[Épica 090 - Catálogo por plantillas]], [[Integración con Users]], [[Roadmap de trabajo]], [[Decisiones - Índice]].

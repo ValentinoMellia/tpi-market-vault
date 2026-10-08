@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+actualizado: 2026-10-08
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -18,7 +18,7 @@ tags: [mercado, roadmap]
 | 1c | **Tópicos por variables de entorno**: apuntar `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` a `accounting.events` y publicar en `market.events` en lugar de `market.orders.events`. **Hecho como valores por defecto** (PR #88, `develop` en `349c8e2`). La verificación pendiente del tópico compartido quedó cerrada: `a4e6ac76` (US-5193 T03) hace que el listener descarte los comandos propios por `producer` antes de parsear, sin enviarlos a DLT ([[Eventos y Kafka]]) | Los tópicos actuales no existen en la plataforma | [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[Integración con Accounting]] (mensaje del 2026-10-01) |
 | 2 | **Acordar [[Q-008 - Orden de la saga de compra]]** con Accounting. Postura de Mercado: entregar el ítem primero; exige pedir a Accounting la revocación de ítems (no existe) y un evento de error al fallar el acreditado | Define el flujo y la compensación de toda la compra | [[Q-008 - Orden de la saga de compra]], [[Saga]] |
 | 3 | Proveer `BankHoldQueryClient` bajo `kafka`: cuando accounting integre `GET /api/accounting/holds/{holdId}` (en implementación este sprint), implementar el cliente real y encender `bank-hold.reconciliation.enabled` | La app no arranca con el transporte de docker/prod; la consulta de accounting aún no está integrada | [[Estado actual del código]] (gap 1), [[DEC-009 - Contrato de holds e ítems según Accounting]] |
-| 4 | Clientes reales de Cursos usando `GET /course-cohorts/{id}/membership`; el cliente simulado es `@Primary` incluso en producción | Hoy toda inscripción es simulada | [[Integración con Cursos]] |
+| 4 | **Integración real con Cursos** sobre `GET /api/course/course-cohorts/{id}/membership?user_id=`: mercado habilitado solo con la cohorte `ACTIVE`, acceso solo de alumnos validados y docentes asignados (`GESTOR` sin acceso), sin simulados y listado "Mis mercados". Replanificado el 2026-10-08 en [[S2-02 - Clientes reales de Cursos]] | Hoy la asignación de profesor es simulada (`@Primary`) y la inscripción usa el simulado por defecto | [[Integración con Cursos]], [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]], [[DEC-021 - Acceso al mercado por membresía de Cursos]], [[DEC-022 - Contrato de membresía con Cursos]], [[DEC-023 - Sin mocks de Cursos en el código]], [[DEC-024 - Listado Mis mercados]] |
 | 5 | Unificar la variable de entorno de Kafka | Evita que prod use `localhost:9092` | gap 7 de [[Estado actual del código]] |
 | 6 | CI (`mvn verify`) en PR a `develop` | Hoy solo se verifica hacia `main` | [[Git workflow]] |
 | 7 | **Puerto 8100 en la plataforma**: hacer `pull` de `tpi-system-compose` (el clon local está 96 commits atrás) y verificar que `.tpi/platform/.env` tenga `PORT=8100` (la plantilla define `SERVER_PORT=${PORT}`; gestión 8101) | Con otro puerto, el servicio no queda alcanzable en la plataforma | [[Q-016 - Puerto y registro de Mercado en la plataforma]], [[Mapa de servicios]] |

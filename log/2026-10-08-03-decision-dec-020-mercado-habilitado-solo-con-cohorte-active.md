@@ -1,0 +1,2 @@
+## [2026-10-08] decision | DEC-020 - Mercado habilitado solo con la cohorte ACTIVE
+- [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]], confirmada por el PO: solo `ACTIVE` y activa habilita el mercado; `DRAFT`, `ARCHIVED`, desactivada o inexistente lo deshabilitan por completo (reemplaza la solo lectura actual de `requireOpen`); solo cuenta el estado, no las fechas; 403 `COURSE_MARKET_DISABLED`. Sin `Q-NNN` de origen.

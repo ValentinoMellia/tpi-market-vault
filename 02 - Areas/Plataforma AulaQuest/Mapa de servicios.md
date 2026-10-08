@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-08
 tags: [plataforma, servicios]
 ---
 # Mapa de servicios
@@ -45,7 +45,7 @@ El compose de la plataforma tiene la creación automática activada: eso contrad
 ## Inconsistencias conocidas
 
 - Puerto de Mercado: **8100** en la plataforma (`registry/services.yml` upstream, equipo `market`; gestión 8101 = puerto + 1). El 8084 del código (gestión 8085) es solo el valor por defecto local; 8092 y el equipo `g09` provienen de un clon local de `tpi-system-compose` atrasado 96 commits. En el `platform.env` y el `micros.yml` generados upstream, Mercado está en `GATEWAY_ALLOWLIST` y en la red `tpi-market` ([[Q-016 - Puerto y registro de Mercado en la plataforma]]).
-- El registro declara que Mercado ofrece `market.catalog.read` pero no declara necesidades; debería necesitar `course.enrollment.read`.
+- El registro declara que Mercado ofrece `market.catalog.read` pero no declara necesidades; debería necesitar `course.enrollment.read`, que exige la membresía por servicio de Cursos ([[DEC-022 - Contrato de membresía con Cursos]]).
 - Numeración de temas: el Motor de Desafíos aparece como Tema 03 y como Tema 05.
 - Numeración de equipos: el número de tema y el grupo de Taiga son distintos. Mercado es Tema 09 y grupo G11; Accounting es Tema 08 y grupo G12 (verificado en la wiki y los sprints de Taiga el 2026-10-01). Las historias se titulan con el grupo: `[G11] — ...`.
 - Nombre de la materia: Programación IV en la mayoría de las fuentes y Metodología de Sistemas I en una de ellas.

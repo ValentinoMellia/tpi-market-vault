@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-04
+actualizado: 2026-10-08
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -60,7 +60,7 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 ## Autorización en dos capas
 
 1. `@PreAuthorize` por endpoint (por ejemplo `hasRole('MS') and hasAuthority('market.catalog.read')`).
-2. Regla de negocio: inscripción del estudiante o asignación del profesor, con los clientes de [[Integración con Cursos]].
+2. Regla de negocio: inscripción del estudiante o asignación del profesor, con los clientes de [[Integración con Cursos]]. Desde el 2026-10-08 las decisiones piden que esta capa use la membresía de Cursos: el mercado del curso tiene que estar habilitado ([[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]]) y solo entran `STUDENT` validado y `PROFESSOR` / `PROFESSOR_READ_ONLY`, sin `GESTOR` ([[DEC-021 - Acceso al mercado por membresía de Cursos]]). Hoy el código todavía usa los clientes simulados o provisorios.
 
 Las dos capas no leen igual la identidad: la primera usa las autoridades del filtro y la segunda la cadena de `X-User-Roles`. Hasta `codigo@276af52`, por eso, un servicio con ámbito `MS` pasaba la primera y la segunda lo trataba como si no tuviera roles: `PATCH /offers/{id}/status` lo rechazaba y la ruta de estado del curso lo dejaba pasar sin chequeo.
 
