@@ -1,0 +1,4 @@
+## [2026-10-06] ingest | PR #118 de tpi-market: vencimiento del hold en UTC (US-5219 T02)
+- El PR #118 (T02 #5221 de [[S2-05 - Robustez de la compra]], en revisión) guarda `holdExpiresAt` en UTC y hace que la reconciliación lo compare contra la hora actual en UTC tomada del `Clock`; el corte de las filas viejas sigue comparando `updatedAt` en la zona de la aplicación. La tarea pasó a *Ready for test* en Taiga.
+- Notas tocadas: [[S2-05 - Robustez de la compra]] (línea 112 → 129, nueva sección «Estado en Taiga» con lo que dejó la T02 y el choque de la T01 con el PR #113), [[Estado actual del código]] (gap 8), [[Hold de monedas]] (campo `holdExpiresAt`). `node scripts/lint-vault.mjs` sin errores.
+- Tras la revisión del PR #118 (Valentino Mellia): el CA2 de [[S2-05 - Robustez de la compra]] se reformula (se prueba con un `Clock` fijo en otra zona, no con `-Duser.timezone`) y se suma lo que dejó la revisión.
