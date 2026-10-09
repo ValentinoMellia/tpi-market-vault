@@ -26,7 +26,7 @@ Confirmada por el equipo de Mercado el 2026-10-01.
 **Duración**
 - La duración máxima es de **14 días**. Reemplaza a la recomendación S10 (7 días).
 
-**Subasta ciega (sealed-bid)**
+**Subasta ciega**
 - Se planifica como **modo de subasta**, además de la abierta.
 - En una subasta ciega, un **empate se resuelve con una tirada de dado animada**, mostrada a los estudiantes empatados.
 
@@ -56,21 +56,21 @@ Confirmada por el equipo de Mercado el 2026-10-01.
 ## Actualización 2026-10-01: anti-sniping
 Confirmado por el equipo de Mercado el 2026-10-01. Este apartado enmienda esta decisión; no crea una `DEC` nueva.
 
-**Mecanismo: fase final ciega.** Durante los últimos X minutos de la subasta, las ofertas pasan a ser selladas:
+**Mecanismo: fase final ciega.** Durante los últimos X minutos de la subasta, las ofertas pasan a ser ciegas:
 - Los estudiantes **pueden seguir ofertando**, pero **dejan de ver las ofertas de los demás**.
 - El tiempo **no se extiende**.
-- Al cierre gana la **oferta más alta**. Si hay empate en la fase sellada, se resuelve con la **tirada de dado** del servidor, auditable, ya decidida arriba.
+- Al cierre gana la **oferta más alta**. Si hay empate en la fase ciega, se resuelve con la **tirada de dado** del servidor, auditable, ya decidida arriba.
 - Reutiliza el modo de subasta ciega ya planificado: la fase final es una transición de abierta a ciega.
 
 **Consecuencias**
 - En la **fase abierta** sigue rigiendo que una oferta debe superar estrictamente a la mejor vigente.
-- En la **fase sellada** puede haber empates, por lo que el desempate por dado aplica también a subastas abiertas que llegan a su fase final.
-- La fase (abierta o sellada) se deriva del tiempo restante de la subasta; ver [[Subasta]].
+- En la **fase ciega** puede haber empates, por lo que el desempate por dado aplica también a subastas abiertas que llegan a su fase final.
+- La fase (abierta o ciega) se deriva del tiempo restante de la subasta; ver [[Subasta]].
 
 **Duración de la fase final (X)**: es **configurable por subasta** y la define el profesor que la lanza (confirmado el 2026-10-01).
 
 **Pendiente de detalle (no decidido)**
-- **Regla de la oferta sellada**: si una oferta sellada debe superar a la última mejor oferta visible (el "estrictamente mayor" de la fase abierta) o solo cumplir el incremento mínimo y el mínimo de la subasta.
+- **Regla de la oferta ciega**: si una oferta ciega debe superar a la última mejor oferta visible (el "estrictamente mayor" de la fase abierta) o solo cumplir el incremento mínimo y el mínimo de la subasta.
 
 **Alternativas descartadas para el anti-sniping**: cierre aleatorio en una ventana final ("subasta de vela"), enfriamiento por estudiante y límite de ofertas por estudiante.
 
