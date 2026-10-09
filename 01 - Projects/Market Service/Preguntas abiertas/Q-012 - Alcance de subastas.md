@@ -17,7 +17,7 @@ tags: [mercado, pregunta-abierta, subastas]
   - Incremento mínimo configurable por subasta (S6).
   - Duración máxima de 14 días (reemplaza a S10).
   - En subasta abierta, una oferta debe superar estrictamente a la mejor: no hay empates.
-  - Subasta ciega (sealed-bid) planificada como modo; el empate se resuelve con una tirada de dado animada, decidida por el servidor y auditable.
+  - Subasta ciega planificada como modo; el empate se resuelve con una tirada de dado animada, decidida por el servidor y auditable.
   - Curso archivado: se cancelan las subastas abiertas del curso y se liberan los holds. Baja de un estudiante: se retiran sus ofertas, se liberan sus holds y la subasta continúa (S5).
   - No se extiende el tiempo de la subasta como defensa contra el sniping.
 - **Garantía**: escrow completo, cada oferta retiene el monto total (decisión previa del equipo, referenciada en [[Hold y escrow]] e [[Ideas descartadas]]). Sigue sin `DEC` propia.
@@ -31,11 +31,11 @@ tags: [mercado, pregunta-abierta, subastas]
 ### Candidatos de anti-sniping (histórico)
 El objetivo era evitar que todos oferten en el último momento sin habilitar peleas interminables (por eso no se extiende el tiempo). Se eligió la opción 2.
 1. **Cierre aleatorio dentro de una ventana final** ("subasta de vela"): el momento exacto de cierre se sortea dentro de los últimos minutos.
-2. **Cambio a ofertas selladas en los últimos minutos**: al entrar en la ventana final la subasta pasa a modo ciego ([[DEC-014 - Reglas de subastas]]).
+2. **Cambio a ofertas ciegas en los últimos minutos**: al entrar en la ventana final la subasta pasa a modo ciego ([[DEC-014 - Reglas de subastas]]).
 3. **Enfriamiento por estudiante** (cooldown entre ofertas del mismo estudiante).
 4. **Cantidad limitada de ofertas por estudiante**.
 
-Se adoptó la opción 2 (fase final ciega, con duración X y regla de la oferta sellada pendientes de detalle). Las demás quedaron descartadas.
+Se adoptó la opción 2 (fase final ciega, con duración X y regla de la oferta ciega pendientes de detalle). Las demás quedaron descartadas.
 
 ## Pendientes menores sin tema propio
 - Referencia del ítem subastado (`itemTemplateId` o `catalogOfferId`): se resuelve al diseñar la historia de lanzar subasta ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]).

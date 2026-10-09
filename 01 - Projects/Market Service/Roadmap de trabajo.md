@@ -63,13 +63,13 @@ Alcance definido en [[DEC-015 - Política del backlog de Taiga]] (2026-10-01). C
 | Sprint 2 | Alinear el contrato con Accounting y las reglas de la tienda | P0 1, 1b y 1c, y [[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]; reglas de la tienda de P1 ([[DEC-013 - Reglas de la tienda]]: `unitsSold`, validaciones, desactivar, extensión de `publicationExpiresAt`) |
 | Sprint 3 | Subastas y/o propuestas nuevas | [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Épica 577 - Subastas]]; [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]] e [[Ítems únicos]] |
 
-Las subastas se especifican ya porque ambos sprints están en planificación. El anti-sniping quedó decidido (fase final ciega, con X configurable por subasta y la regla de la oferta sellada pendiente de detalle).
+Las subastas se especifican ya porque ambos sprints están en planificación. El anti-sniping quedó decidido (fase final ciega, con X configurable por subasta y la regla de la oferta ciega pendiente de detalle).
 
 **Sprint 3 sin bloqueo por ítems únicos**: las subastas ofrecen ítems regulares del catálogo ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]); [[Ítems únicos]] sigue como propuesta no aprobada.
 
 ## P2. Alcance futuro
 
-- Subastas ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]], [[Épica 577 - Subastas]]). Incluye `HOLD_INCREASE_REQUESTED` con el total nuevo y el manejo de `HOLD_INCREASED`; un `HOLD_RELEASE_REQUESTED` por postor; modo ciega y fase final ciega (anti-sniping) con desempate por dado decidido en el servidor. Previstas para el Sprint 3.
+- Subastas ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]], [[Épica 577 - Subastas]]). Incluye `HOLD_INCREASE_REQUESTED` con el total nuevo y el manejo de `HOLD_INCREASED`; un `HOLD_RELEASE_REQUESTED` por postor; modo ciega y fase final ciega (anti-sniping) con desempate por dado decidido en el servidor (en revisión: [[Q-025 - Desempate de las subastas]]). Previstas para el Sprint 3.
 - Propuestas sin aprobar: [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]] e [[Ítems únicos]].
 - Eventos de notificaciones (`CATALOG_OFFER_PUBLISHED`) y consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` ([[Integración con Notificaciones]], [[Integración con Cursos]]).
 
