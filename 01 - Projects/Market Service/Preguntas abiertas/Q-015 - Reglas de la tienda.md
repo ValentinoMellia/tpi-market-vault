@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: archivado
 verificado_contra: DEC-013
-actualizado: 2026-10-05
+actualizado: 2026-10-09
 tags: [mercado, pregunta-abierta, tienda, stock]
 ---
 # Q-015 - Reglas de la tienda
@@ -16,7 +16,7 @@ tags: [mercado, pregunta-abierta, tienda, stock]
 | T3 | `courseId` identifica la cohorte | Se usa `courseId`; los documentos viejos decían `courseCohortId` ([[Q-009 - Endpoints y prefijos]]) |
 | T4 | Desactivar una oferta alcanza; no hace falta borrado lógico | Existen `active` y `deleted` en la oferta |
 | T5 | Validar plantilla, tipo y multiplicador al publicar | Hay validación de configuración (`validation/ValidOfferConfigurationValidator.java`); falta cubrir plantilla y multiplicador de punta a punta |
-| T6 | El vencimiento de la publicación no se extiende: se publica una oferta nueva | El detalle de una oferta vencida pero activa responde 200 (según la documentación del equipo, sin verificar) |
+| T6 | El vencimiento de la publicación no se extiende: se publica una oferta nueva | El detalle de una oferta vencida pero activa responde 200 (según la documentación del equipo, sin verificar). Seguimiento del 2026-10-09: era cierto y lo resolvió la T04 de [[S2-05 - Robustez de la compra]] (PR #134 de `tpi-market`, `8b23425e`): ahora responde 409 `catalog-offer-expired` al alumno |
 
 ## Defectos relacionados (según la documentación del equipo, sin verificar en código)
 - Una cancelación por `HOLD_NOT_SETTLED` no libera el stock.

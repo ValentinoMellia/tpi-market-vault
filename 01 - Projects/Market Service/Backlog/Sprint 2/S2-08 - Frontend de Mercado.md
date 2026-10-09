@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5236"
@@ -15,6 +15,22 @@ horas: 36
 > Pantallas del estudiante para la tienda: vitrina del curso, detalle de oferta, compra con idempotencia, estado de la compra en vivo por SSE, mis compras y manejo de errores `problem+json`. Lo desarrolla el equipo de Mercado. 6 tareas, 36 h, 13 puntos, Should.
 
 ## [G11] — Frontend de Mercado
+
+## Implementación propuesta (2026-10-06)
+
+La rama `feature/us-5236-marketplace-frontend` de `2026-PIV-TPI-FE`, commit `b22ed6ed3f5812b5e899fab911fea12db2d3789f`, implementa el flujo del estudiante sobre las pantallas existentes. Es evidencia de una rama de trabajo, no de una integración en `develop`, una entrega desplegada ni del cierre de la US en Taiga. La historia conserva `estado: borrador` y sus criterios sin marcar hasta la aceptación. Al 2026-10-09 el PR #261 del frontend sigue en draft y su rama avanzó a `59e60f2c`: esta sección no se reverificó contra ese commit.
+
+| Alcance | Evidencia en `2026-PIV-TPI-FE` |
+|---|---|
+| Vitrina y detalle | `src/app/features/marketplace/pages/catalog-page/catalog-page.component.ts` conserva filtros por tipo, búsqueda y modal de detalle; `data-access/marketplace.models.ts` filtra publicaciones inactivas o vencidas y mantiene visibles las agotadas sin permitir su compra. |
+| Compra e idempotencia | `src/app/features/marketplace/data-access/purchase-intent.ts` conserva la clave por curso y oferta para reintentos transitorios; `pages/catalog-page/catalog-page.component.ts` bloquea compras simultáneas y descarta respuestas de un curso anterior. |
+| Seguimiento | `src/app/features/marketplace/data-access/order-tracking.service.ts` combina un evento de [[SSE]] con consultas limitadas del detalle de la orden; reintentar seguimiento no crea otra orden. |
+| Mis compras | `src/app/features/marketplace/pages/student-orders-page/student-orders-page.component.ts` presenta estados, carga, vacío, error y paginación; `data-access/student-orders.service.ts` convierte la página visual 1 a la página API 0 y consulta con tamaño 10. Ruta: `/marketplace/course/:courseId/orders`. |
+| Errores | `src/app/features/marketplace/data-access/market-api-error.ts` lee `detail` y conserva solo entradas válidas de `errors[]`; la compra los presenta en el modal. |
+
+Las rutas abreviadas de la tabla pertenecen a `src/app/features/marketplace/`. La identidad y la autorización siguen siendo responsabilidad del gateway y de la API ([[Gateway e identidad]]); ocultar una pantalla no reemplaza esos controles.
+
+**Verificación pendiente:** la preparación de la rama reportó 588 pruebas de Mercado aprobadas en 49 archivos y lint con 0 errores y 33 advertencias. La suite completa no quedó validada por un fallo de arranque del worker. Falta aceptación funcional contra el gateway y servicios reales, medición de rendimiento y revisión de accesibilidad; estas pruebas locales no demuestran integración punta a punta ni cierran el spike [[S2-09d - SPIKE SSE en el frontend]].
 
 ---
 
@@ -42,7 +58,7 @@ horas: 36
 
 - [ ] **CA1**: la vitrina lista las ofertas de GET /api/market/courses/{courseId}/catalog con nombre, descripción, precio y stock disponible, y permite filtrar por itemType.
 - [ ] **CA2**: al comprar se envía POST /api/market/courses/{courseId}/orders con {offerId, idempotencyKey} una sola vez por intento; un doble clic no genera dos órdenes.
-- [ ] **CA3**: tras el 202, la pantalla muestra el estado PROCESSING y se actualiza hasta un estado terminal (CONFIRMED, REJECTED_INSUFFICIENT_FUNDS, CANCELLED o EXPIRED) sin recargar la página.
+- [ ] **CA3**: tras el 202, la pantalla muestra el estado PROCESSING y se actualiza hasta un estado terminal (CONFIRMED, REJECTED_INSUFFICIENT_FUNDS, REJECTED, CANCELLED o EXPIRED) sin recargar la página.
 - [ ] **CA4**: "Mis compras" muestra las órdenes propias paginadas de GET /api/market/orders?courseId&page&size con su estado.
 - [ ] **CA5**: cada error problem+json (403 student-not-enrolled, 409 catalog-offer-out-of-stock, 409 catalog-offer-expired, 409 idempotency-key-conflict, 503 course-service-unavailable) muestra un mensaje comprensible y no una pantalla en blanco.
 - [ ] **Extras (opcional)**: pruebas de componentes con Storybook para los estados de la tarjeta de oferta.

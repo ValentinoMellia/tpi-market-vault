@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: borrador
-verificado_contra: codigo@9b4c05f9
-actualizado: 2026-10-05
+verificado_contra: codigo@f7457882
+actualizado: 2026-10-09
 tags: [mercado, integracion, notificaciones, eventos, compra-directa, catalogo]
 ---
 # Contrato de avisos de compra
@@ -47,7 +47,8 @@ Cada orden emite **un solo** evento de resultado, al llegar a su estado final.
 | `CANCELLED` con motivo `ITEM_PROVISION_FAILED` (el disparador depende de [[Q-008 - Orden de la saga de compra]]) | `PURCHASE_FAILED` | `ITEM_DELIVERY_FAILED` |
 | `CANCELLED` con motivo `HOLD_NOT_SETTLED` (ítem entregado, cobro no realizado) | **No se publica** hasta resolver [[Q-019 - Aviso cuando el ítem se entregó sin cobro]] | — |
 
-El estado `REJECTED` y el campo `rejectionReason` los agrega la tarea T07 de #5193 (rama `feature/us-5193-t07-accounting-rejection-reasons`, sin mergear el 2026-10-05). Mientras no entre, todo rechazo de Accounting termina en `REJECTED_INSUFFICIENT_FUNDS`.
+El estado `REJECTED` y el campo `rejectionReason` fueron incorporados en `develop` por la tarea T07 de #5193 (PR #110, `f7457882`).
+
 
 Cuando Mercado rechaza la compra de vidas **antes** del hold, por superar el tope, responde 422 `LIFE_CAP_REACHED` sin crear la orden ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]). El alumno ve el error en la pantalla de compra y no se publica ningún aviso. El motivo `LIFE_CAP_REACHED` de `PURCHASE_FAILED` cubre el caso en que Accounting rechaza la reserva por el tope de todas formas.
 
@@ -218,7 +219,7 @@ Estado el 2026-10-05 (`develop` en `9b4c05f9`):
 | T02 (PR #88) | Mueve `PURCHASE_CONFIRMED` a `market.events` | Mergeada |
 | T04 (PR #102) | Cambia el productor a `market-service` | Mergeada |
 | T05 y T06 | Reemplazan la entrega del ítem por `ITEM_CONFIRMED` → `ITEM_CREDITED`; con T06 la orden pasa a `CONFIRMED` al recibir `ITEM_CREDITED`. Accounting no publica una falla de entrega, así que el disparador de `ITEM_DELIVERY_FAILED` depende de [[Q-008 - Orden de la saga de compra]] | Pendientes |
-| T07 | Agrega el estado `REJECTED` y guarda en la orden cada uno de los 10 motivos de rechazo de Accounting. Los motivos de `PURCHASE_FAILED` se derivan de ese mapeo | En rama, sin mergear |
+| T07 | Agrega el estado `REJECTED` y guarda en la orden cada uno de los 10 motivos de rechazo de Accounting. Los motivos de `PURCHASE_FAILED` se derivan de ese mapeo | Mergeada (PR #110, `f7457882`) |
 
 ## Criterios acordados
 
@@ -253,14 +254,14 @@ Refinados con el equipo de Mercado el 2026-10-04 y el 2026-10-05, antes de envia
 
 ## Diferencias con el código actual
 
-Hoy (`develop` en `9b4c05f9`) el código no cumple este contrato. Las tareas #1055 (T02) y #1056 (T03) cierran la brecha de compras, y #1059 (T02) y #1060 (T03) la de ofertas.
+Hoy (`develop` en `f7457882`) el código no cumple este contrato. Las tareas #1055 (T02) y #1056 (T03) cierran la brecha de compras, y #1059 (T02) y #1060 (T03) la de ofertas.
 
 | Tema | Hoy en el código | Según este contrato |
 |---|---|---|
 | Ids y monto | `PURCHASE_CONFIRMED` lleva el `orderId` numérico interno, `offerId` numérico y `amount` decimal tomado de la respuesta de Accounting (`dtos/events/PurchaseConfirmedPayloadDto.java`) | `orderId` = `orderRef` UUID (`OrderEntity.bankOrderId()`), `offerId` string y `amount` entero tomado de `appliedPrice` |
 | Nombre, tipo y cantidad del ítem | `PURCHASE_CONFIRMED` no los lleva. La orden guarda `itemType`, pero no el nombre de la oferta ni las vidas que otorga (`entities/OrderEntity.java`) | `offerName`, `itemType` y `quantity` en el evento; `offerName` y `quantity` copiados en la orden al crearla (requiere migración) |
 | Compra fallida | No se publica nada: `services/impl/OrderHoldServiceImpl.java` y `services/impl/OrderItemProvisionServiceImpl.java` solo cambian el estado | `PURCHASE_FAILED` |
-| Motivo del rechazo | Cualquier rechazo de Accounting termina en `REJECTED_INSUFFICIENT_FUNDS` (`OrderHoldServiceImpl.applyRejection`) | Mapear `ACCOUNT_UNAVAILABLE`, `LIFE_CAP_REACHED` y `PROCESSING_ERROR` aparte, a partir de #5193 T07 |
+| Motivo del rechazo | Resuelto en el código para holds con T07 (PR #110, `f7457882`): `OrderHoldServiceImpl.applyRejection` mapea los 10 motivos y guarda `rejectionReason` en la orden | Mapear `ACCOUNT_UNAVAILABLE`, `LIFE_CAP_REACHED` y `PROCESSING_ERROR` en `PURCHASE_FAILED` a partir de ese estado |
 | Ofertas | No se publica ningún evento al crear ni al activar una oferta (`services/impl/CourseCatalogManageServiceImpl.java`) | `CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED` |
 | Ofertas vencidas | `updateOfferStatus` y `updateOfferStatusForCourse` dejan activar una oferta vencida; solo `updateOffer` lo impide (`validateReactivation`) | Ninguna ruta reactiva una oferta vencida. Agregar la validación queda fuera de #1052; hasta entonces no se avisa |
 | Reenvío del relay | Si un envío falla, el relay corta la pasada y esa fila frena a las siguientes (`services/impl/OutboxRelayServiceImpl.java`) | Sin cambio en este contrato; lo trata [[S2-05 - Robustez de la compra]] |

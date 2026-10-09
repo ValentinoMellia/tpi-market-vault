@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-05
+actualizado: 2026-10-09
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -27,7 +27,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `unitsSold` | Unidades vendidas; hoy nunca se incrementa, lo que puede producir sobreventa al editar el stock; la decisión es incrementarlo al confirmar la orden ([[DEC-013 - Reglas de la tienda]]) |
 
 ## Ciclo de vida / estados
-Se publica activa, puede editarse, activarse o desactivarse y vencer por `publicationExpiresAt`. La vitrina muestra solo las activas y no vencidas.
+Se publica activa, puede editarse, activarse o desactivarse y vencer por `publicationExpiresAt`. La vitrina muestra solo las activas y no vencidas. Desde el PR #134 de `tpi-market` (`8b23425e`, T04 de [[S2-05 - Robustez de la compra]]), el detalle de una oferta vencida le responde 409 `catalog-offer-expired` al alumno, aunque siga con `active = true`; `ADMIN`, `GESTOR`, `MS` y el profesor asignado la siguen viendo (`services/impl/StorefrontCatalogServiceImpl.java`, `validateStudentAccess`).
 
 ## Reglas de negocio
 - El precio se congela al comprar en `appliedPrice` de la [[Orden de compra]].
@@ -43,7 +43,6 @@ Decididas en [[DEC-013 - Reglas de la tienda]] (origen: [[Q-015 - Reglas de la t
 - T4: las ofertas no se borran, solo se desactivan (se conserva el historial de compras).
 - T5: al publicar se valida plantilla existente y activa, tipo coincidente y multiplicador en rango.
 - T6 (modificada): `publicationExpiresAt` puede extenderse. En el snapshot `7528610` los DTO de entrada no lo aceptaban. El contrato propuesto de US-5207 conserva TTL o fecha explícita excluyentes; `PATCH` omitido/`null` no cambia la fecha, permite la primera futura y aplica extensión estrictamente posterior provisional (ratificación pendiente). Véase [[DEC-013 - Reglas de la tienda]].
-- Hoy el detalle de una oferta vencida pero activa responde 200 (según la documentación del equipo, sin verificar).
 - El stock opcional está decidido en [[DEC-002 - Stock opcional por oferta]].
 
 ## Dónde vive en el código
