@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-05
+actualizado: 2026-10-09
 tags: [mercado, decision, tienda, stock, oferta]
 ---
 # DEC-013 - Reglas de la tienda
@@ -34,7 +34,7 @@ La posibilidad de extender sigue siendo la decisión confirmada del 2026-10-01. 
 
 **Ratificación pendiente:** la restricción de extensión estrictamente posterior es el criterio **provisional de T06** de [[S2-03 - Reglas de la tienda]], no una nueva decisión ratificada por el equipo. Se conserva ese alcance hasta confirmación explícita.
 
-**Estado:** implementación propuesta en [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (rama `feature/us-5207-store-rules`, fuente original `669ba7d0`), pendiente de aprobación e integración en `develop`. La rama del PR incorpora `origin/develop@e50f3b5c` y ajustes de revisión en `e86290d7`, enviado al remoto; sigue pendiente de aprobación e integración en `develop`. Rutas de contraste en `tpi-market`: `src/main/java/ar/edu/utn/frc/tup/p4/dtos/manage/CatalogOfferPublishDto.java`, `dtos/manage/CatalogOfferUpdateDto.java` y `services/impl/CourseCatalogManageServiceImpl.java` bajo el mismo paquete. [[Estado actual del código]] registra el seguimiento separado del snapshot base.
+**Estado:** implementación propuesta en [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (rama `feature/us-5207-store-rules`, fuente original `669ba7d0`), pendiente de aprobación e integración en `develop`. La rama del PR incorpora `origin/develop@e50f3b5c` y ajustes de revisión en `e86290d7`, enviado al remoto; sigue pendiente de aprobación e integración en `develop`. Al 2026-10-09 la rama del PR avanzó a `fc1c9b89` (trae `develop@6926af1d`); contra ese commit solo se reverificaron la validación del multiplicador y el trato de las ofertas con `deleted=true` (ver [[S2-03 - Reglas de la tienda]]). Rutas de contraste en `tpi-market`: `src/main/java/ar/edu/utn/frc/tup/p4/dtos/manage/CatalogOfferPublishDto.java`, `dtos/manage/CatalogOfferUpdateDto.java` y `services/impl/CourseCatalogManageServiceImpl.java` bajo el mismo paquete. [[Estado actual del código]] registra el seguimiento separado del snapshot base.
 
 ## Alternativas descartadas
 - **T6 original (no extender; publicar una oferta nueva)**: el usuario prefirió poder extender la publicación de la misma oferta.
@@ -47,7 +47,7 @@ La posibilidad de extender sigue siendo la decisión confirmada del 2026-10-01. 
   - Completar las validaciones de plantilla activa, tipo y rango del multiplicador al publicar (`validation/ValidOfferConfigurationValidator.java`).
   - Quitar o dejar de usar el borrado lógico (`deleted`) de la oferta; solo se usa `active`.
 - **Frontend**: confirmar que `courseId` es el identificador de cohorte ([[Q-009 - Endpoints y prefijos]]).
-- Los defectos relacionados sin verificar (no liberar stock en `HOLD_NOT_SETTLED`, órdenes en `CREATED` sin reconciliar) siguen en [[Estado actual del código]] (gaps 19 y 20).
+- Los defectos relacionados sin verificar (no liberar stock en `HOLD_NOT_SETTLED`, órdenes en `CREATED` sin reconciliar) siguen en [[Estado actual del código]] (gaps 19 y 20). Seguimiento del 2026-10-08 (no modifica la decisión): el gap 19 resultó no ser un defecto. La unidad de una compra `HOLD_NOT_SETTLED` queda retenida a propósito y, con la regla T1, tampoco cuenta como vendida ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]).
 
 ## Notas afectadas
 [[Oferta de catálogo]], [[Vencimiento de items]], [[Estado actual del código]], [[Roadmap de trabajo]], [[Taller de decisiones]], [[Épica 090 - Catálogo por plantillas]], [[Decisiones - Índice]], [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]].

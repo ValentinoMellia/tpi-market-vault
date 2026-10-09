@@ -36,7 +36,7 @@ D2: `ITEM_CONFIRMED` a `ITEM_CREDITED` reemplaza a los mensajes `ITEM_PROVISION_
 3. **C: acreditar y luego confirmar (taller).** Mantiene el principio de no cobrar antes de entregar con los mensajes reales de accounting; exige que accounting publique fallas y que Mercado tolere el vencimiento del hold.
 
 ## Recomendación
-La recomendación del taller es el orden C, pendiente de decisión del equipo y de acuerdo con Accounting. Sea cual sea el orden, hay que acordar la compensación del riesgo que deja: ninguna opción es segura sin ella. Decidir esto es el primer paso del trabajo P0 en [[Roadmap de trabajo]].
+La recomendación del taller es el orden C, pendiente de decisión del equipo y de acuerdo con Accounting. Desarrollo completo (flujo, fallos, compensaciones y pedidos a Accounting) en [[Propuesta C de la saga de compra]]. Sea cual sea el orden, hay que acordar la compensación del riesgo que deja: ninguna opción es segura sin ella. Decidir esto es el primer paso del trabajo P0 en [[Roadmap de trabajo]].
 
 ## Estado tras el mensaje de accounting del 2026-10-01
 El mensaje de accounting no menciona el orden de la saga ni `ITEM_CONFIRMED` e `ITEM_CREDITED`: sigue siendo la conversación principal pendiente. Ver [[Integración con Accounting]].

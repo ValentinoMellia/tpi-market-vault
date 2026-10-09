@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@76a9bbd
-actualizado: 2026-10-04
+actualizado: 2026-10-08
 tags: [mercado, decision, seguridad, roles, gateway]
 ---
 # DEC-017 - Servicios con MS en las rutas de estado de oferta
@@ -33,7 +33,8 @@ Tomada por Patricio Fernandez el 2026-10-03 al implementar la T02 (opción 1 de 
 - `PATCH /offers/{id}/status` pasa de 403 a 200 para un servicio con `MS`; la ruta del curso deja de ser un bypass y aplica una regla explícita.
 - En Swagger, el `PATCH` por curso deja de listar `X-User-Id` y `X-User-Roles` como parámetros (el gateway las sigue enviando).
 - `CourseCatalogManageService` queda con firmas mixtas: las dos de estado reciben `Set<UserRole>` y el resto la cabecera. Alinear el resto queda para cuando haga falta.
-- Quedan para la T03 y la T04 de [[S2-04 - Seguridad]] los GET de detalle de la vitrina, que permiten `MS` pero todavía evalúan al servicio como el alumno por defecto `usr-student-001`.
+- Quedan para la T03 y la T04 de [[S2-04 - Seguridad]] los GET de detalle de la vitrina, que permiten `MS` pero todavía evalúan al servicio como el alumno por defecto `usr-student-001`. Seguimiento del 2026-10-04: con el PR #93 de `tpi-market` (T03, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)) un servicio sin `X-User-Id` recibe 400 `missing-header` en esos GET y, con la cabecera vacía, 403; si deben leer el principal queda para la T04.
+- **Seguimiento del 2026-10-07, T05** (extiende la decisión al resto de las rutas): el PR #124 de `tpi-market` (T05 #6807 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-07 (`c195d386`)) aplica la misma fuente de identidad a todos los chequeos de rol: vitrina (detalle y listado), gestión (listar, publicar, editar) y los dos resúmenes reciben el `Authentication` y deciden con `UserRole.fromAuthorities`. `CourseCatalogManageService` deja de tener firmas mixtas. Un servicio con `MS` es administrativo también en la vitrina y puede leer el resumen de vitrinas. El `X-User-Id` sigue llegando por cabecera, no del principal (contrato de la T03).
 - Sigue abierta [[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]], que esta decisión no cubre.
 
 ## Notas afectadas

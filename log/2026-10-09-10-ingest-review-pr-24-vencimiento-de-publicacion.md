@@ -1,0 +1,4 @@
+## [2026-10-09] ingest | Correcciones de las reviews de la PR 24 (US-5207)
+- Se trajo `main` y se resolvieron los conflictos de [[S2-03 - Reglas de la tienda]], [[DEC-013 - Reglas de la tienda]], [[Estado actual del código]] (queda el gap 23 de `main`, ya resuelto, y el gap 24 de esta PR) y [[Roadmap de trabajo]].
+- Reverificado contra la rama del PR #113 de `tpi-market` (`fc1c9b89`): el rango del multiplicador lo valida `@DecimalMin("1.10")` en `OfferConfigurationRequestDto`, y no `ValidOfferConfigurationValidator`, que solo comprueba presencia. Las ofertas con `deleted=true` se tratan como inactivas y no se pueden editar ni reactivar (`isEffectivelyActive`, `requireMutable`, 409). [[DEC-013 - Reglas de la tienda]] y [[Estado actual del código]] registran el commit nuevo de la rama.
+- La entrada de log del ingest pasa a `2026-10-05-04`, porque `-01` a `-03` ya existían en `main`.
