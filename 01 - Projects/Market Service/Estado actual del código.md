@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -135,7 +135,7 @@ Verificado: las respuestas duplicadas están cubiertas en dos capas, deduplicaci
 
 Reportados por la documentación del equipo, sin verificar contra el código:
 
-18. El detalle de una oferta vencida pero activa responde 200 (origen: [[Q-015 - Reglas de la tienda]]).
+18. **Detalle de una oferta vencida pero activa: resuelto en `develop` desde el PR #134.** Hasta ese PR respondía 200 (origen: [[Q-015 - Reglas de la tienda]]): `validateStudentAccess` en `services/impl/StorefrontCatalogServiceImpl.java` miraba `active` pero no `publicationExpiresAt`, y el vencimiento nunca cambia `active`. Lo resolvió el PR #134 (T04 de [[S2-05 - Robustez de la compra]], mergeado en `develop` el 2026-10-08 (`8b23425e`, mergeado por tommikimmel)): desde `develop@8b23425e` el detalle le responde 409 `catalog-offer-expired` al alumno en `GET /api/market/courses/{courseId}/catalog/{itemId}` y en `GET /api/market/offers/{id}`. `ADMIN`, `GESTOR`, `MS` y el profesor asignado la siguen viendo.
 19. Una cancelación por `HOLD_NOT_SETTLED` no libera el stock. Verificado el 2026-10-06 contra `f7457882`: es a propósito (US-138 T05, decisión CD12 de su diseño), porque el ítem ya se entregó; `cancelUnsettled` en `services/impl/OrderConfirmationServiceImpl.java` solo deja un `ERROR` para revisión manual. Decidido que queda así: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (origen: [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]]). No es un defecto.
 20. Una orden que queda en `CREATED` porque falló `requestHold` nunca se reconcilia.
 21. `KafkaSagaIntegrationTest`: el PR #89 lo migró a KRaft y declara los 9 casos en verde en una corrida local; sin Docker se omite y no hay CI sobre `develop`, así que no está verificado aquí (ver la sección Pruebas).

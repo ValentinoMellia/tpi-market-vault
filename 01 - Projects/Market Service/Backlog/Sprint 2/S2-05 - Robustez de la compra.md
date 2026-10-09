@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5219"
@@ -29,7 +29,7 @@ horas: 26
 ## Notas / Observaciones
 
 - [ ] Reglas de negocio: una orden cancelada por HOLD_NOT_SETTLED **retiene** su unidad: el ítem ya se entregó, así que no vuelve al stock ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]; `cancelUnsettled` en OrderConfirmationServiceImpl). La clave de idempotencia es única por estudiante, no global ([[Idempotencia]]).
-- [ ] Validaciones: el detalle de una oferta vencida pero activa debe responder 409 catalog-offer-expired, no 200 ([[Q-015 - Reglas de la tienda]], reportado sin verificar). Las excepciones no previstas deben mapearse a su estado HTTP correcto en GlobalExceptionHandler; hoy algunas caen en unexpected-error (500). Se inventarían en la tarea 3.
+- [ ] Validaciones: el detalle de una oferta vencida pero activa debe responder 409 catalog-offer-expired, no 200 ([[Q-015 - Reglas de la tienda]]; verificado y resuelto por la T04, PR #134 de `tpi-market`). Las excepciones no previstas deben mapearse a su estado HTTP correcto en GlobalExceptionHandler; hoy algunas caen en unexpected-error (500). Se inventarían en la tarea 3.
 - [ ] Datos obligatorios: idempotencyKey en el cuerpo de POST /api/market/courses/{courseId}/orders; studentId desde X-User-Id.
 - [ ] Performance (tiempos, volumen, límites): el índice único pasa de uk_orders_idempotency_key (solo clave) a clave más estudiante; sin impacto de volumen esperado.
 - [ ] Seguridad (roles, permisos, datos sensibles): evitar que un estudiante reutilice la clave de otro para obtener su orden: con clave por estudiante, la misma clave de dos estudiantes crea dos órdenes independientes.
@@ -126,14 +126,14 @@ Relación: [[Revisión del Sprint 2 en Taiga]] (origen de las tareas T06 y T07),
 
 ## Estado en Taiga
 
-Al 2026-10-06:
+Al 2026-10-09:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5220 T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED | New | Redefinida el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (antes: "Liberar el stock al cancelar por HOLD_NOT_SETTLED") |
 | #5221 T02 - Guardar el vencimiento del hold en UTC | Closed | PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel), con las correcciones de la revisión de Valentino Mellia |
 | #5222 T03 - Mapear a 4xx las excepciones que hoy responden 500 | New | — |
-| #5223 T04 - Responder 409 ante una oferta vencida | New | — |
+| #5223 T04 - Responder 409 ante una oferta vencida | Ready for test | PR #134 de `tpi-market`, mergeado en `develop` el 2026-10-08 (`8b23425e`, aprobado por 412102-PRESSET y tommikimmel, mergeado por tommikimmel), con las correcciones de la revisión de 412102-PRESSET |
 | #5224 T05 - Hacer la clave de idempotencia única por estudiante | New | — |
 | #5344 T06 - Outbox con reintentos acotados y estado de fallo | New | Asignada a Valentino Mellia |
 | #5345 T07 - Contador de avisos pendientes del outbox | New | Asignada a Valentino Mellia |
@@ -148,6 +148,17 @@ Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-0
 - **Revisión del PR #118 (Valentino Mellia, 2026-10-06).** Aprobado sin bloqueantes; tras las correcciones lo aprobó y mergeó tommikimmel. Se sumó un Javadoc en `configs/ClockConfig.java`: el `Clock` tiene que quedar en la zona del sistema, porque `updatedAt` se escribe en esa zona y el corte de las filas viejas se compara contra él. Se dejó escrito que, con la JVM en ART, las filas previas al deploy se reconcilian 3 h antes de vencer (impacto bajo: se consulta a Accounting antes de vencer y un hold dura 5 min). El CA2 se reformuló para decir cómo se prueba de verdad.
 - **Fuera de alcance.** `createdAt`, `updatedAt` y el resto de los timestamps siguen en la zona del servidor; pasarlos a UTC sería otra tarea. No hay backfill: las filas guardadas antes del deploy quedan con su valor; en Docker (UTC) es el mismo.
 - **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pedía devolverlo. Resuelto el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]: la unidad queda retenida y la T01 pasa a fijarlo con una prueba.
+
+Lo que dejó la T04 (PR #134 de `tpi-market`, mergeado en `develop` el 2026-10-08 (`8b23425e`)). Verificado contra `develop@8b23425e`:
+
+- **El defecto existía.** [[Q-015 - Reglas de la tienda]] lo daba por "reportado, sin verificar". Las dos rutas de detalle (`GET /api/market/courses/{courseId}/catalog/{itemId}` y `GET /api/market/offers/{id}`) pasan por `validateStudentAccess` en `services/impl/StorefrontCatalogServiceImpl.java`, que miraba `active` pero no `publicationExpiresAt`: como el vencimiento nunca cambia `active`, un alumno recibía 200 por una oferta vencida. La vitrina ya la ocultaba (la consulta filtra `publicationExpiresAt > now`) y la compra ya respondía 409.
+- **Cómo queda.** Después de los chequeos de matrícula y de `active`, `validateStudentAccess` lanza `CatalogOfferExpiredException` si `isExpiredAt(LocalDateTime.now(clock))`: 409 `catalog-offer-expired`, el mismo error y el mismo mensaje que la compra. La oferta está vencida en el instante exacto de `publicationExpiresAt`, igual que en la vitrina. Si además está inactiva, responde primero el 404 `offer-not-available`, en el mismo orden que la compra. Los dos endpoints de detalle documentan el 409 en el OpenAPI y `docs/api_doc/swagger.json` se regeneró con `mvn verify`.
+- **Solo para el alumno.** `ADMIN`, `GESTOR`, `MS` y el profesor asignado al curso siguen recibiendo 200: ya veían las ofertas inactivas, y la vista de gestión lista las vencidas a propósito. Decisión de Patricio Fernandez en la exploración, escrita en el requisito "Student offer detail" de la spec `catalog-offer-publication-expiry`.
+- **Pruebas.** `StorefrontCatalogServiceTest` (vencida en las dos rutas, instante exacto, 1 ns antes, inactiva y vencida, `ADMIN`/`GESTOR`/`MS`, profesor asignado, `STUDENT` + `PROFESSOR`) y el caso g) de `acceptance/CatalogOfferPublicationExpiryAcceptanceTest`: la misma oferta, al vencer, deja de aparecer en la vitrina y su detalle responde 409 `problem+json` en las dos rutas, mientras el administrador y el profesor asignado reciben 200.
+- **Revisión del PR #134 (412102-PRESSET, 2026-10-08).** Sin bloqueantes. Se sumaron casos de prueba (`never().save`, los roles que ven la oferta, el profesor por HTTP). Lo demás se contestó: `active` es `nullable = false`; la compra también valida la matrícula primero (`PurchaseValidationService.validateStudentCanPurchase`); el mensaje repetido con la compra queda así para no tocar `PurchaseOrderServiceImpl`, que modifica el PR #113.
+- **Para el frontend.** La página de detalle del front (`OfferDetailService`, `GET /market/offers/{id}`) distingue 404 y 403; ante el 409 muestra el error genérico con "Reintentar". No se rompe, pero no dice que la oferta venció: lo cubre el CA5 de [[S2-08 - Frontend de Mercado]].
+- **Fuera de alcance.** `StorefrontOfferDto.status` sigue diciendo `ACTIVE` para una oferta vencida que lee un rol administrativo; sin tarea.
+- **Para el PR #113.** Ese PR (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) cambia la línea de `active` que queda justo arriba del chequeo nuevo: al traer `develop`, se conserva su `isEffectivelyActive()` con el chequeo de vencimiento debajo, y `swagger.json` se regenera con `mvn verify` en vez de resolverlo a mano.
 
 ---
 
@@ -193,6 +204,8 @@ Estimación: 5 h
 - Hecho cuando: el detalle de una oferta vencida responde 409 `catalog-offer-expired` y la vitrina no la lista
 
 Estimación: 4 h
+
+**Avance (2026-10-09):** PR #134 de `tpi-market`, mergeado en `develop` el 2026-10-08 (`8b23425e`); #5223 en *Ready for test*. El detalle de una oferta vencida y activa responde 409 `catalog-offer-expired` al alumno y la vitrina no la lista (ver «Estado en Taiga»).
 
 ### T05 - Hacer la clave de idempotencia única por estudiante
 
