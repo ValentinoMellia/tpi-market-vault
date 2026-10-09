@@ -1,13 +1,13 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@2485d8cf
+verificado_contra: codigo@5de30854
 actualizado: 2026-10-09
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
 
-> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
+> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido, y el PR #115 (US-5193 T08, `5de30854`) fijó `releaseReason` como enum tipado con los 3 valores contractuales de Accounting. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
 
 ## Regla de plataforma
 
@@ -42,7 +42,7 @@ Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHo
 
 Con esto los comandos propios `HOLD_CREATE_REQUESTED`, `HOLD_RELEASE_REQUESTED` y `HOLD_CONFIRM_REQUESTED` ya no lanzan `MalformedEventException` ni llegan a `accounting.events.DLT`. Verificado en `origin/develop` (`74e671ef`) y cubierto por `AccountingHoldKafkaListenerTest` y por `KafkaSagaIntegrationTest` (broker real con Testcontainers: ningún comando propio en el DLT). Antes de `a4e6ac76` el filtro corría después del parseo y esos comandos sí iban al DLT; ese era el gap 23 de [[Estado actual del código]], hoy cerrado.
 
-Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}`; `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
+Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}` (donde `releaseReason` es el enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`; PR #115, `5de30854`); `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
 
 Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
 

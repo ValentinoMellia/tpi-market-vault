@@ -1,7 +1,7 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@f7457882
+verificado_contra: codigo@5de30854
 actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
@@ -40,13 +40,13 @@ horas: 45
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: todo HOLD_CREATE_REQUESTED publicado en accounting.events lleva payload.orderId con formato UUID canónico, igual al orderRef persistido de la orden, y payload.orderType = DIRECT_PURCHASE.
-- [ ] **CA2**: el 100 % de los mensajes publicados por Mercado (holds, ITEM_CONFIRMED, PURCHASE_CONFIRMED) tienen producer = market-service; no queda ninguna aparición de tema-09-mercado en el código.
-- [ ] **CA3**: con accounting.events configurado para comandos y respuestas, el listener descarta los comandos propios (HOLD_CREATE_REQUESTED, HOLD_INCREASE_REQUESTED, HOLD_CONFIRM_REQUESTED, HOLD_RELEASE_REQUESTED) con 0 mensajes enviados a DLT y 0 excepciones.
+- [x] **CA1**: todo HOLD_CREATE_REQUESTED publicado en accounting.events lleva payload.orderId con formato UUID canónico, igual al orderRef persistido de la orden, y payload.orderType = DIRECT_PURCHASE.
+- [x] **CA2**: el 100 % de los mensajes publicados por Mercado (holds, ITEM_CONFIRMED, PURCHASE_CONFIRMED) tienen producer = market-service; no queda ninguna aparición de tema-09-mercado en el código.
+- [x] **CA3**: con accounting.events configurado para comandos y respuestas, el listener descarta los comandos propios (HOLD_CREATE_REQUESTED, HOLD_INCREASE_REQUESTED, HOLD_CONFIRM_REQUESTED, HOLD_RELEASE_REQUESTED) con 0 mensajes enviados a DLT y 0 excepciones.
 - [x] **CA4**: ante HOLD_REJECTED con cada uno de los 10 motivos del contrato (ACCOUNT_NOT_FOUND, ACCOUNT_INACTIVE, HOLD_ALREADY_EXISTS, HOLD_NOT_FOUND, INVALID_HOLD_STATE, INSUFFICIENT_BALANCE, INVALID_AMOUNT, INVALID_ORDER_TYPE, INVALID_TTL, MALFORMED_COMMAND), solo INSUFFICIENT_BALANCE termina en REJECTED_INSUFFICIENT_FUNDS; los otros nueve quedan registrados con su motivo propio.
 - [ ] **CA5**: con el flag de ITEM_CONFIRMED activo, una compra de punta a punta publica ITEM_CONFIRMED en market.events y procesa ITEM_CREDITED con sourceReferenceId igual al orderRef, con una prueba automatizada en verde.
 
-- [ ] **Extras (opcional)**: HOLD_RELEASE_REQUESTED usa un enum con los tres motivos y las pruebas cubren PURCHASE_NOT_COMPLETED en cancelación y vencimiento.
+- [x] **Extras (opcional)**: HOLD_RELEASE_REQUESTED usa un enum con los tres motivos y las pruebas cubren PURCHASE_NOT_COMPLETED en cancelación y vencimiento.
 
 ---
 
@@ -208,5 +208,6 @@ Estimación: 6 h
 - La compra usa `PURCHASE_NOT_COMPLETED` en cancelación y en vencimiento
 - Pruebas de ambos caminos
 - Hecho cuando: `HOLD_RELEASE_REQUESTED` lleva uno de los tres motivos en cancelación y en vencimiento
+- **Estado:** Resuelta en `develop` (PR #115, commit `174524be`, merge `5de30854`). `BankHoldReleaseReason` restringido a los 3 valores canónicos del contrato (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) con `fromWireCode` retornando `Optional`; `BankHoldReleaseRequestDto` ahora requiere enum tipado no nulo en su constructor compacto; cubierto por `BankHoldReleaseReasonTest`, `BankHoldReleaseRequestDtoTest`, `AccountingContractTest`, `MockBankHoldClientTest`, `OutboxBankHoldClientTest`, `OrderItemProvisionServiceImplTest` y `OrderHoldServiceImplTest`.
 
 Estimación: 5 h

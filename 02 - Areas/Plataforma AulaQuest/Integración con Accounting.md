@@ -1,13 +1,13 @@
 ---
 tipo: integracion
 estado: en-disputa
-verificado_contra: codigo@f7457882
+verificado_contra: codigo@5de30854
 actualizado: 2026-10-09
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
 
-> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. El código de Mercado y el de accounting hoy **no hablan el mismo contrato**: Mercado decidió adoptar el de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y lo implementa por partes: en `develop` los tópicos y el `orderId` UUID de holds ya coinciden (PR #88); los comandos propios y el productor `market-service` se unificaron en el PR #102 (`2485d8cf`), y el mapeo de los 10 motivos de rechazo de Accounting se resolvió en el PR #110 (`f7457882`). Faltan los mensajes de ítems (`ITEM_CONFIRMED` e `ITEM_CREDITED`) y la consulta de hold. Lo único en disputa es el orden de la compra: [[Q-008 - Orden de la saga de compra]].
+> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. El código de Mercado y el de accounting hoy **no hablan el mismo contrato**: Mercado decidió adoptar el de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y lo implementa por partes: en `develop` los tópicos y el `orderId` UUID de holds ya coinciden (PR #88); los comandos propios y el productor `market-service` se unificaron en el PR #102 (`2485d8cf`), el mapeo de los 10 motivos de rechazo de Accounting se resolvió en el PR #110 (`f7457882`), y el motivo de liberación tipado con los 3 valores canónicos se cerró en el PR #115 (`5de30854`, US-5193 T08). Faltan los mensajes de ítems (`ITEM_CONFIRMED` e `ITEM_CREDITED`) y la consulta de hold. Lo único en disputa es el orden de la compra: [[Q-008 - Orden de la saga de compra]].
 
 ## Decisiones que gobiernan esta integración
 
@@ -53,7 +53,7 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 | `HOLD_CREATE_REQUESTED` | `studentId`, `courseId`, `orderId` (UUID canónico), `orderType` (`DIRECT_PURCHASE` o `AUCTION_BID`), `amount`, `ttlSeconds` |
 | `HOLD_INCREASE_REQUESTED` | `holdId`, `newTotalAmount` |
 | `HOLD_CONFIRM_REQUESTED` | `holdId` |
-| `HOLD_RELEASE_REQUESTED` | `holdId`, `releaseReason` (`AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`) |
+| `HOLD_RELEASE_REQUESTED` | `holdId`, `releaseReason` (enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`; PR #115, `5de30854`) |
 
 - `ttlSeconds` se ignora para `DIRECT_PURCHASE` (accounting usa 300 s fijos) y es obligatorio y mayor que 0 para `AUCTION_BID`.
 - Respuestas: `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED {correlationId, holdId, reason, message}` y `HOLD_EXPIRED` (declarado; el documento del equipo discute si el planificador de vencimiento existe).
@@ -126,7 +126,7 @@ Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e í
 | Consulta de hold | necesaria para reconciliar | en implementación este sprint (ver abajo) |
 | Catálogo | plantillas `tpl-*` | solo `ITEM-PLACEHOLDER-1` a `3` |
 
-Los motivos de rechazo y de release **no** figuran como diferencia: Mercado ya traduce `OrderRejectionReason.INSUFFICIENT_FUNDS` al código de cable `INSUFFICIENT_BALANCE` (y `LIFE_CAP_REACHED` a `MAX_LIVES_REACHED`) en `src/main/java/ar/edu/utn/frc/tup/p4/models/enums/OrderRejectionReason.java:33`, y siempre libera con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:62`). Lo que sí falta es el manejo de los demás motivos de rechazo (ver abajo).
+Los motivos de rechazo y de release **no** figuran como diferencia: Mercado mapea los 10 motivos de rechazo contractuales de Accounting (`OrderRejectionReason`, PR #110, US-5193 T07, `f7457882`), y restringe `BankHoldReleaseReason` estrictamente a los 3 valores canónicos del contrato (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) con DTO tipado (`BankHoldReleaseRequestDto`, PR #115, US-5193 T08, `5de30854`), liberando siempre con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:63`).
 
 El plan de alineación está en [[Roadmap de trabajo]] (P0).
 
@@ -171,7 +171,7 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 - **Acuerdos de compra de vidas del 2026-10-04**: validación preventiva del tope, `orderId` unificado y `LIFE_PURCHASE_REJECTED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). Implementados en Mercado; falta que Accounting publique `LIFE_PURCHASE_REJECTED` y confirmar cómo se emite el token de servicio.
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
-- Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), y el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07). Faltan el `orderId` UUID en `ITEM_CONFIRMED` (T05/T06) y la consulta de hold ([[Roadmap de trabajo]]).
+- Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07), y el motivo de liberación como enum tipado se completó en el PR #115 (`5de30854`, US-5193 T08). Faltan el `orderId` UUID en `ITEM_CONFIRMED` (T05/T06) y la consulta de hold ([[Roadmap de trabajo]]).
 - Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
 
 ## Relacionado
