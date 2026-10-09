@@ -5,5 +5,6 @@
 - [[S3-01 - Subastas, lanzar y ver las abiertas]]: criterios, notas y tareas ajustados al diseño (modos puja visible y ciega, incremento y fase final opcionales, aviso de stock, estados completos en el modelo y lanzar directo a `OPEN`). Los cambios en Taiga están pendientes.
 - [[Q-024 - Desempate de las subastas]]: nueva pregunta abierta (dado de DEC-014 contra oferta más antigua y ranking). No se decide ahora; `Subasta` queda `en-disputa` por este punto.
 - Revisión total del 2026-10-09 contra lo conversado: se corrigió el reintento de la liquidación (repite solo el paso que falló), la afirmación sobre DEC-013 (no hay tope; la subasta no toca `unitsSold`) y la atribución de dos decisiones que se habían escrito como "del equipo".
+- [[Carga en Taiga - Sprints 2 y 3]]: la sección del Sprint 3 refleja el diseño (S3-01 ya está en el Sprint 2, historia de borrador y programación, reglas de ofertas, desempate abierto, reintentos de la liquidación).
 - Verificado contra `tpi-roadmap` (rama `develop`) y Taiga el 2026-10-09: el ranking no admite consultas de servicios y las posiciones pueden compartirse.
 - Preguntas para otros equipos: borrador en el Inbox (Accounting, Cursos y G10).
