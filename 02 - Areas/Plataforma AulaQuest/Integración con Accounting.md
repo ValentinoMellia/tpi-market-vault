@@ -1,13 +1,15 @@
 ---
 tipo: integracion
 estado: en-disputa
-verificado_contra: codigo@e456c55f
+verificado_contra: accounting@develop-2026-10-01
 actualizado: 2026-10-09
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
 
-> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. El código de Mercado y el de accounting hoy **no hablan el mismo contrato**: Mercado decidió adoptar el de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y lo implementa por partes: en `develop` los tópicos y el `orderId` UUID de holds ya coinciden (PR #88); los comandos propios y el productor `market-service` se unificaron en el PR #102 (`2485d8cf`), el mapeo de los 10 motivos de rechazo de Accounting se resolvió en el PR #110 (`f7457882`), el motivo de liberación tipado se cerró en el PR #115 (`5de30854`), y la consulta real de holds (`HttpBankHoldQueryClient`) junto con la resolución de `HOLD_RELEASED` por `holdId` se integraron en el PR #116 (`e456c55f`, issue #114). Faltan los mensajes de ítems (`ITEM_CONFIRMED` e `ITEM_CREDITED`). Lo único en disputa es el orden de la compra: [[Q-008 - Orden de la saga de compra]].
+> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. Mercado adoptó el contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]): en `develop` ya coinciden los holds, los tópicos, el productor, los motivos de rechazo y de liberación, y la consulta del hold (PR #88, #102, #110, #115 y #116). Falta alinear la entrega de ítems: Mercado todavía usa `ITEM_PROVISION_*` en `inventory.items.*` y no `ITEM_CONFIRMED` e `ITEM_CREDITED`. El orden de la compra sigue en disputa: [[Q-008 - Orden de la saga de compra]].
+
+Actualización (2026-10-09): lo que esta nota dice del código de Mercado se verificó contra `e456c55f` (PR #102, #110, #115 y #116). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01: no se reverificó.
 
 ## Decisiones que gobiernan esta integración
 

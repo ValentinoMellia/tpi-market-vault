@@ -1,13 +1,15 @@
 ---
 tipo: entidad
 estado: en-disputa
-verificado_contra: codigo@e456c55f
+verificado_contra: accounting@develop-2026-10-01
 actualizado: 2026-10-09
 tags: [mercado, dominio, hold, accounting]
 ---
 # Hold de monedas
 
 > Retención temporal de monedas del estudiante que hace Accounting (ex Banco) mientras se completa la compra. Se confirma (débito) o se libera (devolución). Mercado lo pide pero no lo administra; el orden de la compra sigue en disputa ([[Q-008 - Orden de la saga de compra]]).
+
+Actualización (2026-10-09): lo que esta nota dice del código de Mercado se verificó contra `e456c55f` (PR #102, #110, #115 y #116). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01: no se reverificó.
 
 ## Qué representa
 Un compromiso de Accounting de reservar el monto de la compra. Mercado guarda su `holdId` y su vencimiento en la [[Orden de compra]]. Concepto general: [[Hold y escrow]].
