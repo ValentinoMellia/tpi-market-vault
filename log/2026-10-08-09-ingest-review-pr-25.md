@@ -1,0 +1,2 @@
+## [2026-10-08] ingest | Revisión del PR #25 (Q-024)
+- Se aplicó la revisión de Patinio. En [[S2-04 - Seguridad]], el bloque de la T04 cita el PR #120 de `tpi-market` en lugar de "sin PR todavía", y lo que pasa a la T05 queda solo con la asignación de ADMIN: lo de GESTOR espera a [[Q-024 - Qué es el rol GESTOR]]. La entrada de log de la Q-024 se renumeró a `2026-10-06-11`, porque el `05` ya lo usa el PR #21.
