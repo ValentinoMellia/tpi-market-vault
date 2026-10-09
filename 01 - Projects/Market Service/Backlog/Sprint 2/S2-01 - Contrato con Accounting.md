@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+verificado_contra: codigo@5de30854
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5193"
@@ -40,12 +40,13 @@ horas: 45
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: todo HOLD_CREATE_REQUESTED publicado en accounting.events lleva payload.orderId con formato UUID canónico, igual al orderRef persistido de la orden, y payload.orderType = DIRECT_PURCHASE.
-- [ ] **CA2**: el 100 % de los mensajes publicados por Mercado (holds, ITEM_CONFIRMED, PURCHASE_CONFIRMED) tienen producer = market-service; no queda ninguna aparición de tema-09-mercado en el código.
-- [ ] **CA3**: con accounting.events configurado para comandos y respuestas, el listener descarta los comandos propios (HOLD_CREATE_REQUESTED, HOLD_INCREASE_REQUESTED, HOLD_CONFIRM_REQUESTED, HOLD_RELEASE_REQUESTED) con 0 mensajes enviados a DLT y 0 excepciones.
-- [ ] **CA4**: ante HOLD_REJECTED con cada uno de los 10 motivos del contrato (ACCOUNT_NOT_FOUND, ACCOUNT_INACTIVE, HOLD_ALREADY_EXISTS, HOLD_NOT_FOUND, INVALID_HOLD_STATE, INSUFFICIENT_BALANCE, INVALID_AMOUNT, INVALID_ORDER_TYPE, INVALID_TTL, MALFORMED_COMMAND), solo INSUFFICIENT_BALANCE termina en REJECTED_INSUFFICIENT_FUNDS; los otros nueve quedan registrados con su motivo propio.
+- [x] **CA1**: todo HOLD_CREATE_REQUESTED publicado en accounting.events lleva payload.orderId con formato UUID canónico, igual al orderRef persistido de la orden, y payload.orderType = DIRECT_PURCHASE.
+- [x] **CA2**: el 100 % de los mensajes publicados por Mercado (holds, ITEM_CONFIRMED, PURCHASE_CONFIRMED) tienen producer = market-service; no queda ninguna aparición de tema-09-mercado en el código.
+- [x] **CA3**: con accounting.events configurado para comandos y respuestas, el listener descarta los comandos propios (HOLD_CREATE_REQUESTED, HOLD_INCREASE_REQUESTED, HOLD_CONFIRM_REQUESTED, HOLD_RELEASE_REQUESTED) con 0 mensajes enviados a DLT y 0 excepciones.
+- [x] **CA4**: ante HOLD_REJECTED con cada uno de los 10 motivos del contrato (ACCOUNT_NOT_FOUND, ACCOUNT_INACTIVE, HOLD_ALREADY_EXISTS, HOLD_NOT_FOUND, INVALID_HOLD_STATE, INSUFFICIENT_BALANCE, INVALID_AMOUNT, INVALID_ORDER_TYPE, INVALID_TTL, MALFORMED_COMMAND), solo INSUFFICIENT_BALANCE termina en REJECTED_INSUFFICIENT_FUNDS; los otros nueve quedan registrados con su motivo propio.
 - [ ] **CA5**: con el flag de ITEM_CONFIRMED activo, una compra de punta a punta publica ITEM_CONFIRMED en market.events y procesa ITEM_CREDITED con sourceReferenceId igual al orderRef, con una prueba automatizada en verde.
-- [ ] **Extras (opcional)**: HOLD_RELEASE_REQUESTED usa un enum con los tres motivos y las pruebas cubren PURCHASE_NOT_COMPLETED en cancelación y vencimiento.
+
+- [x] **Extras (opcional)**: HOLD_RELEASE_REQUESTED usa un enum con los tres motivos y las pruebas cubren PURCHASE_NOT_COMPLETED en cancelación y vencimiento.
 
 ---
 
@@ -125,6 +126,7 @@ Relación: [[Integración con Accounting]], [[Estado actual del código]] (gaps 
 - Se genera al crear la orden y se envía en `payload.orderId` de `HOLD_CREATE_REQUESTED`
 - El `orderId` público de la API no cambia
 - Hecho cuando: una orden nueva publica `HOLD_CREATE_REQUESTED` con `payload.orderId` igual a su `orderRef`
+- **Estado:** Resuelta en `develop` (PR #88).
 
 Estimación: 6 h
 
@@ -137,6 +139,7 @@ Estimación: 6 h
 - Actualizar `.compose/.env.example` con los nombres nuevos
 - Incluir `order-events`, que hoy es `market.orders.events` y pasa a `market.events` ([[DEC-008 - Nombre de productor y tópicos de Mercado]])
 - Hecho cuando: la aplicación arranca sin variables y publica en `accounting.events` y `market.events`
+- **Estado:** Resuelta en `develop` (PR #88).
 
 Estimación: 3 h
 
@@ -148,6 +151,7 @@ Estimación: 3 h
 - Enrutar los mensajes restantes por `eventType`
 - Prueba con un único tópico para comandos y respuestas
 - Hecho cuando: con un solo tópico, el listener descarta `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED` y `HOLD_RELEASE_REQUESTED` propios con 0 mensajes en DLT
+- **Estado:** Resuelta en `develop` (PR #102, commit `a4e6ac76`, merge `2485d8cf`). Cubierta por `AccountingHoldKafkaListenerTest` y `KafkaSagaIntegrationTest`.
 
 Estimación: 6 h
 
@@ -158,6 +162,7 @@ Estimación: 6 h
 - Reemplazar `tema-09-mercado` en `MessagingProperties`
 - Verificar el campo `producer` de holds, `ITEM_CONFIRMED` y `PURCHASE_CONFIRMED`
 - Hecho cuando: ningún mensaje saliente lleva `tema-09-mercado` y no queda esa cadena en el código
+- **Estado:** Resuelta en `develop` (PR #102, commit `1e458bb0`, merge `2485d8cf`). Cubierta por `MessagingPropertiesTest` y `OrderConfirmationServiceImplTest`.
 
 Estimación: 3 h
 
@@ -191,6 +196,7 @@ Estimación: 8 h
 - Corregir `applyRejection` en `OrderHoldServiceImpl`: solo `INSUFFICIENT_BALANCE` termina en `REJECTED_INSUFFICIENT_FUNDS`
 - Texto provisional para el estudiante hasta definirlo con producto
 - Hecho cuando: ante cada uno de los 10 motivos del contrato la orden queda con su motivo propio y hay una prueba por motivo
+- **Estado:** Resuelta en `develop` (PR #110, commit `14f7fb75`, merge `f7457882`). Cubierta por pruebas unitarias e integradas en `OrderHoldServiceImplTest`, `OrderRejectionReasonTest`, `OrderRejectionMessageServiceImplTest`, `OrderEntityTest`, `OrderStatusTest`, `OrderMapperTest` y `OrderStatusEventMapperTest`.
 
 Estimación: 6 h
 
@@ -202,5 +208,6 @@ Estimación: 6 h
 - La compra usa `PURCHASE_NOT_COMPLETED` en cancelación y en vencimiento
 - Pruebas de ambos caminos
 - Hecho cuando: `HOLD_RELEASE_REQUESTED` lleva uno de los tres motivos en cancelación y en vencimiento
+- **Estado:** Resuelta en `develop` (PR #115, commit `174524be`, merge `5de30854`). `BankHoldReleaseReason` restringido a los 3 valores canónicos del contrato (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) con `fromWireCode` retornando `Optional`; `BankHoldReleaseRequestDto` ahora requiere enum tipado no nulo en su constructor compacto; cubierto por `BankHoldReleaseReasonTest`, `BankHoldReleaseRequestDtoTest`, `AccountingContractTest`, `MockBankHoldClientTest`, `OutboxBankHoldClientTest`, `OrderItemProvisionServiceImplTest` y `OrderHoldServiceImplTest`.
 
 Estimación: 5 h
