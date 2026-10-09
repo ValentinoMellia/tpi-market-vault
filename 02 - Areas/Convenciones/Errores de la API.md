@@ -1,7 +1,7 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@349c8e2
+verificado_contra: codigo@80a6aeac
 actualizado: 2026-10-09
 tags: [mercado, convenciones, errores, api]
 ---
@@ -29,7 +29,10 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 | Slug | Estado HTTP | Cuándo |
 |---|---|---|
 | `student-not-enrolled` | 403 | El estudiante no está inscripto |
+| `course-closed` | 403 | El curso está cerrado (`CourseClosedException`) |
 | `course-service-unavailable` | 503 | Cursos no responde |
+| `accounting-service-unavailable` | 503 | No se pudieron leer las vidas del estudiante en Accounting (`AccountingServiceUnavailableException`) |
+| `life-cap-reached` | 422 | La compra de vidas superaría el tope; `error` lleva `LIFE_CAP_REACHED` (`LifeCapReachedException`) |
 | `professor-not-assigned` | 403 | Profesor no asignado al curso |
 | `catalog-offer-not-found` | 404 | Oferta inexistente |
 | `catalog-offer-inactive` | 409 | Oferta inactiva |
@@ -48,9 +51,24 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 | `item-not-found` | 404 | Oferta no encontrada (`OfferNotFoundException`) |
 | `offer-not-available` | 404 | Oferta no disponible (`OfferNotAvailableException`) |
 | `bad-request` | 400 | `IllegalArgumentException` |
+| `method-not-allowed` | 405 | La ruta existe pero no para ese método; la respuesta lleva `Allow` |
+| `unsupported-media-type` | 415 | El `Content-Type` del cuerpo no es uno que el endpoint acepte; la respuesta lleva `Accept` |
+| `route-not-found` | 404 | Ninguna ruta coincide, incluida una conocida con `/` al final |
+| `not-acceptable` | 406 | El `Accept` de la solicitud excluye JSON |
 | `unexpected-error` | 500 | Error no previsto |
 
 Los estados HTTP están verificados contra `GlobalExceptionHandler`.
+
+## Errores que Spring rechaza antes del controller
+
+Hasta el PR #133 de `tpi-market` (US-5219 T03, [[S2-05 - Robustez de la compra]]), un verbo equivocado, un cuerpo que no es JSON, una ruta inexistente o un `Accept` que excluye JSON caían en el catch-all `@ExceptionHandler(Exception.class)` y respondían `500 unexpected-error`: el advice no extiende `ResponseEntityExceptionHandler`. Desde ese PR tienen un handler cada uno y responden 405, 415, 404 y 406 con `problem+json`. Cómo quedan:
+
+- **Slugs.** `route-not-found` y `method-not-allowed` son los mismos del catálogo de errores del Gateway ([[Gateway e identidad]]), así el frontend recibe el mismo `type` venga el error del Gateway o de Mercado. `not-acceptable` y `unsupported-media-type` son propios.
+- **Headers.** Las cuatro excepciones implementan `ErrorResponse` de Spring y los handlers copian sus `getHeaders()`: `Allow` en el 405 y `Accept` en el 415 (RFC 9110). El `Content-Type` se fija después, así que siempre queda `application/problem+json`.
+- **`detail`.** No repite nada de lo que mandó el cliente: el 405 lista los métodos admitidos y el 415 los tipos admitidos. El 404 no repite la ruta, que ya va en `instance`.
+- **`produces` en los endpoints que modifican estado.** Sin `produces`, Spring recién detecta el 406 al escribir la respuesta, después de ejecutar el controller: un `POST /api/market/courses/{courseId}/orders` válido con `Accept: application/xml` creaba la orden y reservaba stock, y después respondía 406. Por eso los 8 endpoints que modifican estado declaran `produces = MediaType.APPLICATION_JSON_VALUE` (compra, publicación y edición de oferta, los dos cambios de estado de oferta y los tres endpoints dev), y el 406 se decide antes del controller. Los GET no lo declaran: su 406 llega tarde pero no tiene efecto. El `swagger.json` no cambió.
+- **Lo que sigue en 500.** `ServiceTokenUnavailableException` (falta el token S2S con los clientes reales) y los `IllegalStateException` de invariantes internas. El primero sería un 503; sin tarea todavía.
+- **Prueba.** `src/test/java/ar/edu/utn/frc/tup/p4/acceptance/ClientErrorAcceptanceTest.java`, con el servidor real: los ocho pedidos del inventario y dos compras válidas rechazadas (415 y 406) que no crean orden ni mueven el stock.
 
 ## Relacionado
 [[Estado actual del código]], [[Gateway e identidad]].
