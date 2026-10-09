@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -30,7 +30,7 @@ El trabajo 1 depende parcialmente del 2 y exige pedidos a Accounting (D4 y D10 e
 Tareas de código derivadas de decisiones:
 
 - **Nombre del productor**: reemplazar `tema-09-mercado` (usado en `PURCHASE_CONFIRMED`) por `market-service` en todos los mensajes ([[DEC-008 - Nombre de productor y tópicos de Mercado]]).
-- **Mapear los motivos de rechazo de accounting**: `ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` a estados o mensajes propios en lugar de `REJECTED_INSUFFICIENT_FUNDS` ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]] gap 22). Falta definir con producto qué ve el estudiante.
+- **Mapear los motivos de rechazo de accounting**: resuelto en `develop` (PR #110, `f7457882`, US-5193 T07). Se mapearon los 10 motivos contractuales en `OrderRejectionReason`, se incorporó el estado terminal `REJECTED` y el campo `rejectionReason` en la orden, con mensajes provisionales en español (`OrderRejectionMessageServiceImpl`) a la espera de la definición final con producto ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]] gap 22 cerrado).
 - **Quitar `itemValidityDays`** de la entidad de oferta, DTO, validaciones y datos de demostración ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], gap 15).
 - **Compra de vidas y emisión de `LIFE_PURCHASE_CONFIRMED`**: señal acordada con Accounting el 2026-10-02 e incorporada como historia en el Sprint 2 ([[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]). Mercado publica `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el débito del hold; Accounting aplica su tope (acredita hasta el máximo o 0 si llegó al tope sin devolver monedas) y reporta con `LIFE_CREDITED` en `accounting.events` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]).
 - **Acuerdos de compra de vidas del 2026-10-04**: validación del tope antes del hold, `orderId` UUID unificado y manejo de `LIFE_PURCHASE_REJECTED` con orden cobrada sin acreditar ([[S2-11 - Acuerdos de compra de vidas con Accounting]]). Falta: que Accounting publique `LIFE_PURCHASE_REJECTED`, definir cómo se emite el token de servicio y consumir PAR-12 desde Backoffice en lugar de configurarlo.

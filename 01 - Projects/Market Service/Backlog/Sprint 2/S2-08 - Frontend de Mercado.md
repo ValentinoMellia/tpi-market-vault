@@ -42,7 +42,7 @@ horas: 36
 
 - [ ] **CA1**: la vitrina lista las ofertas de GET /api/market/courses/{courseId}/catalog con nombre, descripción, precio y stock disponible, y permite filtrar por itemType.
 - [ ] **CA2**: al comprar se envía POST /api/market/courses/{courseId}/orders con {offerId, idempotencyKey} una sola vez por intento; un doble clic no genera dos órdenes.
-- [ ] **CA3**: tras el 202, la pantalla muestra el estado PROCESSING y se actualiza hasta un estado terminal (CONFIRMED, REJECTED_INSUFFICIENT_FUNDS, CANCELLED o EXPIRED) sin recargar la página.
+- [ ] **CA3**: tras el 202, la pantalla muestra el estado PROCESSING y se actualiza hasta un estado terminal (CONFIRMED, REJECTED_INSUFFICIENT_FUNDS, REJECTED, CANCELLED o EXPIRED) sin recargar la página.
 - [ ] **CA4**: "Mis compras" muestra las órdenes propias paginadas de GET /api/market/orders?courseId&page&size con su estado.
 - [ ] **CA5**: cada error problem+json (403 student-not-enrolled, 409 catalog-offer-out-of-stock, 409 catalog-offer-expired, 409 idempotency-key-conflict, 503 course-service-unavailable) muestra un mensaje comprensible y no una pantalla en blanco.
 - [ ] **Extras (opcional)**: pruebas de componentes con Storybook para los estados de la tarjeta de oferta.
