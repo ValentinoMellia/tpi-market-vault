@@ -130,7 +130,7 @@ Al 2026-10-09:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
-| #5220 T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED | New | Redefinida el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (antes: "Liberar el stock al cancelar por HOLD_NOT_SETTLED") |
+| #5220 T01 - Fijar que la unidad queda retenida al cancelar por HOLD_NOT_SETTLED | Closed | PR #123 de `tpi-market`, mergeado en `develop` el 2026-10-07 (`c9f47f99`, mergeado por tommikimmel). Redefinida el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (antes: "Liberar el stock al cancelar por HOLD_NOT_SETTLED") |
 | #5221 T02 - Guardar el vencimiento del hold en UTC | Closed | PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel), con las correcciones de la revisión de Valentino Mellia |
 | #5222 T03 - Mapear a 4xx las excepciones que hoy responden 500 | Ready for test | PR #133 de `tpi-market`, mergeado en `develop` el 2026-10-08 (`80a6aeac`, mergeado por Patricio Fernandez), con las correcciones de la revisión de 412102-PRESSET |
 | #5223 T04 - Responder 409 ante una oferta vencida | New | — |
@@ -147,7 +147,7 @@ Lo que dejó la T02 (PR #118 de `tpi-market`, mergeado en `develop` el 2026-10-0
 - **Prueba del CA2.** Con un `Clock` fijo en `America/Argentina/Cordoba` y valores UTC escritos a mano, sin cambiar la zona de la JVM ni el `-Duser.timezone` de la suite.
 - **Revisión del PR #118 (Valentino Mellia, 2026-10-06).** Aprobado sin bloqueantes; tras las correcciones lo aprobó y mergeó tommikimmel. Se sumó un Javadoc en `configs/ClockConfig.java`: el `Clock` tiene que quedar en la zona del sistema, porque `updatedAt` se escribe en esa zona y el corte de las filas viejas se compara contra él. Se dejó escrito que, con la JVM en ART, las filas previas al deploy se reconcilian 3 h antes de vencer (impacto bajo: se consulta a Accounting antes de vencer y un hold dura 5 min). El CA2 se reformuló para decir cómo se prueba de verdad.
 - **Fuera de alcance.** `createdAt`, `updatedAt` y el resto de los timestamps siguen en la zona del servidor; pasarlos a UTC sería otra tarea. No hay backfill: las filas guardadas antes del deploy quedan con su valor; en Docker (UTC) es el mismo.
-- **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pedía devolverlo. Resuelto el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]: la unidad queda retenida y la T01 pasa a fijarlo con una prueba.
+- **Para la T01.** El PR #113 de `tpi-market` (US-5207, [[S2-03 - Reglas de la tienda]], en revisión) trata las órdenes `CANCELLED` con `HOLD_NOT_SETTLED` como entregas en cuarentena que retienen el stock; la T01 pedía devolverlo. Resuelto el 2026-10-06 por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]: la unidad queda retenida y la T01 pasa a fijarlo con una prueba. La prueba entró con el PR #123 de `tpi-market` (mergeado en `develop` el 2026-10-07 (`c9f47f99`, mergeado por tommikimmel)); ver el avance de la T01 en *Tareas*.
 
 Lo que dejó la T03 (PR #133 de `tpi-market`, mergeado en `develop` el 2026-10-08 (`80a6aeac`)). Verificado contra `develop@80a6aeac`:
 
@@ -170,6 +170,8 @@ Lo que dejó la T03 (PR #133 de `tpi-market`, mergeado en `develop` el 2026-10-0
 - Hecho cuando: la prueba fija el comportamiento y el gap 19 queda cerrado
 
 Estimación: 2 h (antes 5 h; bajó al pasar de corregir un defecto a fijar el comportamiento con una prueba, [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]])
+
+**Avance (2026-10-08):** PR #123 de `tpi-market`, mergeado en `develop` el 2026-10-07 (`c9f47f99`, mergeado por tommikimmel); #5220 en *Closed*. Agrega `OrderConfirmationHoldNotSettledStockIntegrationTest`: una oferta con 10 unidades reserva una de verdad (queda en 9), Accounting responde `RELEASED` y, tras cancelar por `HOLD_NOT_SETTLED`, `availableStock` sigue en 9 y `unitsSold` en 0, releídos de la base. Corre con `releaseReason` `ITEM_PROVISION_FAILED` y `TTL_EXPIRED`. Como el PR #113 seguía abierto al 2026-10-08 y en `develop` nada incrementa `unitsSold`, esa aserción hoy pasa sola; cuando entre el #113 pasa a ser un control real. Sin cambios en el código de producción; la spec `order-confirmation` suma el escenario con los valores.
 
 ### T02 - Guardar el vencimiento del hold en UTC
 
