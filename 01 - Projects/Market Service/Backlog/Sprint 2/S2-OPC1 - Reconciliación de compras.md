@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+verificado_contra: codigo@e456c55f
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2, opcional]
 sprint: 2
 taiga: "#5261"
@@ -40,10 +40,10 @@ horas: 20
 
 ## Criterios de Aceptación (CA)
 
-- [ ] **CA1**: con market.messaging.transport=kafka la aplicación arranca sin errores de bean BankHoldQueryClient.
-- [ ] **CA2**: con bank-hold.reconciliation.enabled=true, una orden con hold COMMITTED en Accounting pasa a CONFIRMED y una con hold RELEASED pasa a CANCELLED con HOLD_NOT_SETTLED y retiene la unidad, sin devolverla al stock ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]).
+- [x] **CA1**: con market.messaging.transport=kafka la aplicación arranca sin errores de bean BankHoldQueryClient.
+- [x] **CA2**: con bank-hold.reconciliation.enabled=true, una orden con hold COMMITTED en Accounting pasa a CONFIRMED y una con hold RELEASED pasa a CANCELLED con HOLD_NOT_SETTLED y retiene la unidad, sin devolverla al stock ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]).
 - [ ] **CA3**: una orden en CREATED sin holdId por más del umbral configurado se reintenta o se cancela, y no queda trabada.
-- [ ] **CA4**: el cliente responde de forma controlada (sin romper el job) ante 404, 5xx y timeout de Accounting.
+- [x] **CA4**: el cliente responde de forma controlada (sin romper el job) ante 404, 5xx y timeout de Accounting.
 
 ---
 
@@ -117,6 +117,7 @@ Relación: [[Estado actual del código]] (gaps 1, 3 y 20), [[Roadmap de trabajo]
 - Corrige el error de arranque por bean ausente
 - URL base por variable de entorno
 - Hecho cuando: con `market.messaging.transport=kafka` la aplicación arranca y el cliente consulta el hold
+- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Se implementó `HttpBankHoldQueryClient` con `@ConditionalOnProperty(name = "market.messaging.transport", havingValue = "kafka")`, consultando `GET /api/accounting/holds/{holdId}` mediante `gatewayRestClient` con token dinámico (`IdentityServiceTokenClient`), alias `camelCase` y `snake_case` (`@JsonAlias`), y timeouts configurables.
 
 Estimación: 6 h
 
@@ -128,6 +129,7 @@ Estimación: 6 h
 - Revisar periodicidad y tamaño de lote en `BankHoldReconciliationJob`
 - Configuración por entorno
 - Hecho cuando: el job corre con la periodicidad configurada y procesa lotes acotados
+- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Configurado `bank-hold.reconciliation.enabled=${BANK_HOLD_RECONCILIATION_ENABLED:false}` en `application.properties`, `application-docker.properties` y `application-prod.properties` para activarse por entorno en la plataforma.
 
 Estimación: 4 h
 
@@ -149,5 +151,6 @@ Estimación: 6 h
 - Casos `COMMITTED` y `RELEASED`
 - Casos 404, 5xx y timeout sin romper el job
 - Hecho cuando: las pruebas de los cinco casos pasan en verde
+- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Cobertura completa en `HttpBankHoldQueryClientTest`, `IdentityServiceTokenClientTest`, `BankHoldReconciliationServiceImplTest` y `AccountingContractTest`.
 
 Estimación: 4 h
