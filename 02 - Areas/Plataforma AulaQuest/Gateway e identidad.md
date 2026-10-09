@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-04
+actualizado: 2026-10-08
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -51,11 +51,11 @@ El token de la persona viaja en la cookie `fu_at`; el token de servicio, en `Aut
 
 ## Cómo las recibe Mercado
 
-`GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`. Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS`, los ámbitos que empiezan con `ROLE_` se descartan y el resto queda como autoridad simple. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
+`GatewayIdentityFilter` (`src/main/java/ar/edu/utn/frc/tup/p4/configs/filters/GatewayIdentityFilter.java`) arma la autenticación solo con esas cabeceras, sin validar JWT. Para usuarios: `X-Principal-Type=user`, `X-User-Id` y cada rol de `X-User-Roles` como `ROLE_<rol>`, salvo `MS`, que se descarta porque solo un servicio puede tenerlo (desde el PR #124). Para servicios: `X-Service-Id` y `X-Service-Scopes`; el ámbito `MS` se convierte en `ROLE_MS`, los ámbitos que empiezan con `ROLE_` se descartan y el resto queda como autoridad simple. Se vuelve a ejecutar en el despacho asíncrono (necesario para [[SSE]]). Roles: STUDENT, PROFESSOR, ADMIN, GESTOR, MS.
 
 **La cabecera `X-Roles`.** Mercado ya no la lee. El filtro la dejó con el change `gateway-mesh-integration`, y hasta `codigo@276af52` cuatro controladores todavía la usaban como respaldo cuando faltaba `X-User-Roles` (`CourseCatalogManageController`, `CatalogOfferController`, `StorefrontCatalogController` y `CourseCatalogSummaryController`, dos de ellos con valor por defecto `ROLE_STUDENT`); el PR #86 la quitó de todos. Ningún cliente la envía: el gateway la elimina y el frontend no la usa.
 
-**Lectura de roles desde el PR #86** (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)). `models/enums/UserRole` es el único lector de `X-User-Roles` para el filtro y para los services: compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. Antes el filtro prefijaba sin condiciones (`ROLE_PROFESSOR` daba `ROLE_ROLE_PROFESSOR`) y convertía cualquier texto en autoridad. Esta conducta es la regla desde la enmienda de DEC-006 del 2026-10-04 ([[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]).
+**Lectura de roles desde el PR #86** (T01 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio)). `models/enums/UserRole` es el único lector de `X-User-Roles` (desde el PR #124 solo lo llama el filtro; los services leen las autoridades que arma): compara cada rol exacto y con mayúsculas, saca un solo `ROLE_` inicial y descarta lo que no sea uno de los cinco roles. Antes el filtro prefijaba sin condiciones (`ROLE_PROFESSOR` daba `ROLE_ROLE_PROFESSOR`) y convertía cualquier texto en autoridad. Esta conducta es la regla desde la enmienda de DEC-006 del 2026-10-04 ([[Q-020 - Roles desconocidos y prefijo ROLE_ en la identidad]]).
 
 ## Autorización en dos capas
 
@@ -66,11 +66,17 @@ Las dos capas no leen igual la identidad: la primera usa las autoridades del fil
 
 **Desde el PR #92 de `tpi-market`** (T02 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel)), las dos rutas de estado de oferta leen el principal autenticado (`Authentication`, roles con `UserRole.fromAuthorities`) en lugar de las cabeceras, así que un servicio con `MS` es administrativo en ambas; ningún chequeo de rol se saltea con la cabecera vacía, y el filtro descarta los ámbitos de servicio con forma de rol. Lo registra [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]; las demás rutas siguen leyendo `X-User-Roles`.
 
+**Desde el PR #120 de `tpi-market`** (T04 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`5938bd84`)), una prueba de aceptación recorre las dos capas para cada endpoint de negocio y cada tipo de llamador (`src/test/java/ar/edu/utn/frc/tup/p4/acceptance/RoleEndpointMatrixAcceptanceTest.java`) y falla si alguna vuelve a comparar roles por subcadena.
+
+**Desde el PR #124 de `tpi-market`** (T05 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-07 (`c195d386`)), las dos capas leen la misma identidad: todos los chequeos de rol de los services usan el principal autenticado (`UserRole.fromAuthorities`) y ninguno vuelve a parsear `X-User-Roles`. Un rol que el filtro no da (por ejemplo `MS` en un usuario) tampoco lo puede dar un service. `X-User-Id` sigue llegando por cabecera y es obligatoria en todas las rutas que la toman (400 `missing-header` si falta). Qué roles se saltean la matrícula o la asignación en cada ruta está en [[S2-04 - Seguridad]].
+
 ## Puntos débiles
 
 - Si el puerto de Mercado se publicara, cualquiera podría falsificar cabeceras.
-- Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. El chequeo de profesor que se omitía con cabecera vacía lo cerró el PR #92 (T02); sigue pendiente el usuario por defecto `usr-student-001` (T03) de [[S2-04 - Seguridad]] ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
+- Hasta el PR #86 algunos servicios leían el rol con `contains()`, así que un valor como `PROFESSOR, SYSTEMS` contaba como `MS`; eso ya está corregido en `develop`. El chequeo de profesor que se omitía con cabecera vacía lo cerró el PR #92 (T02); el usuario por defecto `usr-student-001` lo quitó el PR #93 (T03 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)): sin `X-User-Id`, las lecturas responden 400 `missing-header`, con la cabecera vacía los detalles de la vitrina responden 403, y un usuario sigue recibiendo 401 del filtro ([[DEC-006 - Roles y permisos según el código y los headers del gateway]] fija el modelo de roles; ver [[Estado actual del código]]).
 - Hasta el PR #92, un servicio cuyo `X-Service-Scopes` trajera un valor con forma de rol (`ROLE_ADMIN`) recibía esa autoridad tal cual; desde ese PR el filtro descarta esos ámbitos ([[DEC-017 - Servicios con MS en las rutas de estado de oferta]]).
+- Hasta el PR #124, un usuario con `X-User-Roles: MS` recibía `ROLE_MS`, porque el filtro aceptaba `MS` también en los roles de usuario: pasaba todas las rutas que admiten `MS` y era administrativo en las rutas de estado de oferta. La T05 (#6807) de [[S2-04 - Seguridad]] lo corrigió: el filtro descarta `MS` para usuarios y los services leen el principal. Qué es `GESTOR` sigue abierto en [[Q-024 - Qué es el rol GESTOR]].
+- Un servicio con `MS` tiene que mandar un `X-User-Id` no vacío en la vitrina y en el resumen de vitrinas, aunque como administrativo no se use: sin la cabecera recibe 400 y con la cabecera vacía, 403.
 - `JwksRefreshJob` consulta el JWKS cada 5 minutos solo como canario (`/jwks-status`).
 - El timeout del gateway (25 s) es menor que el de nginx (30 s); las peticiones largas se cortan primero en el gateway.
 

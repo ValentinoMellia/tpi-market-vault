@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@b22ed6ed3f5812b5e899fab911fea12db2d3789f
-actualizado: 2026-10-06
+verificado_contra: codigo@7528610
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5236"
@@ -18,7 +18,7 @@ horas: 36
 
 ## Implementación propuesta (2026-10-06)
 
-La rama `feature/us-5236-marketplace-frontend` de `2026-PIV-TPI-FE`, commit `b22ed6ed3f5812b5e899fab911fea12db2d3789f`, implementa el flujo del estudiante sobre las pantallas existentes. Es evidencia de una rama de trabajo, no de una integración en `develop`, una entrega desplegada ni del cierre de la US en Taiga. La historia conserva `estado: borrador` y sus criterios sin marcar hasta la aceptación.
+La rama `feature/us-5236-marketplace-frontend` de `2026-PIV-TPI-FE`, commit `b22ed6ed3f5812b5e899fab911fea12db2d3789f`, implementa el flujo del estudiante sobre las pantallas existentes. Es evidencia de una rama de trabajo, no de una integración en `develop`, una entrega desplegada ni del cierre de la US en Taiga. La historia conserva `estado: borrador` y sus criterios sin marcar hasta la aceptación. Al 2026-10-09 el PR #261 del frontend sigue en draft y su rama avanzó a `59e60f2c`: esta sección no se reverificó contra ese commit.
 
 | Alcance | Evidencia en `2026-PIV-TPI-FE` |
 |---|---|

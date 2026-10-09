@@ -1,13 +1,13 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: equipo-accounting@2026-10-02
-actualizado: 2026-10-02
+verificado_contra: codigo@74e671ef
+actualizado: 2026-10-06
 tags: [mercado, decision, vidas, accounting]
 ---
 # DEC-007 - Tope de vidas, Accounting decide y reporta
 
-> Mercado **no valida** el tope de vidas. Accounting aplica su regla (hoy recorta, PAR-12) y reporta el resultado; Mercado reacciona a lo que Accounting informa.
+> Accounting aplica su regla del tope de vidas (recorta al máximo, PAR-12) y reporta el resultado; Mercado reacciona a lo que Accounting informa. Desde la enmienda del 2026-10-04 Mercado **además valida el tope de forma preventiva antes de crear el hold**, para no cobrar vidas que Accounting no acreditaría.
 
 ## Contexto
 Al comprar una vida podía validar el tope Mercado antes del hold (historia #142), rechazar Accounting (recomendación D1 del taller) o recortar Accounting (su código actual). Accounting ya es dueño del contador de vidas (`current_lives`, `reserved_lives`, `lives_ledgers`, `life_holds`) y recibe el tope de Backoffice con `GLOBAL_CONFIGURATION_CHANGED {initialLives, maxLives}` (PAR-12). Pregunta de origen: [[Q-002 - Vidas y tope de vidas]].
@@ -29,8 +29,26 @@ Se acordó formalmente con el equipo de Accounting (Tema 08, grupo G12) la seña
 - Accounting reporta las vidas efectivamente acreditadas emitiendo `LIFE_CREDITED` en `accounting.events`.
 - Esta enmienda formaliza y cierra el acuerdo que DEC-007 y [[Q-002 - Vidas y tope de vidas]] dejaban pendiente de definición inter-servicio.
 
+### Enmienda del 2026-10-04 (acuerdos de compra de vidas, US-6268)
+Se acordaron con Accounting los puntos que la señal de 2026-10-02 dejaba abiertos. Origen: Accounting los propuso el 2026-10-03 (lo registra su repositorio `tpi-accounting`, citado en las reviews de `tpi-market` #96 y #98) y Mercado los aceptó al implementarlos en US-6268 (`tpi-market` #94 a #98, en `develop` desde el 2026-10-04). Falta que Tema 11 ratifique `LIFE_PURCHASE_REJECTED` en `contratos-kafka`. Reemplazan la viñeta "Mercado no valida antes del hold ni consulta las vidas del estudiante" de la decisión original; el resto sigue vigente (Accounting igual recorta al acreditar).
+
+1. **Validación preventiva en Mercado, antes del hold.** Si el alumno ya tiene el máximo, Accounting acredita 0 y no devuelve monedas; al emitir `LIFE_PURCHASE_CONFIRMED` ya se cobró, así que la validación tiene que ser previa al hold.
+   - Vidas actuales: `GET /api/accounting/courses/{courseId}/accounts/{studentId}/equip-summary`, por el Gateway con token de servicio; devuelve `currentLives` y `reservedLives`.
+   - Máximo: PAR-12, parámetro global de Backoffice ([[Integración con Backoffice]]). Accounting no lo expone.
+   - Cuántas puede comprar: `max(0, maxLives − currentLives)`. En el código, Mercado suma a `currentLives` las vidas de sus órdenes de vidas todavía en vuelo, que Accounting aún no acreditó ([[S2-11 - Acuerdos de compra de vidas con Accounting]]).
+   - Es preventiva: entre la consulta y la acreditación las vidas pueden cambiar (por ejemplo, si el alumno gana o pierde un desafío). Por eso Accounting igual recorta al máximo.
+2. **Identificadores.** `courseId` es la misma cohorte que el `HOLD_CREATE_REQUESTED` de la orden. `orderId` es el mismo de la orden y del hold (el `orderRef` UUID, como máximo 36 caracteres, igual que `studentId` y `courseId`): así el crédito de vidas y el débito `DIRECT_PURCHASE_DEBIT` quedan unidos por la misma referencia, que es lo que permite encontrar el débito si hay que devolverlo.
+3. **Cantidad.** Sin tope por orden: la decide Mercado. Accounting exige un entero `>= 1` y acredita como mucho hasta el máximo.
+4. **Compra cobrada sobre una cuenta inexistente o inactiva.** Accounting no acredita ni reintenta: publica `LIFE_PURCHASE_REJECTED {orderId, studentId, courseId, quantity, reason, message}` en `accounting.events`, con `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE` (los mismos motivos de `HOLD_REJECTED`). Un reenvío con el mismo `eventId` no se procesa otra vez.
+   - Inactiva: la cuenta se dio de baja entre la confirmación del hold y el procesamiento del evento (crear el hold exige cuenta activa y una baja libera los holds pendientes).
+   - Inexistente: el evento trae otro `studentId` o `courseId` que el hold; es un error de datos.
+   - Mercado marca la orden como **cobrada sin acreditar** (`SETTLED_UNCREDITED`). La devolución **no es automática**: un ADMIN la pide desde BackOffice como reversión del débito de esa orden (`COIN_LEDGER_REVERSAL_REQUESTED`), y solo se acepta con la cuenta activa.
+   - Prevención: Mercado emite `LIFE_PURCHASE_CONFIRMED` solo después de `HOLD_CONFIRMED`, nunca después de `HOLD_RELEASED` o `HOLD_REJECTED`.
+
+Implementación: [[S2-11 - Acuerdos de compra de vidas con Accounting]].
+
 ## Alternativas descartadas
-- **Mercado valida antes del hold**: mejor experiencia, pero acopla Mercado al contador y requiere una consulta de vidas que Accounting no ofrece.
+- **Mercado valida antes del hold** (descartada el 2026-10-01): acoplaba Mercado al contador y requería una consulta de vidas que Accounting no ofrecía. **Adoptada por la enmienda del 2026-10-04**, una vez que Accounting expuso `equip-summary` y se vio que, con el recorte, cobrar sin validar deja al alumno sin monedas y sin vidas.
 - **Accounting rechaza (D1)**: no se adopta como obligación; si Accounting decide rechazar en el futuro, Mercado reaccionará igual al evento correspondiente.
 
 ## Consecuencias
@@ -39,6 +57,7 @@ Se acordó formalmente con el equipo de Accounting (Tema 08, grupo G12) la seña
 - **Implementación**: Registrada en [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] y detallada en [[Integración con Accounting]].
 - Aprovechar el mapeo de todos los motivos de rechazo de [[DEC-009 - Contrato de holds e ítems según Accounting]].
 - La historia #142 cambia de enfoque ([[Épica 137 - Compra directa]]).
+- **Enmienda del 2026-10-04**: Mercado rechaza con 422 `LIFE_CAP_REACHED` antes del hold cuando la oferta otorga más vidas de las que entran, envía el mismo `orderId` UUID en el hold y en `LIFE_PURCHASE_CONFIRMED`, consume `LIFE_PURCHASE_REJECTED` y marca la orden `SETTLED_UNCREDITED` con alerta de auditoría ([[S2-11 - Acuerdos de compra de vidas con Accounting]], [[Orden de compra]]).
 
 ## Notas afectadas
-[[Integración con Accounting]], [[Tipos de item]], [[Orden de compra]], [[Market Service - Overview]], [[Épica 137 - Compra directa]], [[Integración con Backoffice]], [[Taller de decisiones]], [[Roadmap de trabajo]], [[Decisiones - Índice]].
+[[Integración con Accounting]], [[Tipos de item]], [[Orden de compra]], [[Market Service - Overview]], [[Épica 137 - Compra directa]], [[Integración con Backoffice]], [[Taller de decisiones]], [[Roadmap de trabajo]], [[Decisiones - Índice]], [[S2-11 - Acuerdos de compra de vidas con Accounting]], [[Q-002 - Vidas y tope de vidas]].

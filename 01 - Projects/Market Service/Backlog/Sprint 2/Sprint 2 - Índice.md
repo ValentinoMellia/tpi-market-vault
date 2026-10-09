@@ -2,12 +2,12 @@
 tipo: indice
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 ---
 # Sprint 2 - Índice
 
-> Las historias del Sprint 2 en formato Taiga, una nota por historia, con puntos, horas y prioridad. Total comprometido: 81 puntos, 282 h y 70 tareas (más las horas reales de #4888). Cada nota se copia en la descripción de la historia al cargarla en Taiga ([[Carga en Taiga - Sprints 2 y 3]]).
+> Las historias del Sprint 2 en formato Taiga, una nota por historia, con puntos, horas y prioridad. Total comprometido: 86 puntos, 319 h y 80 tareas (sin contar los puntos de S2-11 ni los puntos y horas de #4888, que están a completar). Cada nota se copia en la descripción de la historia al cargarla en Taiga ([[Carga en Taiga - Sprints 2 y 3]]).
 
 ## Estado en Taiga
 
@@ -20,8 +20,8 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-01 - Contrato con Accounting]] | #5193 | 13 | 45 | 8 | Must |
 | [[S2-02 - Clientes reales de Cursos]] | #5202 | 5 | 22 | 4 | Must |
 | [[S2-03 - Reglas de la tienda]] | #5207 | 8 | 30 | 6 | Should |
-| [[S2-04 - Seguridad]] | #5214 | 3 | 16 | 4 | Should |
-| [[S2-05 - Robustez de la compra]] | #5219 | 8 | 29 | 7 | Should |
+| [[S2-04 - Seguridad]] | #5214 | 3 | 20 | 5 | Should |
+| [[S2-05 - Robustez de la compra]] | #5219 | 8 | 26 | 7 | Should |
 | [[S2-06 - Plataforma y CI]] | #5225 | 3 | 15 | 5 | Must |
 | [[S2-07 - Pruebas integradas con Accounting]] | #5231 | 8 | 25 | 4 | Must |
 | [[S2-08 - Frontend de Mercado]] | #5236 | 13 | 36 | 6 | Should |
@@ -30,11 +30,16 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-09c - SPIKE Diseño técnico de subastas]] | #5256 | 5 | 10 | 2 | Should |
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 | 2 | 4 | 1 | Should |
 | [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 | 5 | 16 | 4 | Must |
+| [[S2-11 - Acuerdos de compra de vidas con Accounting]] | #6268 | a completar | 20 | 5 | Must |
 | [[S3-01 - Subastas, lanzar y ver las abiertas]] (adelantada del Sprint 3) | #5347 | 8 | 27 | 6 | Should |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 | a completar | a completar | 6 (4 hechas) | Should |
-| **Total comprometido** | | **86** | **298** | **74** | |
+| **Total comprometido** | | **86** | **319** | **80** | |
 
-Las historias 1 a 8 suman 61 puntos, 218 h y 44 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
+Las historias 1 a 8 suman 61 puntos, 219 h y 45 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
+
+S2-05 pasó de 29 h a 26 h el 2026-10-08: la T01 bajó de 5 h a 2 h por [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]. [[Plan del Sprint 2]] conserva las 29 h porque es el plan original del sprint.
+
+S2-04 pasó de 16 h y 4 tareas a 20 h y 5 tareas el 2026-10-07: la T05 (#6807, 4 h) surgió de la matriz de la T04 y se cerró ese día.
 
 ## Opcionales (si sobra capacidad)
 
@@ -75,6 +80,7 @@ Cargadas en el sprint "G11 - Sprint 2" (las opcionales quedan en el backlog, sin
 | [[S2-09c - SPIKE Diseño técnico de subastas]] | #5256 |
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 |
 | [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 |
+| [[S2-11 - Acuerdos de compra de vidas con Accounting]] | #6268 |
 | [[S2-OPC1 - Reconciliación de compras]] | #5261 |
 | [[S2-OPC2 - Frontend de gestión del profesor]] | #5266 |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 |

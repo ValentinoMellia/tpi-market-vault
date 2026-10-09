@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+actualizado: 2026-10-06
 tags: [mercado, dominio, hold, accounting]
 ---
 # Hold de monedas
@@ -16,7 +16,7 @@ Un compromiso de Accounting de reservar el monto de la compra. Mercado guarda su
 | Campo | Significado |
 |---|---|
 | `holdId` | Identificador entregado por Accounting |
-| `holdExpiresAt` | Vencimiento fijado por Accounting (hoy guardado como `LocalDateTime` en zona del sistema) |
+| `holdExpiresAt` | Vencimiento fijado por Accounting (guardado como `LocalDateTime` con la hora UTC desde el PR #118 de `tpi-market`, T02 de [[S2-05 - Robustez de la compra]], mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel); antes, en la zona del sistema) |
 | `BankHoldStatus` | `PENDING`, `COMMITTED`, `RELEASED`, `UNKNOWN` (consulta de estado, que accounting no ofrece) |
 | Motivo de liberación | `BankHoldReleaseReason` en Mercado; en accounting: `AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED` |
 | `orderType` | `DIRECT_PURCHASE` o `AUCTION_BID` |
@@ -30,7 +30,7 @@ Pedido (`HOLD_CREATE_REQUESTED`), creado (`HOLD_CREATED`) o rechazado (`HOLD_REJ
 - Accounting fija el TTL: 300 s para `DIRECT_PURCHASE` (ignora `ttlSeconds`); en `AUCTION_BID` es obligatorio y mayor que 0.
 - Un hold por `orderId` para siempre (`UNIQUE(account_id, order_id)`); no hay liberación en lote ni captura parcial.
 - Accounting aún no ofrece consulta del estado de un hold de monedas: `GET /api/accounting/holds/{holdId}` está en implementación este sprint (D5) y el listener de comandos está apagado por defecto.
-- `orderId` debe ser UUID canónico; hoy Mercado envía el id numérico y accounting rechazaría el comando con `MALFORMED_COMMAND` ([[Integración con Accounting]]).
+- `orderId` debe ser UUID canónico, o accounting rechaza el comando con `MALFORMED_COMMAND`. Desde el PR #88 (`develop` en `349c8e2`) Mercado envía el `orderRef` UUID de la orden (`services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]], [[Integración con Accounting]]).
 - Mercado solo reconoce los rechazos `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; los demás motivos se reportan como saldo insuficiente ([[Estado actual del código]], gap 22). Decidido: mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 - Contrato adoptado: [[DEC-009 - Contrato de holds e ítems según Accounting]]; transporte solo por Kafka: [[DEC-003 - Holds solo por Kafka]]. Lo único en disputa de esta nota es el orden de la compra ([[Q-008 - Orden de la saga de compra]]).
 - Con holds, las monedas no se debitan hasta `HOLD_CONFIRM_REQUESTED`: antes de confirmar, devolver las monedas es liberar el hold.

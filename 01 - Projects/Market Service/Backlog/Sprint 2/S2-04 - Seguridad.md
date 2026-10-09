@@ -1,18 +1,18 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-04
+verificado_contra: codigo@c195d386
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5214"
 puntos: 3
 prioridad: Should
-horas: 16
+horas: 20
 ---
 # S2-04 - Seguridad
 
-> Endurecer la autorización de Mercado: parseo exacto de roles, sin bypass por cabecera vacía y sin usuario por defecto. Cierra los gaps 9 y 12 que dejó [[DEC-006 - Roles y permisos según el código y los headers del gateway]]. 4 tareas, 16 h, 3 puntos, Should.
+> Endurecer la autorización de Mercado: parseo exacto de roles, sin bypass por cabecera vacía y sin usuario por defecto. Cierra los gaps 9 y 12 que dejó [[DEC-006 - Roles y permisos según el código y los headers del gateway]]. 5 tareas (la T05 surgió de la matriz de la T04), 20 h, 3 puntos, Should. Cerrada el 2026-10-07.
 
 ## [G11] — Seguridad
 
@@ -116,14 +116,15 @@ Relación: [[Estado actual del código]] (gaps 9, 12 y 17), [[Roadmap de trabajo
 
 ## Estado en Taiga
 
-Al 2026-10-04:
+Al 2026-10-07 las cinco tareas están cerradas y la historia #5214 quedó en *Closed* en Taiga ese mismo día:
 
 | Tarea | Estado | Dónde |
 |---|---|---|
 | #5215 T01 - Parsear los roles sin contains | Closed | PR #86 de `tpi-market`, mergeado en `develop` el 2026-10-03 (`3e2b88b`, aprobado por Patinio). Revisado también por Valentino Mellia sin bloqueantes |
 | #5216 T02 - Eliminar el bypass por cabecera de roles vacía | Closed | PR #92 de `tpi-market`, mergeado en `develop` el 2026-10-04 (`76a9bbd`, aprobado por tommikimmel), con las correcciones de la revisión de Patinio y tommikimmel |
-| #5217 T03 - Quitar el usuario por defecto usr-student-001 | New | — |
-| #5218 T04 - Probar la seguridad por rol y endpoint | New | — |
+| #5217 T03 - Quitar el usuario por defecto usr-student-001 | Closed | PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek), con la corrección de la revisión de Lucio Wiesek. Revisado también por tommikimmel |
+| #5218 T04 - Probar la seguridad por rol y endpoint | Closed | PR #120 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`5938bd84`, aprobado y mergeado por tommikimmel). Solo pruebas |
+| #6807 T05 - Corregir los accesos derivados de la matriz de seguridad | Closed | PR #124 de `tpi-market`, mergeado en `develop` el 2026-10-07 (`c195d386`, mergeado por tommikimmel). Creada el 2026-10-05 a partir de la exploración de la T04; GESTOR espera a [[Q-024 - Qué es el rol GESTOR]] |
 
 Lo que dejó la T01 y la revisión del PR #86:
 
@@ -138,6 +139,31 @@ Lo que dejó la T02 (PR #92 de `tpi-market`, 2026-10-03):
 - **Q-021 adelantada.** Cerrar el bypass dejaba a ese servicio con 403 en la ruta del curso, así que se resolvió acá en vez de en la T04: [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Las dos rutas de estado leen el principal autenticado y `MS` es administrativo en ambas.
 - **Revisión del PR #92 (2026-10-04).** Se sumaron dos correcciones: el filtro descarta los ámbitos de servicio con forma de rol (`ROLE_ADMIN`) y `validateProfessorAccess` deniega cuando falta el id del usuario.
 - **Para la T03 y la T04.** Los GET de detalle de la vitrina (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) permiten `MS` pero evalúan al servicio como `usr-student-001` (la T03 quita ese valor por defecto; la T04 decide si pasan a leer el principal). `MS` en los roles lectores del resumen nunca coincide porque su `@PreAuthorize` no lo permite. ADMIN y GESTOR siguen pasando por el chequeo de asignación al listar, publicar y editar. Todo va a la matriz de la T04.
+
+Lo que dejó la T03 (PR #93 de `tpi-market`, mergeado en `develop` el 2026-10-06 (`011fe7d6`, aprobado y mergeado por Lucio Wiesek)):
+
+- **Identidad ausente → 400 `missing-header`.** La tarea dejaba a confirmar entre 400 y 401. Se eligió 400 porque ya había precedente (`POST /courses/{courseId}/orders` exige `X-User-Id` con el mismo error de [[Errores de la API]]) y porque a un usuario sin `X-User-Id` ya le responde 401 el filtro, antes del controlador. `X-User-Id` pasa a ser obligatoria, sin valor por defecto, en `GET /courses/{courseId}/catalog`, `GET /courses/{courseId}/catalog/{itemId}`, `GET /offers/{id}`, `GET /orders` y `GET /orders/{orderId}`.
+- **Quién lo nota.** Un usuario sin `X-User-Id` ya recibía 401 y lo sigue recibiendo (escenario BDD 3). El único que alcanzaba el valor por defecto era un servicio con `MS` en los tres GET de la vitrina: se lo evaluaba como el alumno `usr-student-001` y el catálogo respondía 200 con la vista de ese alumno (reproducido por HTTP antes del arreglo). Con el PR recibe 400.
+- **Sin usuario por defecto en producción.** El PR dejó en 0 `git grep usr-student-001 -- src/main`: el último uso era el ejemplo de Swagger de `createOrder`, que pasó a `usr-student-002`. Un sembrador de datos de demo local que usa ese alumno no está versionado. Después, el PR #99 (saldo del Banco simulado) agregó la cadena como `example` de Swagger en `dtos/dev/MockBankBalanceResponseDto.java`; es un ejemplo de un endpoint de desarrollo, no una identidad por defecto, así que el CA3 se sigue cumpliendo. Verificado contra `codigo@011fe7d6`.
+- **Swagger.** La cabecera deja de estar oculta y figura como obligatoria en los cinco endpoints, con las respuestas 400 y 401.
+- **Revisión del PR #93 (2026-10-05).** Lucio Wiesek encontró una regresión: con `X-User-Id` presente pero vacía, Spring entrega `""` y los dos GET de detalle (`GET /offers/{id}`, `GET /courses/{courseId}/catalog/{itemId}`) se salteaban el chequeo de matrícula, así que un servicio con `MS` recibía 200; antes el valor por defecto convertía `""` en `usr-student-001`. Se corrigió en el mismo PR: `validateStudentAccess` y `validateProfessorAccess` de `services/impl/StorefrontCatalogServiceImpl.java` deniegan un id nulo o vacío (403 `student-not-enrolled` y `professor-not-assigned`) en lugar de saltear el chequeo, igual que hizo la T02 en gestión. tommikimmel pidió además quitar la atribución de IA de la descripción del PR.
+- **Lo que pasó a la T05 (#6807).** La T04 quedó en solo pruebas (PR #120) y los cambios de comportamiento que había dejado la T03 pasaron a la T05: que los GET de detalle de la vitrina evalúen a un servicio con `MS` por el principal autenticado, como hace [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] en las rutas de estado, y que `X-User-Id` sea obligatorio en el resumen de catálogo y en el resumen de ventas. Hoy los dos la declaran `required = false` y sin valor por defecto (`controllers/CourseCatalogSummaryController.java:93`, `controllers/CourseSalesSummaryController.java:97`); con un id nulo o vacío, el resumen de catálogo devuelve una lista vacía (`services/impl/CourseCatalogSummaryServiceImpl.java:163`) y el de ventas deniega (`services/impl/CourseSalesSummaryServiceImpl.java:135`). `CourseCatalogManageController` (listar, publicar y editar, líneas 137, 269 y 336) también la declara opcional, y `validateProfessorAccess` deniega sin id (`services/impl/CourseCatalogManageServiceImpl.java:368`); la T05 no lo incluye. Verificado contra `codigo@74e671ef`.
+
+Lo que dejó la T04 (PR #120 de `tpi-market`, mergeado el 2026-10-06):
+
+- **Alcance.** La T04 solo agrega pruebas: una matriz de rol por endpoint que fija el comportamiento actual. Los cambios de comportamiento que T01 a T03 le habían derivado pasan a una tarea nueva, **#6807 T05 - Corregir los accesos derivados de la matriz de seguridad** (creada el 2026-10-05): la vitrina con `MS`, `X-User-Id` obligatorio en los dos resúmenes, `MS` como lector del resumen, la asignación de ADMIN, el rol `MS` en un usuario y el listado de la vitrina para ADMIN. Lo de GESTOR no pasa a la T05: espera a la pregunta del punto siguiente.
+- **GESTOR.** El código lo trata igual que a ADMIN en todas las rutas, pero Cursos lo devuelve por asignación a una cohorte: [[Q-024 - Qué es el rol GESTOR]]. Hasta que se decida, la matriz marca las celdas de GESTOR como dependientes de esa pregunta y la T05 no lo toca.
+- **La matriz.** `src/test/java/ar/edu/utn/frc/tup/p4/acceptance/RoleEndpointMatrixAcceptanceTest.java` llama por HTTP real a los 16 endpoints de negocio con 18 tipos de llamador (anónimo, cada rol, roles vacíos, señuelos como `NOT_ADMIN` o `SYSTEMS`, servicio con `MS` y servicio con el ámbito `ROLE_ADMIN`), más los señuelos junto a un rol legítimo en los chequeos de los services, la identidad (`X-User-Id` ausente o vacía) y las reglas que cambian en la T05: 376 casos. Las rutas de escritura apuntan a un curso cerrado: el acceso se chequea antes que el cierre, así que una llamada permitida termina en `403 course-closed` sin guardar nada. Para distinguir "pasó" de "fue denegado" mira el `type` del problema, no solo el status.
+- **`contains()`.** Se probó metiendo el error a mano: en `UserRole.fromHeader` pone 88 casos en rojo; en un solo service (`StorefrontCatalogServiceImpl.hasAdminPrivileges`), 12, todos de los señuelos junto a un rol legítimo. La matriz sola, con un rol por llamada, no detecta un `contains()` escondido en un service.
+- **Un usuario con `MS`.** Hoy un usuario con `X-User-Roles: MS` recibe `ROLE_MS` y cambia estados de ofertas como administrativo. Pasa a la T05: solo un servicio debería poder ser `MS`. La T05 lo corrigió (ver abajo).
+
+Lo que dejó la T05 (PR #124 de `tpi-market`, mergeado en `develop` el 2026-10-07 (`c195d386`)):
+
+- **Un solo origen para los roles.** Todos los chequeos de rol de los services leen el principal autenticado (`UserRole.fromAuthorities`), como ya hacían las rutas de estado desde [[DEC-017 - Servicios con MS en las rutas de estado de oferta]]. Ningún service vuelve a parsear `X-User-Roles`: solo `GatewayIdentityFilter` la lee. Las firmas de `CourseCatalogManageService`, `StorefrontCatalogService`, `CourseCatalogSummaryService` y `CourseSalesSummaryService` pasan a `Set<UserRole>` y los cinco controladores reciben el `Authentication`.
+- **Solo un servicio puede ser `MS`.** `GatewayIdentityFilter.rolesOf` descarta `MS` (y `ROLE_MS`) de los roles de un usuario. Hacía falta además leer el principal: con solo cambiar el filtro, un usuario con `X-User-Roles: STUDENT, MS` pasaba el `@PreAuthorize` como alumno y después la vitrina, que leía la cabecera cruda, lo trataba como administrativo.
+- **Quién se saltea la matrícula o la asignación.** Vitrina (detalle): ADMIN, GESTOR y `MS`, como antes. Vitrina (listado): ADMIN y `MS`. Gestión (listar, publicar, editar): ADMIN. Resumen de vitrinas: ADMIN, GESTOR y `MS`, que ahora puede leerlo. GESTOR conserva la asignación en gestión y la matrícula en el listado, así que en esas cuatro rutas ya no es igual a ADMIN ([[Q-024 - Qué es el rol GESTOR]]).
+- **`X-User-Id` obligatoria en todas las rutas que la toman como cabecera.** Se sumaron los dos resúmenes y listar, publicar y editar: sin la cabecera responden 400 `missing-header`. Con la cabecera vacía, un rol que se saltea los chequeos igual recibe 403 (lo que pidió la revisión del PR #93). Un servicio con `MS` tiene que mandar un `X-User-Id` no vacío aunque no se use.
+- **Pruebas.** La matriz de la T04 pasó a 400 casos y ya no tiene filas marcadas "cambia en T05"; las de GESTOR siguen marcadas "depende de Q-024". Tres mutaciones (GESTOR con bypass en gestión, GESTOR con bypass en el listado, el filtro dando `MS` a un usuario) hacen fallar los casos esperados. `docs/api_doc/swagger.json` regenerado: cambian solo las cinco operaciones de gestión y resúmenes.
 
 ## Tareas
 
@@ -181,3 +207,19 @@ Estimación: 3 h
 - Hecho cuando: las pruebas parametrizadas pasan en verde y fallan si se reintroduce `contains()`
 
 Estimación: 5 h
+
+### T05 - Corregir los accesos derivados de la matriz de seguridad
+
+**Objetivo:** Corregir los casos que la matriz de la T04 deja fijados como comportamiento actual.
+
+- Los GET de detalle de vitrina evalúan a un servicio con `MS` por el principal autenticado
+- `X-User-Id` obligatorio en el resumen de catálogo y en el resumen de ventas
+- `MS` como lector del resumen de catálogo
+- ADMIN no pasa por el chequeo de asignación al listar, publicar y editar
+- ADMIN ve el listado de la vitrina sin estar matriculado
+- Un servicio con `MS` ve el listado de la vitrina sin el chequeo de matrícula, igual que el detalle (agregado el 2026-10-07)
+- El filtro descarta `MS` de los roles de un usuario: solo un servicio puede ser `MS`
+- GESTOR no se toca hasta que se decida [[Q-024 - Qué es el rol GESTOR]]
+- Hecho cuando: las filas marcadas en la matriz de la T04 pasan a esperar el comportamiento nuevo
+
+Estimación: 4 h

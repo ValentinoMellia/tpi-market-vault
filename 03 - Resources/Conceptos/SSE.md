@@ -2,7 +2,7 @@
 tipo: concepto
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-06
+actualizado: 2026-10-09
 tags: [concepto, sse]
 ---
 # SSE
@@ -16,7 +16,7 @@ Una compra tarda y responde 202 enseguida; el cliente necesita enterarse del res
 El cliente abre una conexión `text/event-stream` y recibe eventos hasta que el servidor la cierra.
 
 ## Cómo lo usamos en Mercado
-`POST .../orders` devuelve `sseStreamUrl`; `GET /api/market/orders/stream/{orderId}` envía un único evento con el estado actual y cierra, por lo que no sigue el progreso en vivo (la historia #140 queda parcial, [[Épica 137 - Compra directa]]). El filtro de identidad se reejecuta en el despacho asíncrono ([[Gateway e identidad]]). Ver [[Orden de compra]].
+`POST .../orders` devuelve `sse_stream_url` (el cuerpo REST va en `snake_case`, [[Errores de la API]]); `GET /api/market/orders/stream/{orderId}` envía un único evento con el estado actual y cierra, por lo que no sigue el progreso en vivo (la historia #140 queda parcial, [[Épica 137 - Compra directa]]). El filtro de identidad se reejecuta en el despacho asíncrono ([[Gateway e identidad]]). Ver [[Orden de compra]].
 
 ## Uso propuesto en el frontend (US-5236)
 

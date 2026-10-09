@@ -1,0 +1,2 @@
+## [2026-10-08] ingest | Revisión de la PR #21 (vencimiento del hold en UTC)
+- Tras la revisión de Patinio: el gap 8 de [[Estado actual del código]] pasa a titularse como resuelto ("Vencimiento del hold en UTC: resuelto en `develop` desde el PR #118") y describe el defecto en pasado, como los gaps 5, 9 y 23; la nota aclara que el gap 8 se verificó contra `cb12210a` y el resto no se reverificó. En [[S2-05 - Robustez de la compra]], la línea "Otros" pasa a pasado y la sección de la T02 aclara contra qué commit se verificó. `node scripts/lint-vault.mjs` sin errores.
