@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+verificado_contra: codigo@2485d8cf
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5193"
@@ -125,6 +125,7 @@ Relación: [[Integración con Accounting]], [[Estado actual del código]] (gaps 
 - Se genera al crear la orden y se envía en `payload.orderId` de `HOLD_CREATE_REQUESTED`
 - El `orderId` público de la API no cambia
 - Hecho cuando: una orden nueva publica `HOLD_CREATE_REQUESTED` con `payload.orderId` igual a su `orderRef`
+- **Estado:** Resuelta en `develop` (PR #88).
 
 Estimación: 6 h
 
@@ -137,6 +138,7 @@ Estimación: 6 h
 - Actualizar `.compose/.env.example` con los nombres nuevos
 - Incluir `order-events`, que hoy es `market.orders.events` y pasa a `market.events` ([[DEC-008 - Nombre de productor y tópicos de Mercado]])
 - Hecho cuando: la aplicación arranca sin variables y publica en `accounting.events` y `market.events`
+- **Estado:** Resuelta en `develop` (PR #88).
 
 Estimación: 3 h
 
@@ -148,6 +150,7 @@ Estimación: 3 h
 - Enrutar los mensajes restantes por `eventType`
 - Prueba con un único tópico para comandos y respuestas
 - Hecho cuando: con un solo tópico, el listener descarta `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED` y `HOLD_RELEASE_REQUESTED` propios con 0 mensajes en DLT
+- **Estado:** Resuelta en `develop` (PR #102, commit `a4e6ac76`, merge `2485d8cf`). Cubierta por `AccountingHoldKafkaListenerTest` y `KafkaSagaIntegrationTest`.
 
 Estimación: 6 h
 
@@ -158,6 +161,7 @@ Estimación: 6 h
 - Reemplazar `tema-09-mercado` en `MessagingProperties`
 - Verificar el campo `producer` de holds, `ITEM_CONFIRMED` y `PURCHASE_CONFIRMED`
 - Hecho cuando: ningún mensaje saliente lleva `tema-09-mercado` y no queda esa cadena en el código
+- **Estado:** Resuelta en `develop` (PR #102, commit `1e458bb0`, merge `2485d8cf`). Cubierta por `MessagingPropertiesTest` y `OrderConfirmationServiceImplTest`.
 
 Estimación: 3 h
 

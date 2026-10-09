@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: en-disputa
-verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-06
+verificado_contra: codigo@2485d8cf
+actualizado: 2026-10-09
 tags: [mercado, dominio, hold, accounting]
 ---
 # Hold de monedas
@@ -34,6 +34,7 @@ Pedido (`HOLD_CREATE_REQUESTED`), creado (`HOLD_CREATED`) o rechazado (`HOLD_REJ
 - Mercado solo reconoce los rechazos `INSUFFICIENT_BALANCE` y `MAX_LIVES_REACHED`; los demás motivos se reportan como saldo insuficiente ([[Estado actual del código]], gap 22). Decidido: mapear todos los motivos ([[DEC-009 - Contrato de holds e ítems según Accounting]]).
 - Contrato adoptado: [[DEC-009 - Contrato de holds e ítems según Accounting]]; transporte solo por Kafka: [[DEC-003 - Holds solo por Kafka]]. Lo único en disputa de esta nota es el orden de la compra ([[Q-008 - Orden de la saga de compra]]).
 - Con holds, las monedas no se debitan hasta `HOLD_CONFIRM_REQUESTED`: antes de confirmar, devolver las monedas es liberar el hold.
+- Todos los comandos de hold se publican con productor `market-service` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Al compartir `accounting.events`, `AccountingHoldKafkaListener` descarta los comandos propios sin enviarlos a DLT ni generar excepciones (PR #102, US-5193 T03 y T04, `2485d8cf`; [[Eventos y Kafka]]).
 
 ## Dónde vive en el código
 `dtos/bank/*`, `clients/impl/OutboxBankHoldClient.java`, `services/impl/OrderHoldServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`.

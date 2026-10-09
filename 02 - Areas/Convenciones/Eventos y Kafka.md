@@ -1,13 +1,13 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@349c8e2
-actualizado: 2026-10-04
+verificado_contra: codigo@2485d8cf
+actualizado: 2026-10-09
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
 
-> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; falta el resto de la alineación ([[Roadmap de trabajo]]). Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
+> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
 
 ## Regla de plataforma
 
@@ -30,11 +30,11 @@ Valores por defecto de `application.properties:46-51` (`develop` en `349c8e2`); 
 
 Antes del PR #88 los defectos eran `accounting.holds.commands`, `accounting.holds.events` y `market.orders.events`, que la plataforma nunca aprovisionó. Los tópicos de inventario siguen sin existir en la plataforma, y Accounting no implementa `ITEM_PROVISION_*`: con transporte `kafka` esa parte de la saga no tiene contraparte ([[Integración con Accounting]]).
 
-Productores: `market-service` en los comandos de hold y en `LIFE_PURCHASE_CONFIRMED`; `tema-09-mercado` en `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` (inconsistente; la decisión fija `market-service` en todos, tarea de código pendiente, `services/impl/OrderConfirmationServiceImpl.java:67`). Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service` (`spring.kafka.consumer.group-id`).
+Productores: `market-service` en **todos** los mensajes salientes (PR #102, US-5193 T04, `2485d8cf`). `MessagingProperties` fija `producer = "market-service"` por defecto, configurable mediante `market.messaging.producer` (`MARKET_MESSAGING_PRODUCER`). `OrderConfirmationServiceImpl` usa `resolveProducer()` en lugar del antiguo `tema-09-mercado`, por lo que `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` se emiten con `market-service` al igual que los comandos de hold y `LIFE_PURCHASE_CONFIRMED`. No queda ninguna aparición de `tema-09-mercado` en el código. Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service` (`spring.kafka.consumer.group-id`).
 
 ### Tópico compartido y filtro de eventos
 
-Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102) `onMessage` filtra **antes** de parsear el payload:
+Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102, merge `2485d8cf`) `onMessage` filtra **antes** de parsear el payload:
 
 1. Lee el `producer` del envelope con `SagaEventParser.producerOf` y descarta, con log `DEBUG`, los mensajes de `market-service` (los comandos propios).
 2. Lee el `eventType` con `SagaEventParser.eventTypeOf` y, si `AccountingHoldEventHandler.consumes(eventType)` es falso, descarta con log `DEBUG` el evento que Mercado no consume.
