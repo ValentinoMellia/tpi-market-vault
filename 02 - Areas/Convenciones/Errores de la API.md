@@ -37,7 +37,7 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 | `catalog-offer-not-found` | 404 | Oferta inexistente |
 | `catalog-offer-inactive` | 409 | Oferta inactiva |
 | `catalog-offer-out-of-stock` | 409 | Sin stock |
-| `catalog-offer-expired` | 409 | Oferta vencida |
+| `catalog-offer-expired` | 409 | Oferta vencida: en la compra y, para el alumno, en el detalle de la oferta (desde el PR #134) |
 | `order-not-found` | 404 | Orden inexistente |
 | `order-access-denied` | 403 | Orden de otro usuario |
 | `idempotency-key-conflict` | 409 | Misma clave con otra solicitud ([[Idempotencia]]) |
