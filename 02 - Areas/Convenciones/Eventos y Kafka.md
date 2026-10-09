@@ -1,13 +1,13 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@5de30854
+verificado_contra: codigo@e456c55f
 actualizado: 2026-10-09
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
 
-> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido, y el PR #115 (US-5193 T08, `5de30854`) fijó `releaseReason` como enum tipado con los 3 valores contractuales de Accounting. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
+> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido, el PR #115 (US-5193 T08, `5de30854`) fijó `releaseReason` como enum tipado, y el PR #116 (issue #114, `e456c55f`) implementó la resolución por `holdId` de `HOLD_RELEASED` asíncronos sin `correlationId`. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
 
 ## Regla de plataforma
 
@@ -61,7 +61,7 @@ Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacci
 
 ## Consumo
 
-`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero descarta los comandos propios y los eventos no consumidos antes de parsear (ver "Tópico compartido y filtro de eventos"). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
+`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero descarta los comandos propios y los eventos no consumidos antes de parsear (ver "Tópico compartido y filtro de eventos"). Si un evento de hold como `HOLD_EXPIRED` o `HOLD_RELEASED` llega sin `correlationId` (eventos asíncronos externos de Accounting), `AccountingHoldEventHandler` resuelve la orden buscando por `holdId` en base de datos (PR #116, `e456c55f`). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
 
 ## Fallos
 

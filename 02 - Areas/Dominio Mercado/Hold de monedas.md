@@ -1,7 +1,7 @@
 ---
 tipo: entidad
 estado: en-disputa
-verificado_contra: codigo@5de30854
+verificado_contra: codigo@e456c55f
 actualizado: 2026-10-09
 tags: [mercado, dominio, hold, accounting]
 ---
@@ -17,7 +17,7 @@ Un compromiso de Accounting de reservar el monto de la compra. Mercado guarda su
 |---|---|
 | `holdId` | Identificador entregado por Accounting |
 | `holdExpiresAt` | Vencimiento fijado por Accounting (guardado como `LocalDateTime` con la hora UTC desde el PR #118 de `tpi-market`, T02 de [[S2-05 - Robustez de la compra]], mergeado en `develop` el 2026-10-06 (`cb12210a`, aprobado y mergeado por tommikimmel); antes, en la zona del sistema) |
-| `BankHoldStatus` | `PENDING`, `COMMITTED`, `RELEASED`, `UNKNOWN` (consulta de estado, que accounting no ofrece) |
+| `BankHoldStatus` | `PENDING`, `COMMITTED`, `RELEASED`, `UNKNOWN` (consultado vía `GET /api/accounting/holds/{holdId}` con `HttpBankHoldQueryClient`, PR #116) |
 | Motivo de liberación | `BankHoldReleaseReason` en Mercado (enum tipado restringido a los 3 valores canónicos: `AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`; PR #115, US-5193 T08, `5de30854`); coincide exactamente con el contrato de Accounting |
 | `orderType` | `DIRECT_PURCHASE` o `AUCTION_BID` |
 
@@ -29,16 +29,17 @@ Pedido (`HOLD_CREATE_REQUESTED`), creado (`HOLD_CREATED`) o rechazado (`HOLD_REJ
 - La confirmación lleva `holdId`, sin monto.
 - Accounting fija el TTL: 300 s para `DIRECT_PURCHASE` (ignora `ttlSeconds`); en `AUCTION_BID` es obligatorio y mayor que 0.
 - Un hold por `orderId` para siempre (`UNIQUE(account_id, order_id)`); no hay liberación en lote ni captura parcial.
-- Accounting aún no ofrece consulta del estado de un hold de monedas: `GET /api/accounting/holds/{holdId}` está en implementación este sprint (D5) y el listener de comandos está apagado por defecto.
+- Consulta de estado implementada (PR #116, issue #114, `e456c55f`): `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` bajo transporte `kafka` con token dinámico (`IdentityServiceTokenClient`), alias tolerantes a `camelCase` / `snake_case` y timeouts configurables.
 - `orderId` debe ser UUID canónico, o accounting rechaza el comando con `MALFORMED_COMMAND`. Desde el PR #88 (`develop` en `349c8e2`) Mercado envía el `orderRef` UUID de la orden (`services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]], [[Integración con Accounting]]).
 - Mercado mapea los 10 motivos de rechazo del contrato de Accounting (`OrderRejectionReason`, PR #110, US-5193 T07, `f7457882`): solo `INSUFFICIENT_BALANCE` / `INSUFFICIENT_FUNDS` transiciona a `REJECTED_INSUFFICIENT_FUNDS`; los otros nueve motivos (`ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND`) y los códigos no reconocidos (fallback a `PROVISION_FAILED`) pasan a `REJECTED` registrando su causa en la orden (`OrderEntity.rejectionReason`) y liberando el stock reservado ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]], gap 22 cerrado).
 - Liberación con enum tipado (PR #115, US-5193 T08, `5de30854`): `BankHoldReleaseReason` coincide de forma estricta con los 3 valores de Accounting (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`); `fromWireCode` devuelve `Optional<BankHoldReleaseReason>` y `BankHoldReleaseRequestDto` exige enum tipado no nulo en su constructor compacto. `OrderItemProvisionServiceImpl` libera con `PURCHASE_NOT_COMPLETED`, y `OrderHoldServiceImpl.expireGrantedHold` ya no emite liberación redundante si el hold expiró localmente.
+- Recepción de `HOLD_RELEASED` sin `correlationId` (PR #116, issue #114, `e456c55f`): cuando Accounting emite liberaciones asíncronas externas (por baja de alumno o archivo de curso), `AccountingHoldEventHandler` resuelve la orden por `holdId` y ejecuta `OrderHoldService.cancelReleasedHold`. Si la orden está en `HOLD_GRANTED`, transiciona a `EXPIRED` liberando stock; si está en `ITEM_PROVISION_REQUESTED`, cancela la orden liberando stock; y si está en `ITEM_PROVISIONED`, preserva el ítem sin cancelar directamente respetando [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].
 - Contrato adoptado: [[DEC-009 - Contrato de holds e ítems según Accounting]]; transporte solo por Kafka: [[DEC-003 - Holds solo por Kafka]]. Lo único en disputa de esta nota es el orden de la compra ([[Q-008 - Orden de la saga de compra]]).
 - Con holds, las monedas no se debitan hasta `HOLD_CONFIRM_REQUESTED`: antes de confirmar, devolver las monedas es liberar el hold.
 - Todos los comandos de hold se publican con productor `market-service` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Al compartir `accounting.events`, `AccountingHoldKafkaListener` descarta los comandos propios sin enviarlos a DLT ni generar excepciones (PR #102, US-5193 T03 y T04, `2485d8cf`; [[Eventos y Kafka]]).
 
 ## Dónde vive en el código
-`dtos/bank/*`, `clients/impl/OutboxBankHoldClient.java`, `services/impl/OrderHoldServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`.
+`dtos/bank/*`, `clients/impl/OutboxBankHoldClient.java`, `clients/impl/HttpBankHoldQueryClient.java`, `clients/impl/IdentityServiceTokenClient.java`, `services/impl/OrderHoldServiceImpl.java`, `listeners/AccountingHoldEventHandler.java`.
 
 ## Relacionado
 [[Integración con Accounting]], [[Subasta]] (retención por oferta), [[Saga]].
