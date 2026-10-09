@@ -56,10 +56,10 @@ A detallar en la planning del Sprint 3, con el resultado del spike de diseño de
 | Lanzar y ver subastas (profesor y estudiante) | [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]. Ya es S3-01: modelo completo con todos los estados y lanzar directo a `OPEN` |
 | Borrador y programación de subastas (`DRAFT`, `SCHEDULED`, con el proceso que abre las programadas) | [[Subasta]] |
 | Ofertar y mejorar oferta (`HOLD_CREATE` / `HOLD_INCREASE` con el total nuevo; solo se puede subir; retiro solo en la fase visible) | [[DEC-014 - Reglas de subastas]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Subasta]] |
-| Modo ciega y fase final ciega de la puja visible (solo ofertan quienes ya ofertaron). El desempate está abierto: propuesta provisional de oferta más antigua | [[DEC-014 - Reglas de subastas]], [[Q-024 - Desempate de las subastas]] |
+| Modo ciega y fase final ciega de la puja visible (solo ofertan quienes ya ofertaron). El desempate está abierto: rige el dado de DEC-014 hasta que se resuelva Q-025, que propone la oferta más antigua | [[DEC-014 - Reglas de subastas]], [[Q-025 - Desempate de las subastas]] |
 | Cierre: entregar al ganador y liberar a los demás (un release por postor), con reintentos si la liquidación falla | [[DEC-014 - Reglas de subastas]], [[Subasta]] |
 | Cancelación por profesor y curso archivado (cancela todas las subastas del curso); baja de estudiante | [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]] |
-| Frontend de subastas (la animación del dado depende de lo que se decida en Q-024) | [[Subasta]], [[Q-024 - Desempate de las subastas]] |
+| Frontend de subastas (la animación del dado depende de lo que se decida en Q-025) | [[Subasta]], [[Q-025 - Desempate de las subastas]] |
 | Propuestas, si el PO las aprueba | [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]], [[Ítems únicos]] |
 
 ## 4. Orden de ejecución

@@ -75,7 +75,7 @@ El diseño está en [[Subasta]], sección "Diseño técnico", pendiente de revis
 | Entidades y campos | Respondida (propuesta) |
 | Estados y fase derivada del tiempo | Respondida (propuesta), con `DRAFT` y `SCHEDULED` |
 | Mapeo a Accounting | Respondida (propuesta); abiertas: TTL máximo para `AUCTION_BID`, si `HOLD_INCREASE_REQUESTED` extiende el vencimiento y el motivo de release para un retiro |
-| Desempate | **Abierta**: propuesta provisional de oferta más antigua, con el ranking de `tpi-roadmap` como mejora del siguiente sprint. Contradice a [[DEC-014 - Reglas de subastas]], que pide un dado; se decide al implementar ([[Q-024 - Desempate de las subastas]]) |
+| Desempate | **Abierta**: propuesta provisional de oferta más antigua, con el ranking de `tpi-roadmap` como mejora del siguiente sprint. Contradice a [[DEC-014 - Reglas de subastas]], que pide un dado; mientras no se decida, rige el dado ([[Q-025 - Desempate de las subastas]]) |
 | `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` | Respondida (propuesta); abierto: el contenido de los eventos |
 | Regla de la oferta ciega | Respondida (propuesta) |
 

@@ -37,7 +37,7 @@ Reglas de [[DEC-014 - Reglas de subastas]] (2026-10-01) y su efecto en las histo
 - #587 Cancelar: un `HOLD_RELEASE_REQUESTED` por postor.
 - #585 Devolver monedas: los superados se liberan recién al cierre.
 - #580 y #581 Ofertar y mejorar: incremento mínimo configurable; una oferta abierta debe superar estrictamente a la mejor.
-- #578 Lanzar: duración máxima de 14 días; modo puja visible o ciega (el desempate por dado decidido en el servidor, auditable, está en revisión: [[Q-024 - Desempate de las subastas]]).
+- #578 Lanzar: duración máxima de 14 días; modo puja visible o ciega (el desempate por dado decidido en el servidor, auditable, está en revisión: [[Q-025 - Desempate de las subastas]]).
 - #588 Curso archivado o baja: se cancelan las subastas del curso archivado; la baja retira las ofertas del estudiante y la subasta continúa.
 - Sin extensión de tiempo; anti-sniping por fase final ciega (últimos X minutos ciegas; X configurable por subasta por el profesor; la regla de la oferta ciega sigue pendiente de detalle): afecta a #580 y #581 ([[DEC-014 - Reglas de subastas]]).
 

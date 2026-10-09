@@ -5,9 +5,9 @@ verificado_contra: ninguno
 actualizado: 2026-10-09
 tags: [mercado, pregunta-abierta, subastas]
 ---
-# Q-024 - Desempate de las subastas
+# Q-025 - Desempate de las subastas
 
-> Cuando dos o más estudiantes ofrecen el mismo monto más alto, [[DEC-014 - Reglas de subastas]] decidió una tirada de dado, pero el spike de diseño propone otra cosa. Hay que elegir cómo se desempata; se decide al implementar.
+> Cuando dos o más estudiantes ofrecen el mismo monto más alto, [[DEC-014 - Reglas de subastas]] decidió una tirada de dado, pero el spike de diseño propone otra cosa. Hay que elegir cómo se desempata; mientras tanto rige el dado de DEC-014.
 
 ## Qué se contradice
 | Postura | Qué dice | Dónde aparecía |
@@ -29,7 +29,7 @@ El ranking de la cohorte vive en `tpi-roadmap` (grupo G10), rama `develop`. Solo
 5. **Menos compras en la tienda del curso**: criterio de equidad con datos de Mercado. Hay que definir qué cuenta y si es deseable.
 
 ## Recomendación
-Sin decidir. El diseño de [[Subasta]] usa la opción 2 como propuesta provisional para el Sprint 3 y deja la opción 3 como mejora prevista para el siguiente sprint, a conversar con G10. La decisión final se toma al implementar.
+Sin decidir. El diseño de [[Subasta]] usa la opción 2 como propuesta provisional para el Sprint 3 y deja la opción 3 como mejora prevista para el siguiente sprint, a conversar con G10. Hasta que se decida, rige el dado de [[DEC-014 - Reglas de subastas]]; si se elige otra opción, se enmienda esa decisión.
 
 ## Quién decide / con qué equipo hay que hablar
 El equipo de Mercado. Para la opción 3, además G10 (`tpi-roadmap`).
