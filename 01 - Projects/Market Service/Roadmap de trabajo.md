@@ -45,7 +45,7 @@ Coordinación y comunicación:
 - Pedidos a Accounting: revocación de ítems, evento de error al fallar el acreditado ([[Q-008 - Orden de la saga de compra]]), y D4, D6, D10 ([[Taller de decisiones]]).
 - **Reglas de la tienda** ([[DEC-013 - Reglas de la tienda]]):
   - Incrementar `unitsSold` al confirmar la orden y calcular disponible = total - vendidos - reservados (T1). Es un defecto de sobreventa: prioridad dentro de P1.
-  - Aceptar `publicationExpiresAt` en `CatalogOfferPublishDto` y `CatalogOfferUpdateDto` (T6 modificada): **pendiente de implementar**. Pendiente decidir si al extender solo se aceptan fechas posteriores.
+  - Aceptar `publicationExpiresAt` en `CatalogOfferPublishDto` y `CatalogOfferUpdateDto` (T6 modificada): **propuesto en PR #113, pendiente de integración**. El contrato de fecha/TTL y extensión estrictamente posterior provisional se registra en [[DEC-013 - Reglas de la tienda]]; ratificación pendiente.
   - Validar al publicar plantilla existente y activa, tipo coincidente y multiplicador en rango (T5).
   - Desactivar en lugar de borrar ofertas; dejar de usar `deleted` (T4).
   - Confirmar con Frontend que `courseId` es la cohorte (T3).
@@ -74,3 +74,7 @@ Las subastas se especifican ya porque ambos sprints están en planificación. El
 - Eventos de notificaciones (`CATALOG_OFFER_PUBLISHED`) y consumo de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` ([[Integración con Notificaciones]], [[Integración con Cursos]]).
 
 Backlog completo en [[Backlog - Índice]].
+
+## Seguimiento acotado de US-5207 — 2026-10-05
+
+[PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (fuente original `669ba7d0`) propone T05 (#5212) y T06 (#5213) de [[S2-03 - Reglas de la tienda]]. Aún requiere aprobación e integración en `develop`; este registro no cierra Taiga ni los demás pendientes del roadmap. Los ajustes locales de revisión se separan del snapshot base en [[Estado actual del código]].

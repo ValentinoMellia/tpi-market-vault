@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5207"
@@ -29,12 +29,12 @@ horas: 30
 ## Notas / Observaciones
 
 - [ ] Reglas de negocio ([[DEC-013 - Reglas de la tienda]]): unitsSold se incrementa cuando una orden pasa a CONFIRMED; disponible = total - vendidos - reservados (T1). Las ofertas no se borran, solo se desactivan (T4). publicationExpiresAt puede fijarse y extenderse (T6 modificada). El courseId es la cohorte (T3).
-- [ ] Validaciones: al publicar, la plantilla debe existir y estar activa, el itemType debe coincidir con el de la plantilla y el multiplicador debe estar en rango (T5, validation/ValidOfferConfigurationValidator.java). Pendiente de decidir: si al extender solo se aceptan fechas posteriores a la vigente; hasta decidirlo, la tarea 6 acepta solo fechas posteriores y se registra la decisión.
+- [ ] Validaciones: al publicar, la plantilla debe existir y estar activa, el itemType debe coincidir con el de la plantilla y el multiplicador debe estar en rango (T5). El rango lo valida `@DecimalMin("1.10")` en `dtos/manage/OfferConfigurationRequestDto.java`; `validation/ValidOfferConfigurationValidator.java` solo comprueba que los campos estén presentes. La tarea 6 conserva provisionalmente la extensión estrictamente posterior; ratificación del equipo pendiente ([[DEC-013 - Reglas de la tienda]]).
 - [ ] Datos obligatorios: templateId, itemType, customName, coinPrice (mínimo 1); totalStock opcional ([[DEC-002 - Stock opcional por oferta]]).
 - [ ] Performance (tiempos, volumen, límites): el incremento de unitsSold debe ser atómico frente a confirmaciones concurrentes (hoy OfferStockConcurrencyTest cubre el descuento de stock).
 - [ ] Seguridad (roles, permisos, datos sensibles): el profesor desactiva por PATCH /api/market/courses/{courseId}/catalog/manage/offers/{itemId}/status; la ruta PATCH /api/market/offers/{id}/status es de ADMIN, GESTOR y MS ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]).
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
-- [ ] Otros: hoy publish calcula publicationExpiresAt desde publicationTtlMinutes (CatalogOfferPublishDto); la tarea 5 define si el campo nuevo convive con el TTL o lo reemplaza. Datos con deleted=true existentes se tratan como inactivos.
+- [ ] Otros: en el snapshot `7528610`, publish calcula publicationExpiresAt desde publicationTtlMinutes (CatalogOfferPublishDto); T05 conserva el TTL y propone exclusión mutua con la fecha explícita ([[DEC-013 - Reglas de la tienda]]). Las ofertas existentes con `deleted=true` se tratan como inactivas y no se pueden editar ni reactivar: en la rama del PR #113 (`fc1c9b89`, 2026-10-09), `CourseCatalogOfferEntity.isEffectivelyActive()` las da por inactivas y `CatalogOfferRules.requireMutable` rechaza la edición y los cambios de estado con 409 `offer-update-not-allowed`.
 
 ---
 
@@ -166,7 +166,7 @@ Estimación: 4 h
 **Objetivo:** Permitir fijar el vencimiento de la oferta al publicarla.
 
 - Agregar el campo a `CatalogOfferPublishDto` y devolverlo en la respuesta
-- Definir la convivencia con `publicationTtlMinutes` y registrarla
+- Conservar `publicationTtlMinutes`; rechazar con 400 su combinación con fecha explícita. Sin ambos, no hay vencimiento automático ([[DEC-013 - Reglas de la tienda]])
 - Validar que la fecha sea futura
 - Hecho cuando: `POST /api/market/courses/{courseId}/catalog/manage` acepta y devuelve `publicationExpiresAt` y responde 400 con una fecha pasada
 
@@ -177,8 +177,13 @@ Estimación: 4 h
 **Objetivo:** Permitir extender el vencimiento de una oferta ya publicada.
 
 - Agregar el campo a `CatalogOfferUpdateDto`
-- Regla de extensión: solo fechas posteriores a la vigente hasta que se decida otra, y registrar la decisión
-- Pruebas de extensión válida y de fecha anterior
+- Campo omitido o `null`: no cambia la fecha. Si no existía vencimiento, admitir una primera fecha futura
+- Regla provisional de T06: si ya existe vencimiento, exigir una fecha futura y estrictamente posterior; igual o anterior responde 400. Ratificación pendiente ([[DEC-013 - Reglas de la tienda]])
+- Pruebas de extensión válida, fecha igual/anterior/no futura, primera fecha futura y omisión/`null` sin cambios
 - Hecho cuando: `PATCH .../manage/{offerId}` con una fecha posterior responde 200 con la fecha nueva y la oferta sigue visible hasta ese instante
 
 Estimación: 5 h
+
+## Seguimiento de implementación — 2026-10-05
+
+T05 (#5212) y T06 (#5213) están propuestas en [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (fuente original `669ba7d0`); no se marcan completadas ni integradas en `develop`. El contrato y su carácter provisional se detallan en [[DEC-013 - Reglas de la tienda]]; revisión local y estado de integración en [[Estado actual del código]].

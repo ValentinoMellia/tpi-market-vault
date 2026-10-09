@@ -33,4 +33,8 @@ Equipo de Mercado (y Frontend para T3).
 ## Resolución
 Cerrada el 2026-10-01 por el usuario: se aprueban T1, T3, T4 y T5; T6 se modifica (la publicación sí puede extenderse). Ver [[DEC-013 - Reglas de la tienda]]. Pregunta archivada.
 
-Estado de implementación: la extensión de `publicationExpiresAt` está **pendiente de implementar**. Hoy `CatalogOfferPublishDto` y `CatalogOfferUpdateDto` no lo aceptan, así que el profesor no puede fijarlo ni extenderlo por la API. Se planifica en el Sprint 2 ([[Roadmap de trabajo]]).
+Estado del snapshot `7528610`: la extensión de `publicationExpiresAt` estaba **pendiente de implementar**. En ese snapshot `CatalogOfferPublishDto` y `CatalogOfferUpdateDto` no lo aceptan, así que el profesor no puede fijarlo ni extenderlo por la API. Se planifica en el Sprint 2 ([[Roadmap de trabajo]]).
+
+## Seguimiento — 2026-10-05
+
+La pregunta permanece **archivada**: poder extender ya está decidido en [[DEC-013 - Reglas de la tienda]]. Su aclaración registra el contrato propuesto de [PR #113 de tpi-market](https://github.com/2026-P4-BE/tpi-market/pull/113) (fuente original `669ba7d0`) y distingue la extensión estrictamente posterior provisional de T06, pendiente de ratificación. No se declara integración ni cierre de las tareas de [[S2-03 - Reglas de la tienda]]; véase [[Estado actual del código]].
