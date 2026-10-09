@@ -69,8 +69,8 @@ No existen `admin/metrics` ni `/api/v1/market/orders`. Estas rutas son el contra
 
 | Cliente | Implementación real | Simulada | Realidad hoy |
 |---|---|---|---|
-| `CourseEnrollmentClient` | No | `MockCourseEnrollmentClient` (`@Primary`) | Siempre `true`, salvo centinelas `student-not-enrolled`/`COURSE_UNENROLLED` (false) y `student-timeout`/`COURSE_TIMEOUT` (lanza) |
-| `CourseInstructorClient` | No | Mock | Siempre `true`, salvo `prof-unassigned` |
+| `CourseEnrollmentClient` | `GatewayCourseEnrollmentClient` (con `market.course.client=gateway`) | `MockCourseEnrollmentClient` (con `mock`, el valor por defecto) | Verificado en `fb5f82d9`: el real llama a `roster-membership` con un contrato supuesto; el simulado devuelve `true` salvo centinelas `student-not-enrolled`/`COURSE_UNENROLLED` (false) y `student-timeout`/`COURSE_TIMEOUT` (lanza). [[DEC-022 - Contrato de membresía con Cursos]] fija el contrato real y [[DEC-023 - Sin mocks de Cursos en el código]] pide eliminar el simulado |
+| `CourseInstructorClient` | No | `MockCourseInstructorClient` (`@Primary`) | Verificado en `fb5f82d9`: siempre `true`, salvo `prof-unassigned` |
 | `BankHoldClient` (habla con Accounting, ex Banco) | `OutboxBankHoldClient` | `MockBankHoldClient` | Según `market.messaging.transport` |
 | `InventoryItemProvisionClient` (el inventario es de Accounting, [[DEC-001 - Accounting es dueño del inventario]]) | `OutboxInventoryItemProvisionClient` | Mock | Ídem; protocolo `ITEM_PROVISION_*` que accounting no implementa |
 | `OrderEventPublisher` | `OutboxOrderEventPublisher` | Mock | Ídem |
@@ -113,7 +113,7 @@ Calidad: [[Calidad de código]].
 ## Gaps conocidos
 
 1. **Sin `BankHoldQueryClient` bajo `kafka`: resuelto en `develop` tras `e456c55f` (PR #116, issue #114).** `HttpBankHoldQueryClient` (`@ConditionalOnProperty(name = "market.messaging.transport", havingValue = "kafka")`) implementa la consulta `GET /api/accounting/holds/{holdId}` mediante `gatewayRestClient`, con soporte de token dinámico (`IdentityServiceTokenClient`), tolerancia a `camelCase` y `snake_case` vía `@JsonAlias`, y timeouts configurables. La aplicación arranca correctamente bajo transporte `kafka`.
-2. **Clientes de Cursos siempre simulados.** `clients/impl/MockCourseEnrollmentClient.java` y `MockCourseInstructorClient.java`. Ver [[Integración con Cursos]].
+2. **Clientes de Cursos simulados o provisorios.** Verificado en `fb5f82d9`: `clients/impl/MockCourseInstructorClient.java` es `@Primary`; la inscripción usa `MockCourseEnrollmentClient` salvo con `market.course.client=gateway`, y el cliente real llama a `roster-membership`. Hoy el código hace eso; [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]] a [[DEC-024 - Listado Mis mercados]] piden el cliente sobre `membership?user_id=`, el mercado deshabilitado fuera de `ACTIVE` y sin simulados. Ver [[Integración con Cursos]].
 3. **Reconciliación apagada: soporte completo e infraestructura listos tras `e456c55f` (PR #116, issue #114).** Con `HttpBankHoldQueryClient` implementado y probado, la propiedad `bank-hold.reconciliation.enabled=${BANK_HOLD_RECONCILIATION_ENABLED:false}` quedó configurada en `application.properties`, `application-docker.properties` y `application-prod.properties` para activarse por entorno en la plataforma.
 4. **`unitsSold` nunca se incrementa y editar el stock puede producir sobreventa.** `entities/CourseCatalogOfferEntity.java`; en `services/impl/CourseCatalogManageServiceImpl.java` el nuevo `availableStock` se calcula como `totalStock - unitsSold`, y como `unitsSold` es siempre 0 se devuelven al stock las unidades ya vendidas. Decidido: incrementar `unitsSold` al confirmar la orden y calcular disponible = total - vendidos - reservados ([[DEC-013 - Reglas de la tienda]], T1); falta implementarlo.
 5. **Tope de vidas (resuelto por US-6268, en `develop` desde el 2026-10-04; verificado contra `74e671ef`).** Mercado valida antes del hold con `PurchaseValidationService.validateLifeCap` (422 `LIFE_CAP_REACHED`), contando también las vidas de sus órdenes de vidas en vuelo, lee las vidas con `AccountingEquipSummaryClient` y PAR-12 de `market.lives.max-lives`, y consume `LIFE_PURCHASE_REJECTED` marcando la orden `SETTLED_UNCREDITED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). El cliente real queda apagado por defecto (`MARKET_ACCOUNTING_CLIENT=mock`) hasta confirmar cómo se emite el token de servicio.
@@ -130,7 +130,7 @@ Calidad: [[Calidad de código]].
 Verificados leyendo el código:
 
 13. **La clave de idempotencia es global, no por estudiante.** `OrderRepository.findByIdempotencyKey(String)` busca solo por la clave (`repositories/OrderRepository.java`). Ver [[Idempotencia]].
-14. **El cliente simulado de matrícula es `@Primary` también en producción.** `MockCourseEnrollmentClient` no tiene `@Profile` ni condición. Ver [[Integración con Cursos]].
+14. **El cliente simulado de matrícula es el valor por defecto.** Desde la T01 de US-5202 (PR #128 a #131) `MockCourseEnrollmentClient` ya no es `@Primary`, pero `market.course.client` vale `mock` si no se configura (verificado en `fb5f82d9`). [[DEC-023 - Sin mocks de Cursos en el código]] pide eliminarlo. Ver [[Integración con Cursos]].
 15. **`itemValidityDays` es un residuo.** La función de vencimiento de items entró en el PR #44 y se revirtió en el PR #60; el campo se guarda en la oferta pero nunca se envía a accounting. Los ítems no vencen y el campo se debe quitar ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
 16. **La rama `main` está 222 commits por detrás de `develop`.**
 17. **El flujo SSE de órdenes lo puede abrir el dueño o ADMIN, GESTOR y MS** (`controllers/PurchaseOrderController.java`).

@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: en-disputa
 verificado_contra: codigo@c195d386
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [mercado, pregunta-abierta, seguridad, roles]
 ---
 # Q-024 - Qué es el rol GESTOR
@@ -43,4 +43,4 @@ Opción 2, si Users y Cursos confirman que el `GESTOR` del JWT es el mismo conce
 El equipo de Mercado decide cómo trata el rol. Hay que confirmar con Users (qué significa `GESTOR` en el JWT) y con Cursos (qué devuelve `membership`). Mientras siga abierta, la matriz de seguridad de la T04 de [[S2-04 - Seguridad]] fija el comportamiento actual de `GESTOR` y lo marca como dependiente de esta pregunta. La T05 (#6807, cerrada el 2026-10-07) no cambió nada de `GESTOR`.
 
 ## Resolución
-Pendiente.
+Parcial. [[DEC-021 - Acceso al mercado por membresía de Cursos]] (confirmada por el PO el 2026-10-08) la responde para las **rutas de un curso**: el `GESTOR` de Cursos no tiene acceso al mercado del curso y no equivale al `ADMIN` de Mercado. Queda abierto qué pasa con el `GESTOR` del JWT en las **rutas sin curso** (por ejemplo, los resúmenes y el flujo SSE de órdenes). Hasta que el equipo lo confirme, la pregunta no se archiva.

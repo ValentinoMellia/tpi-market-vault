@@ -1,0 +1,2 @@
+## [2026-10-08] decision | DEC-021 - Acceso al mercado por membresía de Cursos
+- [[DEC-021 - Acceso al mercado por membresía de Cursos]], confirmada por el PO: solo `STUDENT` con inscripción `VALIDATED` y `PROFESSOR` / `PROFESSOR_READ_ONLY`; escribir exige `can_write`; `GESTOR` de Cursos sin acceso y distinto del `ADMIN` de Mercado; revalidar en la saga queda para el sprint 3. Q-024 (rol `GESTOR`) está en un PR abierto del vault y no se archiva acá.

@@ -1,0 +1,2 @@
+## [2026-10-08] decision | DEC-022 - Contrato de membresía con Cursos
+- [[DEC-022 - Contrato de membresía con Cursos]], acordada con Cursos en `tpi-course#87`: `GET /api/course/course-cohorts/{id}/membership?user_id=` con principal de servicio y `course.enrollment.read`; `cohort_status` siempre presente; 200 con `role: null` para no miembros y 404 para cohortes inexistentes o desactivadas; listados por `professor_id` y `student_id` en el próximo sprint de Cursos. Mercado eligió `cohort_status` en lugar de un 404 para cohortes no `ACTIVE`.

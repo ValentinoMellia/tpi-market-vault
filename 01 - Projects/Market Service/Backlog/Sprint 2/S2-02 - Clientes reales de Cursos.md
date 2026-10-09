@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+verificado_contra: codigo@fb5f82d9
+actualizado: 2026-10-08
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5202"
@@ -12,9 +12,40 @@ horas: 22
 ---
 # S2-02 - Clientes reales de Cursos
 
-> Reemplazar los clientes simulados de matrícula y de asignación de profesor por clientes reales de Cursos, usando `GET /course-cohorts/{id}/membership` y un token de servicio. Hoy toda inscripción es simulada, incluso en producción. 4 tareas, 22 h, 5 puntos, Must.
+> Reemplazar los clientes simulados de Cursos por un cliente real sobre `GET /api/course/course-cohorts/{id}/membership?user_id=` con token de servicio, habilitar el mercado solo para cohortes `ACTIVE` y dar acceso solo a alumnos validados y docentes asignados. El 2026-10-08 se replanificó en seis historias técnicas (US-1 a US-6) que reemplazan las tareas T01, T03 y T04; la T02 ya está mergeada.
 
-## [G11] — Clientes reales de Cursos
+## Replanificación del 2026-10-08
+
+El PO confirmó las reglas y Cursos cerró el contrato en `tpi-course#87` el 2026-10-08. El plan nuevo vive en el change SDD `courses-real-integration` de `tpi-market` (fase de propuesta completa, especificaciones en curso) y **reemplaza las tareas T01, T03 y T04** de esta historia; la **T02** (token de servicio) ya está mergeada y se reutiliza ([[DEC-023 - Sin mocks de Cursos en el código]]). Las tareas originales se conservan abajo como registro; hay que cerrarlas o reasignarlas en Taiga ([[DEC-015 - Política del backlog de Taiga]]).
+
+Decisiones que lo rigen: [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]], [[DEC-021 - Acceso al mercado por membresía de Cursos]], [[DEC-022 - Contrato de membresía con Cursos]], [[DEC-023 - Sin mocks de Cursos en el código]] y [[DEC-024 - Listado Mis mercados]].
+
+Qué cambia respecto del texto original:
+
+- El endpoint es `membership?user_id=` (servicio a servicio), no `membership` por quien llama ni `roster-membership`.
+- `GESTOR` ya no cuenta como docente: no tiene acceso al mercado.
+- Una cohorte que no está `ACTIVE` (o no existe) responde 403 `COURSE_MARKET_DISABLED` en todas las rutas del curso, sin solo lectura.
+- Los simulados se **eliminan**, no se mueven a `@Profile` dev y test (cambia el CA1 y la T04).
+- Se agrega la ruta `GET /api/market/courses` ("Mis mercados").
+
+| Historia | Qué entrega | Tareas | Depende de |
+|---|---|---|---|
+| US-1 - Cliente real de Cursos | `CourseCohortClient` sobre el Gateway con el token de servicio; `membership?user_id=` con `cohort_status`; timeouts configurables; timeout, 5xx o falla del token dan 503; un 401 invalida el token y reintenta una vez; sin secretos ni `X-User-Id` en logs | US1-T1 a US1-T6 | Contrato acordado |
+| US-2 - Mercado habilitado según la cohorte | `requireEnabled(courseId)` en todas las rutas del curso, incluida la vitrina; 403 `COURSE_MARKET_DISABLED`; decidir el destino de `course_closure` (US2-T4) | US2-T1 a US2-T6 | US-1 |
+| US-3 - Acceso del alumno | Solo `STUDENT` con `can_read`; vitrina, detalle y creación de la orden | US3-T1 a US3-T3 | US-2 |
+| US-4 - Acceso del docente | Lectura con `PROFESSOR` o `PROFESSOR_READ_ONLY`; escritura con `PROFESSOR` y `can_write`; `GESTOR` rechazado; resúmenes por curso | US4-T1 a US4-T5 | US-2; US4-T5 espera el listado por `professor_id` |
+| US-5 - Quitar los simulados | Borrar simulados, interfaces y su prueba; migrar unas 20 clases de pruebas; documentar la ejecución local | US5-T1 a US5-T3 | US-3 y US-4 |
+| US-6 - Mis mercados | `GET /api/market/courses` → `[{courseId, courseName, role, canManage}]` | US6-T1 a US6-T4 | US-1 y los listados de Cursos (próximo sprint de Cursos) |
+
+Fuera de alcance: revalidar inscripción y estado dentro de la saga de compra (sprint 3) y cualquier cambio de `GESTOR` o `ADMIN` en rutas sin curso. Tamaño estimado de 1.500 a 2.000 líneas: se entrega en PR encadenados por historia.
+
+Estado en el código (`develop@fb5f82d9`): la T01 se mergeó en cuatro partes (PR #128 a #131) con un `GatewayCourseEnrollmentClient` detrás de `market.course.client=gateway` que llama a `roster-membership`; `MockCourseInstructorClient` sigue `@Primary`. Ver [[Integración con Cursos]].
+
+---
+
+## Texto original de Taiga (antes de la replanificación)
+
+### [G11] — Clientes reales de Cursos
 
 ---
 
@@ -116,7 +147,7 @@ Relación: [[Estado actual del código]] (gaps 2 y 14), [[Roadmap de trabajo]] (
 
 ## Tareas
 
-### T01 - Implementar los clientes de membership contra Cursos
+### T01 - Implementar los clientes de membership contra Cursos (reemplazada el 2026-10-08)
 
 **Objetivo:** Reemplazar los clientes simulados de matrícula y de profesor por llamadas reales a Cursos.
 
@@ -127,7 +158,7 @@ Relación: [[Estado actual del código]] (gaps 2 y 14), [[Roadmap de trabajo]] (
 
 Estimación: 8 h
 
-### T02 - Obtener y enviar el token de servicio
+### T02 - Obtener y enviar el token de servicio (mergeada, se reutiliza)
 
 **Objetivo:** Autenticar cada llamada a Cursos con un token de servicio.
 
@@ -138,7 +169,7 @@ Estimación: 8 h
 
 Estimación: 4 h
 
-### T03 - Manejar los errores de Cursos
+### T03 - Manejar los errores de Cursos (reemplazada el 2026-10-08)
 
 **Objetivo:** Traducir las respuestas de Cursos a los errores de Mercado.
 
@@ -149,7 +180,7 @@ Estimación: 4 h
 
 Estimación: 4 h
 
-### T04 - Probar los clientes y retirar los simulados de docker y prod
+### T04 - Probar los clientes y retirar los simulados de docker y prod (reemplazada el 2026-10-08)
 
 **Objetivo:** Verificar los clientes sin depender del servicio real y dejar los simulados solo en dev y pruebas.
 
