@@ -12,7 +12,7 @@ tags: [mercado, decision, cursos, seguridad, roles]
 ## Contexto
 La membresía de Cursos ([[DEC-022 - Contrato de membresía con Cursos]]) devuelve uno de cuatro roles por cohorte: `STUDENT`, `PROFESSOR`, `PROFESSOR_READ_ONLY` o `GESTOR`, con los flags `can_read` y `can_write`. Hoy el código lo interpreta en `models/enums/CourseMembership.java`, donde `GESTOR` cuenta como docente con escritura, igual que `PROFESSOR`. Además, en las rutas de Mercado el `GESTOR` del JWT está en el mismo grupo que `ADMIN` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]). Verificado en `develop@fb5f82d9`.
 
-El tratamiento de `GESTOR` estaba planteado como pregunta abierta (Q-024, en un PR del vault todavía sin mergear). La regla de esta decisión la confirmó el PO el 2026-10-08.
+El tratamiento de `GESTOR` está planteado en [[Q-024 - Qué es el rol GESTOR]]. Esta decisión la responde para las rutas de un curso; para las rutas sin curso la pregunta sigue abierta. La regla la confirmó el PO el 2026-10-08.
 
 ## Decisión
 Confirmada por el PO el 2026-10-08.
@@ -37,4 +37,4 @@ Confirmada por el PO el 2026-10-08.
 - Un `X-User-Id` vacío se sigue rechazando antes de llamar a Cursos.
 
 ## Notas afectadas
-[[Integración con Cursos]], [[Gateway e identidad]], [[DEC-006 - Roles y permisos según el código y los headers del gateway]], [[S2-02 - Clientes reales de Cursos]], [[Decisiones - Índice]].
+[[Q-024 - Qué es el rol GESTOR]], [[Integración con Cursos]], [[Gateway e identidad]], [[DEC-006 - Roles y permisos según el código y los headers del gateway]], [[S2-02 - Clientes reales de Cursos]], [[Decisiones - Índice]].

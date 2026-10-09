@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-06
 tags: [mercado, backlog, sprint-2, opcional]
 sprint: 2
 taiga: "#5261"
@@ -41,7 +41,7 @@ horas: 20
 ## Criterios de Aceptación (CA)
 
 - [ ] **CA1**: con market.messaging.transport=kafka la aplicación arranca sin errores de bean BankHoldQueryClient.
-- [ ] **CA2**: con bank-hold.reconciliation.enabled=true, una orden con hold COMMITTED en Accounting pasa a CONFIRMED y una con hold RELEASED pasa a CANCELLED con HOLD_NOT_SETTLED y libera el stock.
+- [ ] **CA2**: con bank-hold.reconciliation.enabled=true, una orden con hold COMMITTED en Accounting pasa a CONFIRMED y una con hold RELEASED pasa a CANCELLED con HOLD_NOT_SETTLED y retiene la unidad, sin devolverla al stock ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]]).
 - [ ] **CA3**: una orden en CREATED sin holdId por más del umbral configurado se reintenta o se cancela, y no queda trabada.
 - [ ] **CA4**: el cliente responde de forma controlada (sin romper el job) ante 404, 5xx y timeout de Accounting.
 
@@ -61,7 +61,7 @@ horas: 20
 
 - **Dado**: una orden en `ITEM_PROVISIONED` con un hold `RELEASED` en Accounting
 - **Cuando**: corre la reconciliación
-- **Entonces**: la orden queda `CANCELLED` con `cancellationReason` `HOLD_NOT_SETTLED` y el stock vuelve a la oferta
+- **Entonces**: la orden queda `CANCELLED` con `cancellationReason` `HOLD_NOT_SETTLED` y la unidad queda retenida ([[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]])
 
 **Escenario 3**  
 
