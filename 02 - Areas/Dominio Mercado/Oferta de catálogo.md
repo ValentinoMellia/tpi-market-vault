@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-10
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -23,7 +23,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `active`, `deleted` | Disponibilidad |
 | `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). Hoy solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]) |
 | `itemValidityDays` | Residuo, nunca se envía a accounting; los ítems no vencen y el campo se quita ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[Vencimiento de items]]) |
-| Parámetros de configuración | Cargas, multiplicador, modo, duración, intentos, regla de consumo, vidas |
+| Parámetros de configuración | Cargas, multiplicador, modo, duración, intentos, regla de consumo, vidas. Las cargas (`charges`) son las que recibe el estudiante: viajan a Accounting como `maxCharges` ([[DEC-020 - Las cargas del ítem las decide el profesor]]) |
 | `unitsSold` | Unidades vendidas; hoy nunca se incrementa, lo que puede producir sobreventa al editar el stock; la decisión es incrementarlo al confirmar la orden ([[DEC-013 - Reglas de la tienda]]) |
 
 ## Ciclo de vida / estados

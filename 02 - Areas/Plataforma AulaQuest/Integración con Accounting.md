@@ -2,7 +2,7 @@
 tipo: integracion
 estado: en-disputa
 verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-06
+actualizado: 2026-10-10
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -21,6 +21,7 @@ tags: [mercado, integracion, accounting, banco, inventario, kafka]
 | [[DEC-010 - Los efectos de los ítems no son de Mercado]] | Escudos en Accounting, multiplicadores en el motor de desafíos |
 | [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] | Los ítems no vencen |
 | [[DEC-014 - Reglas de subastas]] | Un release por postor al cancelar o cerrar una subasta; sin release por `orderId` |
+| [[DEC-020 - Las cargas del ítem las decide el profesor]] | `maxCharges` de `ITEM_CONFIRMED` son las cargas que configura el profesor en la oferta |
 
 Esta nota reemplaza a las antiguas "Integración con Banco" e "Integración con Inventario" (archivadas), porque [[DEC-001 - Accounting es dueño del inventario]] fusionó ambas responsabilidades en un solo equipo.
 
@@ -65,11 +66,11 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 
 | Dirección | Mensaje | Tópico | Campos |
 |---|---|---|---|
-| Mercado a accounting | `ITEM_CONFIRMED` | `market.events` | `studentId`, `courseId`, `orderId`, `catalogItemId`, `itemName`, `itemType`, `effect` |
+| Mercado a accounting | `ITEM_CONFIRMED` | `market.events` | `studentId`, `courseId`, `orderId`, `catalogItemId`, `itemName`, `itemType`, `effect`, más `maxCharges` y `applicableChallengeScope` (ver abajo) |
 | Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `studentId`, `courseId`, `itemInstanceId`, `itemName`, `itemType`, `sourceReferenceId` (= `orderId`); no trae `correlationId` |
 
 - No existen los eventos `ITEM_PROVISION_*`. Si acreditar falla, hay reintentos y luego DLT; **no se publica ningún evento de falla**.
-- `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalogItemId` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
+- **Cargas del ítem:** `maxCharges` son las cargas que el profesor configuró en la oferta (`charges`), y Mercado las manda en `ITEM_CONFIRMED` ([[DEC-020 - Las cargas del ítem las decide el profesor]]). Desde su HU58 (T02 #5640 en Taiga, cerrada el 2026-10-08), Accounting acepta `maxCharges` y `applicableChallengeScope` del payload y los guarda en la unidad (`max_charges`, `applicable_challenge_scope`), en lugar de tomarlos de su `InventoryCatalog` con placeholders. Hoy Mercado todavía no los envía (`tpi-market` en `6926af1d`): queda en la T01 #7698 de [[S2-12 - Saga de compra según la Propuesta C]]. Los valores por tipo de ítem están en la DEC-020. Accounting (`develop`, `10bb4ec`) manda al DLT, sin reintentos, un `maxCharges` ausente o no positivo y un scope desconocido; por eso los boosts `TTL`, que se mandan con `maxCharges` nulo, quedan bloqueados hasta su [G12-HU88].
 
 ## Inventario (fusionado desde la nota de Inventario)
 

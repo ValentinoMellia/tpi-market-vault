@@ -1,0 +1,5 @@
+## [2026-10-10] decision | DEC-020 - Las cargas del ítem las decide el profesor
+- `maxCharges` de `ITEM_CONFIRMED` son las cargas que el profesor configura en la oferta (`charges`); Accounting no tiene catálogo de cargas propio. Cierra la recomendación D10 en cuanto a las cargas.
+- Notas tocadas: [[DEC-020 - Las cargas del ítem las decide el profesor]] (nueva), [[Integración con Accounting]], [[Taller de decisiones]], [[Q-007 - Contrato con Accounting]], [[Oferta de catálogo]] y [[Decisiones - Índice]].
+- Taiga: la T01 #7698 de la US 7697 incluye agregar `maxCharges` y `applicableChallengeScope` a `ITEM_CONFIRMED`.
+- Ampliada el mismo día: tabla de qué manda Mercado por tipo de ítem (`SHIELD`: `charges`; boost `PER_EXAM`: `attempts`; boost `TTL`: `maxCharges` nulo más duración, multiplicador y regla de consumo). Se descartó mandar 1 carga por defecto. Verificado contra `tpi-accounting` `develop` (`10bb4ec`): un `maxCharges` ausente va al DLT, así que los boosts `TTL` quedan bloqueados hasta la [G12-HU88].

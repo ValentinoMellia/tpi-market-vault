@@ -31,7 +31,7 @@ Confirmadas: D7 ([[DEC-008 - Nombre de productor y tópicos de Mercado]]), D8 y 
 | D7 | Tópicos | Adoptar `accounting.events` y `market.events` | **Confirmada** en [[DEC-008 - Nombre de productor y tópicos de Mercado]] | [[Q-006 - Naming de eventos y topics]] (archivada) |
 | D8 | Identificador de orden | Mercado genera un `orderRef` UUID y lo persiste | **Confirmada** en [[DEC-009 - Contrato de holds e ítems según Accounting]] | [[Q-007 - Contrato con Accounting]] (archivada) |
 | D9 | Falla del item | Accounting publica un evento de error y Mercado libera el hold | Sin decidir (depende del orden de la compra) | [[Q-008 - Orden de la saga de compra]] |
-| D10 | Catálogo de accounting | Acepta cualquier `catalogItemId` y toma las cargas del payload | Sin decidir (excluida de [[DEC-009 - Contrato de holds e ítems según Accounting]]) | [[Q-007 - Contrato con Accounting]] (archivada) |
+| D10 | Catálogo de accounting | Acepta cualquier `catalogItemId` y toma las cargas del payload | **Confirmada** en cuanto a las cargas por [[DEC-020 - Las cargas del ítem las decide el profesor]]: `maxCharges` son las cargas que configura el profesor | [[Q-007 - Contrato con Accounting]] (archivada) |
 | D12 | Matrícula y profesor | Verificar vía Cursos (recomendación sin extraer del todo) | Sin decidir | [[Integración con Cursos]] |
 | D13 | Dueño de monedas e inventario | Accounting | **Decidida** en [[DEC-001 - Accounting es dueño del inventario]] | [[Q-001 - Dueño del inventario]] (archivada) |
 

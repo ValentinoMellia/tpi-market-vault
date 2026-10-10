@@ -1,13 +1,13 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-019
-actualizado: 2026-10-08
+verificado_contra: DEC-020
+actualizado: 2026-10-10
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay diecinueve decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay veinte decisiones registradas.
 
 ## Decisiones registradas
 
@@ -32,6 +32,7 @@ tags: [mercado, decision]
 | DEC-017 | [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] | [[Q-021 - Principal de servicio MS en las reglas de negocio]] (archivada) | 2026-10-03 |
 | DEC-018 | [[DEC-018 - Aviso de ofertas nuevas]] | [[Q-022 - Aviso de ofertas nuevas]] (archivada) | 2026-10-05 |
 | DEC-019 | [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] | [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]] (archivada) | 2026-10-06 |
+| DEC-020 | [[DEC-020 - Las cargas del ítem las decide el profesor]] | [[Q-007 - Contrato con Accounting]] (archivada; recomendación D10) | 2026-10-10 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
