@@ -18,7 +18,7 @@ horas: 36
 
 ## Implementación propuesta (2026-10-06)
 
-La rama `feature/us-5236-marketplace-frontend` de `2026-PIV-TPI-FE`, commit `b22ed6ed3f5812b5e899fab911fea12db2d3789f`, implementa el flujo del estudiante sobre las pantallas existentes. Es evidencia de una rama de trabajo, no de una integración en `develop`, una entrega desplegada ni del cierre de la US en Taiga. La historia conserva `estado: borrador` y sus criterios sin marcar hasta la aceptación. El PR #261 del frontend se mergeó en `develop` (`eef81a0c`, 2026-10-09); esta sección no se reverificó contra ese commit. El spike [[S2-09d - SPIKE SSE en el frontend]] (2026-10-10) verificó el seguimiento por SSE y su respaldo contra `develop`; siguen pendientes la verificación con el gateway real, el rendimiento y la accesibilidad.
+La rama `feature/us-5236-marketplace-frontend` de `2026-PIV-TPI-FE`, commit `b22ed6ed3f5812b5e899fab911fea12db2d3789f`, implementa el flujo del estudiante sobre las pantallas existentes. Es evidencia de una rama de trabajo que se integró en `develop` con el PR #261 (`eef81a0c`, 2026-10-09), no de una entrega desplegada ni del cierre de la US en Taiga. La historia conserva `estado: borrador` y sus criterios sin marcar hasta la aceptación. El PR #261 del frontend se mergeó en `develop` (`eef81a0c`, 2026-10-09); esta sección no se reverificó contra ese commit. El spike [[S2-09d - SPIKE SSE en el frontend]] (2026-10-10) verificó el seguimiento por SSE y su respaldo contra `develop`; siguen pendientes la verificación con el gateway real, el rendimiento y la accesibilidad.
 
 | Alcance | Evidencia en `2026-PIV-TPI-FE` |
 |---|---|
