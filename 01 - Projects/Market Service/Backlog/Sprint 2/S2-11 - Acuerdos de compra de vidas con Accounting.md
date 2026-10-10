@@ -2,7 +2,7 @@
 tipo: historia
 estado: vigente
 verificado_contra: codigo@74e671ef
-actualizado: 2026-10-06
+actualizado: 2026-10-09
 tags: [mercado, backlog, sprint-2, vidas, accounting]
 sprint: 2
 taiga: "#6268"
@@ -92,7 +92,7 @@ horas: 20
 - Servicios involucrados: Mercado y Accounting ([[Integración con Accounting]]); PAR-12 es de Backoffice ([[Integración con Backoffice]]).
 - Componentes afectados: `AccountingEquipSummaryClient` (y su mock), `LifeCapProperties`, `PurchaseValidationService`, `PurchaseOrderServiceImpl`, `GlobalExceptionHandler`, `ExternalId`, `OrderRepository.sumLivesInFlight`, `LifePurchaseConfirmedPayloadDto`, `AccountingHoldKafkaListener`, `AccountingLifePurchaseEventHandler`, `LifePurchaseRejectionService`, `OrderEntity`.
 - Impacto en datos / migraciones: columnas nuevas y anulables `settlement_mark` y `uncredited_reason` en `orders` (las crea `ddl-auto=update`). El `status` de la orden no cambia: sigue `CONFIRMED`.
-- Riesgos y mitigación: el token de servicio todavía se configura a mano (`ACCOUNTING_SERVICE_TOKEN`) porque no está documentado cómo se emite; por eso el cliente real queda detrás de `MARKET_ACCOUNTING_CLIENT=gateway` y el valor por defecto es el mock.
+- Riesgos y mitigación: el token de servicio se configuraba a mano (`ACCOUNTING_SERVICE_TOKEN`) porque no estaba documentado cómo se emite; por eso el cliente real quedó detrás de `MARKET_ACCOUNTING_CLIENT=gateway` y el valor por defecto es el mock. Resuelto en el PR #139 (US-5193 T09): Mercado pide su propio token con `accounting.account.read` y el token fijo ya no existe ([[Integración con Accounting]]). El mock sigue por defecto porque Accounting tiene `equip-summary` apagado en producción.
 
 Relación: [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]], [[Orden de compra]], [[Tipos de item]], [[Sprint 2 - Índice]].
 
