@@ -31,6 +31,7 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 | 2 | 4 | 1 | Should |
 | [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 | 5 | 16 | 4 | Must |
 | [[S2-11 - Acuerdos de compra de vidas con Accounting]] | #6268 | a completar | 20 | 5 | Must |
+| [[S2-12 - Saga de compra según la Propuesta C]] | #7697 | 13 | 36 | 7 | Must |
 | [[S3-01 - Subastas, lanzar y ver las abiertas]] (adelantada del Sprint 3) | #5347 | 8 | 27 | 6 | Should |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 | a completar | a completar | 6 (4 hechas) | Should |
 | **Total comprometido** | | **86** | **315** | **79** | |
