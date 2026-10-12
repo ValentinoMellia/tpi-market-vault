@@ -23,8 +23,8 @@ Confirmada por el usuario el 2026-10-12 (US-7697).
 ### 1. Secuencia de la saga para compras directas de ítems
 El flujo exitoso sigue estrictamente la secuencia de la Propuesta C:
 1. **Retención:** Mercado solicita `HOLD_CREATE_REQUESTED` a Accounting; Accounting responde `HOLD_CREATED`.
-2. **Espera de crédito:** Mercado avanza su estado interno a `ITEM_PROVISION_REQUESTED` y publica `ITEM_CONFIRMED` en `market.events` con el UUID canónico `orderRef` como `orderId`, el productor `market-service` y los atributos de la oferta.
-3. **Acreditación:** Accounting acredita el ítem en el inventario del estudiante y publica `ITEM_CREDITED` en `accounting.events`, correlacionado por `sourceReferenceId = orderId`.
+2. **Espera de crédito:** Mercado avanza su estado interno a `ITEM_PROVISION_REQUESTED` y publica `ITEM_CONFIRMED` en `market.events` con el UUID canónico `orderRef` como `order_id`, el productor `market-service` y los atributos de la oferta.
+3. **Acreditación:** Accounting acredita el ítem en el inventario del estudiante y publica `ITEM_CREDITED` en `accounting.events`, correlacionado por `source_reference_id = order_id`.
 4. **Transición y cobro:** Al recibir `ITEM_CREDITED`, Mercado transiciona internamente a `ITEM_PROVISIONED` y emite `HOLD_CONFIRM_REQUESTED` en `accounting.events`.
 5. **Cierre:** Accounting debita las monedas y responde `HOLD_CONFIRMED`; Mercado transiciona la orden a `CONFIRMED`.
 
@@ -32,13 +32,13 @@ El flujo exitoso sigue estrictamente la secuencia de la Propuesta C:
 sequenceDiagram
     participant M as Mercado
     participant A as Accounting
-    M->>A: HOLD_CREATE_REQUESTED (orderId, DIRECT_PURCHASE)
-    A-->>M: HOLD_CREATED (holdId, TTL 300 s)
+    M->>A: HOLD_CREATE_REQUESTED (order_id, DIRECT_PURCHASE)
+    A-->>M: HOLD_CREATED (hold_id, TTL 300 s)
     Note over M: Estado ITEM_PROVISION_REQUESTED
-    M->>A: ITEM_CONFIRMED (orderId = orderRef) en market.events
-    A-->>M: ITEM_CREDITED (sourceReferenceId = orderId)
+    M->>A: ITEM_CONFIRMED (order_id = orderRef) en market.events
+    A-->>M: ITEM_CREDITED (source_reference_id = order_id)
     Note over M: Estado ITEM_PROVISIONED
-    M->>A: HOLD_CONFIRM_REQUESTED (holdId)
+    M->>A: HOLD_CONFIRM_REQUESTED (hold_id)
     A-->>M: HOLD_CONFIRMED
     Note over M: Orden CONFIRMED
 ```
@@ -94,7 +94,7 @@ sequenceDiagram
 ### 6. Alcance respecto a la compra de vidas (LIFE)
 La compra de vidas queda **excluida** de la revocación de ítems.
 - En este sprint, la compra de vidas mantiene su circuito transicional: validación preventiva de tope, retención, confirmación directa del hold y publicación posterior de `LIFE_PURCHASE_CONFIRMED`.
-- En este sprint únicamente se detecta crédito parcial o insuficiente al recibir `LIFE_CREDITED` (T08, en curso) y se marca para revisión de un ADMIN.
+- En este sprint únicamente se detecta crédito parcial o insuficiente al recibir `LIFE_CREDITED` (T08, implementado y verificado en la rama de Mercado `feature/us-7697-t08-life-credit-shortfall`, PR a `develop` pendiente) y se marca para revisión de un ADMIN.
 - La saga completa de vidas (crédito previo al débito) se difiere para el siguiente sprint. **No se adopta ningún acuerdo de saga completa de vidas para este sprint.**
 
 ### 7. Formato de cable Kafka: migración a `snake_case` (contratos-kafka v8)
@@ -102,11 +102,11 @@ La compra de vidas queda **excluida** de la revocación de ítems.
   - Envelope: `event_id`, `event_type`, `event_version`, `timestamp`, `producer`, `payload`.
   - Campos de los payloads: estrictamente en `snake_case` (`order_id`, `student_id`, `course_id`, `correlation_id`, `source_reference_id`, `revoke_reason`, etc.).
 - **Estado en Accounting:** Accounting en su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11) ya publica y lee exclusivamente en `snake_case`.
-- **Estado en Mercado:** **Migración en curso** en la rama `refactor/kafka-snake-case-purchase-saga` (en desarrollo, no mergeada en `develop`; no desplegada en producción). En `develop@b2c3597c` convive la configuración previa de serialización mientras concluye la migración.
+- **Estado en Mercado:** Migración a `snake_case` implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga` (PR a `develop` pendiente; no mergeada ni desplegada). En `develop@b2c3597c` convive la configuración previa de serialización mientras concluye la integración.
 
 ### 8. Puntos pendientes y condiciones externas
 - **Ratificación de Accounting:** El contrato de `ITEM_REVOKE_REQUESTED` está congelado del lado de Mercado pero pendiente de ratificación de Accounting.
-- **Esquemas de respuesta propuestos (en desarrollo en T05, no implementados en producción):**
+- **Esquemas de respuesta propuestos (implementados y verificados en Mercado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies`, PR a `develop` pendiente; no desplegados en producción y pendientes de ratificación por Accounting):**
   - `ITEM_CREDIT_FAILED` `{student_id, course_id, source_reference_id, reason, message}`: cancela la orden sin revocar ítem y libera el hold.
   - `ITEM_REVOKED` `{correlation_id, order_id, student_id, course_id, revoked_item_count}`: confirmación idempotente de revocación (`revoked_item_count = 0` indica "nada que revocar").
   - `ITEM_REVOKE_FAILED` `{correlation_id, order_id, student_id, course_id, reason, message}`: marca `ITEM_REVOKE_FAILED` en revisión administrativa, emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
@@ -124,7 +124,7 @@ La compra de vidas queda **excluida** de la revocación de ítems.
 - La nota [[Propuesta C de la saga de compra]] pasa de borrador a guía vigente.
 - Actualiza la máquina de estados y diagramas de la [[Orden de compra]] y de la [[Integración con Accounting]].
 - Define los contratos asíncronos en [[Eventos y Kafka]].
-- Código de Mercado (`tpi-market` develop en `b2c3597c`): T01 (PR #179, reordenamiento), T03 (PR #182, plazos) y T04 (PR #184, rollback atómico y cliente de revocación) ya integrados; T05 (consumidores de fallos de crédito y revocación) y T08 (detección de crédito insuficiente en vidas) en curso.
+- Código de Mercado (`tpi-market` develop en `b2c3597c`): T01 (PR #179, reordenamiento), T03 (PR #182, plazos) y T04 (PR #184, rollback atómico y cliente de revocación) ya integrados; T05 (consumidores de fallos de crédito y revocación) implementado y verificado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR a `develop` pendiente) y T08 (detección de crédito insuficiente en vidas) implementado y verificado en la rama `feature/us-7697-t08-life-credit-shortfall` (PR a `develop` pendiente); la migración a `snake_case` de Mercado está implementada y verificada en `refactor/kafka-snake-case-purchase-saga` (PR pendiente); los ítems de ratificación de Accounting permanecen pendientes.
 
 ## Notas afectadas
 [[Q-008 - Orden de la saga de compra]], [[Propuesta C de la saga de compra]], [[Decisiones - Índice]], [[Integración con Accounting]], [[Eventos y Kafka]], [[Orden de compra]], [[Hold de monedas]], [[Saga]], [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]], [[Taller de decisiones]], [[Roadmap de trabajo]], [[Roadmap de entendimiento]], [[Contrato de avisos de compra]].

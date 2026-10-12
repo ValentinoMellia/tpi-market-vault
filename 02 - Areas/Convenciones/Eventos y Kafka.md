@@ -21,7 +21,7 @@ Los mensajes de la plataforma usan el estándar `EventEnvelope` de 6 campos. Sig
 
 **Estado de la migración de casing:**
 - **Accounting:** En su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11), ya publica y consume exclusivamente en `snake_case`.
-- **Mercado:** Migración en curso en la rama `refactor/kafka-snake-case-purchase-saga` (en desarrollo, no mergeada en `develop`; no desplegada en producción). En `develop@b2c3597c`, el código Java interno convive con la transición.
+- **Mercado:** Migración a `snake_case` implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga` (PR a `develop` pendiente, no mergeada ni desplegada). En `develop@b2c3597c`, el código Java interno convive con la transición.
 
 ## Tópicos (como están en el código de Mercado)
 
@@ -41,7 +41,7 @@ Productores: `market-service` en **todos** los mensajes salientes (PR #102, US-5
 Como comandos y respuestas de holds y revocación comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102, merge `2485d8cf`) `onMessage` filtra **antes** de parsear el payload:
 
 1. Lee el `producer` del envelope con `SagaEventParser.producerOf` y descarta, con log `DEBUG`, los mensajes de `market-service` (los comandos propios).
-2. Lee el `eventType` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
+2. Lee el `event_type` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
 3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
 ### Payloads contractuales (contratos-kafka v8, snake_case)
@@ -52,7 +52,7 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 - `ITEM_CONFIRMED`: `{student_id, course_id, order_id, catalog_item_id, item_name, item_type, effect, max_charges, applicable_challenge_scope, ...}` con `order_id = orderRef` canónico.
 - `ITEM_REVOKE_REQUESTED` (congelado en Mercado, PR #184):
   `{correlation_id, order_id, student_id, course_id, revoke_reason: "PURCHASE_NOT_COMPLETED"}` con clave de partición `student_id:course_id` y `order_id = orderRef`.
-- **Esquemas de respuesta propuestos (en desarrollo en T05, NO implementados en producción, pendientes de ratificación de Accounting):**
+- **Esquemas de respuesta propuestos (implementados y verificados en Mercado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies`, PR a `develop` pendiente; NO implementados en producción, pendientes de ratificación de Accounting):**
   - `ITEM_CREDIT_FAILED`: `{student_id, course_id, source_reference_id, reason, message}`. Cancela sin revocar ítem y libera el hold con `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)`.
   - `ITEM_REVOKED`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}` (`revoked_item_count = 0` indica "nada que revocar").
   - `ITEM_REVOKE_FAILED`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
@@ -68,11 +68,11 @@ Clave de partición en Accounting: `student_id:course_id` (Mercado usa `student_
 
 ## Publicación con outbox
 
-Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `eventId`, y el `correlationId` de la respuesta es ese UUID.
+Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `event_id`, y el `correlation_id` de la respuesta es ese UUID.
 
 ## Consumo
 
-`AccountingHoldKafkaListener` (solo con `market.messaging.transport=kafka`) usa `SagaEventParser`. Descarta comandos propios antes de parsear. La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]). Si un evento asíncrono externo llega sin `correlationId`, se resuelve por `holdId` en la base de datos (PR #116).
+`AccountingHoldKafkaListener` (solo con `market.messaging.transport=kafka`) usa `SagaEventParser`. Descarta comandos propios antes de parsear. La tabla `processed_events` evita reprocesar un `event_id` en la misma transacción ([[Entrega at-least-once y deduplicación]]). Si un evento asíncrono externo llega sin `correlation_id`, se resuelve por `hold_id` en la base de datos (PR #116).
 
 ## Fallos
 

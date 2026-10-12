@@ -218,7 +218,7 @@ Estado el 2026-10-05 (`develop` en `9b4c05f9`):
 | T01 (PR #88) | Crea `orderRef` (UUID) en la orden; es el valor de `orderId` en los avisos de compra | Mergeada |
 | T02 (PR #88) | Mueve `PURCHASE_CONFIRMED` a `market.events` | Mergeada |
 | T04 (PR #102) | Cambia el productor a `market-service` | Mergeada |
-| T05 y T06 | Reemplazan la entrega del ítem por `ITEM_CONFIRMED` → `ITEM_CREDITED`; con la adopción de la Propuesta C ([[DEC-025 - Saga de compra de ítems según la Propuesta C]], cerrando [[Q-008 - Orden de la saga de compra]]) se propone `ITEM_CREDIT_FAILED` y compensación con `ITEM_REVOKE_REQUESTED` | T01..T04 en develop, T05 en curso |
+| T05 y T06 | Reemplazan la entrega del ítem por `ITEM_CONFIRMED` → `ITEM_CREDITED`; con la adopción de la Propuesta C ([[DEC-025 - Saga de compra de ítems según la Propuesta C]], cerrando [[Q-008 - Orden de la saga de compra]]) se propone `ITEM_CREDIT_FAILED` y compensación con `ITEM_REVOKE_REQUESTED` | T01..T04 en develop; T05 implementada y verificada en `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR pendiente; ratificación de Accounting pendiente) |
 | T07 | Agrega el estado `REJECTED` y guarda en la orden cada uno de los 10 motivos de rechazo de Accounting. Los motivos de `PURCHASE_FAILED` se derivan de ese mapeo | Mergeada (PR #110, `f7457882`) |
 
 ## Criterios acordados

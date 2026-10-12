@@ -88,7 +88,7 @@ sequenceDiagram
 **Condiciones para que sea seguro:**
 
 1. **Revocación idempotente.** Revocar una orden sin ítem acreditado responde "nada que revocar", no un error.
-2. **Bloqueo de acreditaciones tardías.** Si `ITEM_CONFIRMED` quedó demorado en Kafka y Accounting lo procesa después de la revocación, no debe acreditar. Accounting recuerda las `orderId` revocadas o solo acredita si el hold de esa orden sigue `ACTIVE`.
+2. **Bloqueo de acreditaciones tardías.** Si `ITEM_CONFIRMED` quedó demorado en Kafka y Accounting lo procesa después de la revocación, no debe acreditar. Accounting recuerda las `order_id` revocadas o solo acredita si el hold de esa orden sigue `ACTIVE`.
 3. **Ítem ya usado.** Si dentro de la ventana el estudiante equipó o consumió el ítem (`EQUIPPED`, `RESERVED`, `CONSUMED`), se revoca solo si está `AVAILABLE`; en otro caso se acepta la pérdida y queda marcado para revisión de un ADMIN.
 4. **Guarda de identidad histórica.** Si una compra histórica no tiene `orderRef` UUID, se escala con `REVOKE_IDENTITY_UNRESOLVED` antes de compensar para no romper el inventario remoto.
 
@@ -100,7 +100,7 @@ Esta compensación no es exclusiva de C: sirve para cualquier orden que entregue
 |---|---|---|---|---|
 | 1 | `HOLD_REJECTED` | Antes de entregar | `REJECTED_INSUFFICIENT_FUNDS` o `REJECTED` y libera el stock | Sí |
 | 2 | `HOLD_EXPIRED` antes de entregar | Antes de entregar | `EXPIRED` y libera el stock | Sí |
-| 3 | Accounting no puede acreditar el ítem | Antes de cobrar | `CANCELLED`, `HOLD_RELEASE_REQUESTED` y libera el stock (sin revocar) | En curso en T05 (`ITEM_CREDIT_FAILED`) |
+| 3 | Accounting no puede acreditar el ítem | Antes de cobrar | `CANCELLED`, `HOLD_RELEASE_REQUESTED` y libera el stock (sin revocar) | Implementado y verificado en rama T05 (`feature/us-7697-t05-credit-failure-and-revoke-replies`, PR pendiente; ratificación de Accounting pendiente) (`ITEM_CREDIT_FAILED`) |
 | 4 | `ITEM_CREDITED` no llega | Incierto | Rollback completo por plazo | Sí (T03 y T04 implementados; simulación mock) |
 | 5 | `HOLD_CONFIRM_REQUESTED` falla o el hold vence después de acreditar | Entregado sin cobrar | Rollback completo por plazo | Sí (T03 y T04 implementados; simulación mock) |
 
@@ -139,12 +139,12 @@ El estudiante ve la compra cancelada y puede volver a intentarla con una orden n
 
 ## Cambios en Mercado (estado de implementación en US-7697)
 - **Reordenamiento y eventos:** `ITEM_CONFIRMED` después de `HOLD_CREATED` y `HOLD_CONFIRM_REQUESTED` tras `ITEM_CREDITED`. Desaparecen `ITEM_PROVISION_*` salientes (T01, PR #179, commit `b2c3597c`).
-- **Identidad:** `ITEM_CONFIRMED` lleva el `orderRef` UUID canónico como `orderId` (T01).
+- **Identidad:** `ITEM_CONFIRMED` lleva el `orderRef` UUID canónico como `order_id` (T01).
 - **Semántica de estados:** Se mantienen `ITEM_PROVISION_REQUESTED` e `ITEM_PROVISIONED` internamente para no alterar el `CHECK` de base de datos.
 - **Plazos y reconciliación:** Plazo de corte de confirmación (`holdExpiresAt - 90 s`), reconciliación periódica con Accounting (`GET /api/accounting/holds/{holdId}`) y escalado a ADMIN con `HOLD_VERIFICATION_UNRESOLVED` tras 600 s (T03, PR #182, commit `b2c3597c`).
 - **Rollback completo:** Compensación atómica que emite `ITEM_REVOKE_REQUESTED`, libera hold y stock, con guarda `REVOKE_IDENTITY_UNRESOLVED` (T04, PR #184, commit `b2c3597c`).
-- **En curso en T05 (no implementado):** Consumo de `ITEM_CREDIT_FAILED` (cancela sin revocar) y respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED` (revisión administrativa y métrica `market.purchase.revoke_failed{reason}`).
-- **En curso en T08:** Detección de crédito insuficiente en compras de vidas al consumir `LIFE_CREDITED` para marcar revisión administrativa. La saga completa de vidas queda diferida para el siguiente sprint.
+- **T05 (implementado y verificado en Mercado, PR pendiente):** Consumo de `ITEM_CREDIT_FAILED` (cancela sin revocar) y respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED` (revisión administrativa y métrica `market.purchase.revoke_failed{reason}`) implementados y verificados en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR a `develop` pendiente; ratificación de Accounting pendiente).
+- **T08 (implementado y verificado en Mercado, PR pendiente):** Detección de crédito insuficiente en compras de vidas al consumir `LIFE_CREDITED` para marcar revisión administrativa implementada y verificada en la rama `feature/us-7697-t08-life-credit-shortfall` (PR a `develop` pendiente). La saga completa de vidas queda diferida para el siguiente sprint.
 
 ## Comparación con A y B
 
