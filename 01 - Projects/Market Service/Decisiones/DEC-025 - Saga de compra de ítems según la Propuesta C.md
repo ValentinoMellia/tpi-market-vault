@@ -61,14 +61,14 @@ Cuando una compra directa se cancela tras haber emitido `ITEM_CONFIRMED` (por ve
 1. **Revocación del ítem:** Mercado emite `ITEM_REVOKE_REQUESTED` hacia Accounting con el contrato congelado:
    ```json
    {
-     "correlationId": "<UUID del eventId del envelope>",
-     "orderId": "<orderRef UUID canónico>",
-     "studentId": "<estudiante de la compra>",
-     "courseId": "<curso de la compra>",
-     "revokeReason": "PURCHASE_NOT_COMPLETED"
+     "correlation_id": "<UUID del event_id del envelope>",
+     "order_id": "<orderRef UUID canónico>",
+     "student_id": "<estudiante de la compra>",
+     "course_id": "<curso de la compra>",
+     "revoke_reason": "PURCHASE_NOT_COMPLETED"
    }
    ```
-   Tópico: `accounting.events`, clave de partición: `studentId:courseId`, productor: `market-service`, envelope versión 1.
+   Tópico: `accounting.events`, clave de partición: `student_id:course_id`, productor: `market-service`, envelope versión 1 (`contratos-kafka v8`).
 2. **Liberación del hold:** Mercado solicita `HOLD_RELEASE_REQUESTED` con motivo `PURCHASE_NOT_COMPLETED` (salvo que la compensación provenga de un evento autoritativo de liberación ya emitido por Accounting).
 3. **Liberación de stock:** Mercado libera la reserva local de stock (`stockReservationId`).
 4. **Estado terminal:** La orden pasa a `CANCELLED`.
@@ -79,8 +79,8 @@ sequenceDiagram
     participant M as Mercado
     participant A as Accounting
     Note over M: Vence plazo o confirmación rechazada
-    M->>A: ITEM_REVOKE_REQUESTED (orderId, PURCHASE_NOT_COMPLETED)
-    M->>A: HOLD_RELEASE_REQUESTED (holdId, PURCHASE_NOT_COMPLETED)
+    M->>A: ITEM_REVOKE_REQUESTED (order_id, PURCHASE_NOT_COMPLETED)
+    M->>A: HOLD_RELEASE_REQUESTED (hold_id, PURCHASE_NOT_COMPLETED)
     Note over M: Libera stock local, orden CANCELLED
     A-->>M: ITEM_REVOKED (o nada que revocar)
     A-->>M: HOLD_RELEASED
@@ -97,12 +97,19 @@ La compra de vidas queda **excluida** de la revocación de ítems.
 - En este sprint únicamente se detecta crédito parcial o insuficiente al recibir `LIFE_CREDITED` (T08, en curso) y se marca para revisión de un ADMIN.
 - La saga completa de vidas (crédito previo al débito) se difiere para el siguiente sprint. **No se adopta ningún acuerdo de saga completa de vidas para este sprint.**
 
-### 7. Puntos pendientes y condiciones externas
+### 7. Formato de cable Kafka: migración a `snake_case` (contratos-kafka v8)
+- **Alineación de plataforma:** El formato de cable Kafka para el flujo de compras de Mercado adopta `snake_case`, alineado con la especificación oficial `contratos-kafka v8`:
+  - Envelope: `event_id`, `event_type`, `event_version`, `timestamp`, `producer`, `payload`.
+  - Campos de los payloads: estrictamente en `snake_case` (`order_id`, `student_id`, `course_id`, `correlation_id`, `source_reference_id`, `revoke_reason`, etc.).
+- **Estado en Accounting:** Accounting en su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11) ya publica y lee exclusivamente en `snake_case`.
+- **Estado en Mercado:** **Migración en curso** en la rama `refactor/kafka-snake-case-purchase-saga` (en desarrollo, no mergeada en `develop`; no desplegada en producción). En `develop@b2c3597c` convive la configuración previa de serialización mientras concluye la migración.
+
+### 8. Puntos pendientes y condiciones externas
 - **Ratificación de Accounting:** El contrato de `ITEM_REVOKE_REQUESTED` está congelado del lado de Mercado pero pendiente de ratificación de Accounting.
-- **Esquemas de respuesta propuestos (en desarrollo en T05, no implementados):**
-  - `ITEM_CREDIT_FAILED` `{studentId, courseId, sourceReferenceId, reason, message}`: cancela la orden sin revocar ítem y libera el hold.
-  - `ITEM_REVOKED` `{correlationId, orderId, studentId, courseId, revokedItemCount}`: confirmación idempotente de revocación (`revokedItemCount = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED` `{correlationId, orderId, studentId, courseId, reason, message}`: marca `ITEM_REVOKE_FAILED` en revisión administrativa, emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+- **Esquemas de respuesta propuestos (en desarrollo en T05, no implementados en producción):**
+  - `ITEM_CREDIT_FAILED` `{student_id, course_id, source_reference_id, reason, message}`: cancela la orden sin revocar ítem y libera el hold.
+  - `ITEM_REVOKED` `{correlation_id, order_id, student_id, course_id, revoked_item_count}`: confirmación idempotente de revocación (`revoked_item_count = 0` indica "nada que revocar").
+  - `ITEM_REVOKE_FAILED` `{correlation_id, order_id, student_id, course_id, reason, message}`: marca `ITEM_REVOKE_FAILED` en revisión administrativa, emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
 - **Garantías requeridas en Accounting:** Idempotencia ante revocación ("nada que revocar") y bloqueo de créditos tardíos si `ITEM_CONFIRMED` se procesa tras `ITEM_REVOKE_REQUESTED`.
 - **Condición de base de datos:** La columna `review_reason` en PostgreSQL requiere aplicar manualmente el script de migración SQL (`US7697__order_review_reason.sql`) para ampliar el `CHECK` constraint de la tabla `orders`.
 

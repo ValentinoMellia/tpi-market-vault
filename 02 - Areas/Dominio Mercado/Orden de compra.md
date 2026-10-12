@@ -60,7 +60,7 @@ stateDiagram-v2
   - `PENDING` o `RELEASED`: ejecuta compensación atómica (`CONFIRMATION_DEADLINE_EXCEEDED`).
   - `UNKNOWN`, caída de red o error de identidad: reintenta hasta el vencimiento efectivo más 600 s. Agotado el plazo, marca para revisión con `HOLD_VERIFICATION_UNRESOLVED` (`review_reason`), deteniendo reintentos y preservando el estado y las reservas.
 - **Rollback completo con revocación:** Ante vencimiento de plazo, confirmación rechazada o eventos autoritativos externos `HOLD_RELEASED`/`HOLD_EXPIRED`:
-  1. Emite `ITEM_REVOKE_REQUESTED` `{correlationId, orderId, studentId, courseId, revokeReason: "PURCHASE_NOT_COMPLETED"}` con `orderId = orderRef` canónico (contrato congelado de Mercado, pendiente de ratificación de Accounting).
+  1. Emite `ITEM_REVOKE_REQUESTED` `{correlation_id, order_id, student_id, course_id, revoke_reason: "PURCHASE_NOT_COMPLETED"}` con `order_id = orderRef` canónico (contrato congelado de Mercado en `snake_case` según `contratos-kafka v8`, pendiente de ratificación de Accounting).
   2. Emite `HOLD_RELEASE_REQUESTED` con motivo `PURCHASE_NOT_COMPLETED` (si no provino ya de una liberación remota).
   3. Libera el stock reservado localmente (`stockReservationId`).
   4. Cancela la orden (`CANCELLED`).

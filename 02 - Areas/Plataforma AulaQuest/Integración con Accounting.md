@@ -49,36 +49,37 @@ Es dueño de:
 
 ## Hold de monedas
 
-Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comandos y respuestas. La clave de correlación es el `eventId` del comando: las respuestas lo devuelven como `correlationId`.
+Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comandos y respuestas. Conforme a `contratos-kafka v8`, el wire format utiliza envelope y payloads en `snake_case`. La clave de correlación es el `event_id` del comando: las respuestas lo devuelven como `correlation_id`.
 
 | Comando (Mercado a accounting) | Campos |
 |---|---|
-| `HOLD_CREATE_REQUESTED` | `studentId`, `courseId`, `orderId` (UUID canónico), `orderType` (`DIRECT_PURCHASE` o `AUCTION_BID`), `amount`, `ttlSeconds` |
-| `HOLD_INCREASE_REQUESTED` | `holdId`, `newTotalAmount` |
-| `HOLD_CONFIRM_REQUESTED` | `holdId` |
-| `HOLD_RELEASE_REQUESTED` | `holdId`, `releaseReason` (enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`; PR #115, `5de30854`) |
+| `HOLD_CREATE_REQUESTED` | `student_id`, `course_id`, `order_id` (UUID canónico), `order_type` (`DIRECT_PURCHASE` o `AUCTION_BID`), `amount`, `ttl_seconds` |
+| `HOLD_INCREASE_REQUESTED` | `hold_id`, `new_total_amount` |
+| `HOLD_CONFIRM_REQUESTED` | `hold_id`, `order_id` |
+| `HOLD_RELEASE_REQUESTED` | `hold_id`, `release_reason` (enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`; PR #115, `5de30854`) |
 
-- `ttlSeconds` se ignora para `DIRECT_PURCHASE` (accounting usa 300 s fijos) y es obligatorio y mayor que 0 para `AUCTION_BID`.
-- Respuestas: `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED {correlationId, holdId, reason, message}` y `HOLD_EXPIRED` (declarado; el documento del equipo discute si el planificador de vencimiento existe).
+- `ttl_seconds` se ignora para `DIRECT_PURCHASE` (accounting usa 300 s fijos) y es obligatorio y mayor que 0 para `AUCTION_BID`.
+- Respuestas: `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED {correlation_id, hold_id, reason, message}` y `HOLD_EXPIRED` (declarado; el documento del equipo discute si el planificador de vencimiento existe).
 - Motivos de rechazo: `ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INSUFFICIENT_BALANCE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND`.
-- Restricción `UNIQUE(account_id, order_id)`: **un hold por `orderId` para siempre**. No hay liberación en lote ni captura parcial.
-- Con esto queda confirmado que `DIRECT_PURCHASE` es un `orderType` válido y que la confirmación no lleva monto ni el hold lleva moneda.
+- Restricción `UNIQUE(account_id, order_id)`: **un hold por `order_id` para siempre**. No hay liberación en lote ni captura parcial.
+- Con esto queda confirmado que `DIRECT_PURCHASE` es un `order_type` válido y que la confirmación no lleva monto ni el hold lleva moneda.
 
 ## Entrega del item y compensación
 
 | Dirección | Mensaje | Tópico | Campos |
 |---|---|---|---|
-| Mercado a Accounting | `ITEM_CONFIRMED` | `market.events` | `studentId`, `courseId`, `orderId` (UUID canónico `orderRef`), `catalogItemId`, `itemName`, `itemType`, `effect` |
-| Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `studentId`, `courseId`, `itemInstanceId`, `itemName`, `itemType`, `sourceReferenceId` (= `orderId`); correlaciona por `sourceReferenceId` |
-| Mercado a Accounting | `ITEM_REVOKE_REQUESTED` | `accounting.events` | `correlationId` (UUID igual al `eventId`), `orderId` (`orderRef` UUID canónico), `studentId`, `courseId`, `revokeReason` (`PURCHASE_NOT_COMPLETED`) |
+| Mercado a Accounting | `ITEM_CONFIRMED` | `market.events` | `student_id`, `course_id`, `order_id` (UUID canónico `orderRef`), `catalog_item_id`, `item_name`, `item_type`, `effect` |
+| Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `student_id`, `course_id`, `item_instance_id`, `item_name`, `item_type`, `source_reference_id` (= `order_id`); correlaciona por `source_reference_id` |
+| Mercado a Accounting | `ITEM_REVOKE_REQUESTED` | `accounting.events` | `correlation_id` (UUID igual al `event_id`), `order_id` (`orderRef` UUID canónico), `student_id`, `course_id`, `revoke_reason` (`PURCHASE_NOT_COMPLETED`) |
 
-- **Contrato congelado de `ITEM_REVOKE_REQUESTED` (lado Mercado, adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Clave de partición `studentId:courseId`, productor `market-service`, envelope versión 1. No lleva `itemInstanceId`: Accounting revoca la unidad asociada a la orden (`orderId`).
+- **Formato de cable (`snake_case` según contratos-kafka v8):** Accounting develop ya publica y lee exclusivamente en `snake_case` (`tpi-accounting@10e31d85`, 2026-10-11). La migración de Mercado a `snake_case` está en curso en la rama `refactor/kafka-snake-case-purchase-saga` (en progreso, no mergeada en `develop`, no desplegada en producción).
+- **Contrato congelado de `ITEM_REVOKE_REQUESTED` (lado Mercado, adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Clave de partición `student_id:course_id`, productor `market-service`, envelope versión 1 (`contratos-kafka v8`). No lleva `item_instance_id`: Accounting revoca la unidad asociada a la orden (`order_id`).
 - **Esquemas de respuesta propuestos (en desarrollo en T05, NO implementados en producción, pendientes de ratificación de Accounting):**
-  - `ITEM_CREDIT_FAILED` en `accounting.events`: `{studentId, courseId, sourceReferenceId, reason, message}`. Comportamiento en Mercado (T05): cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y emite `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)` **sin revocar ítem**.
-  - `ITEM_REVOKED` en `accounting.events`: `{correlationId, orderId, studentId, courseId, revokedItemCount}`. Comportamiento en Mercado (T05): confirma la revocación de forma idempotente (`revokedItemCount = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlationId, orderId, studentId, courseId, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+  - `ITEM_CREDIT_FAILED` en `accounting.events`: `{student_id, course_id, source_reference_id, reason, message}`. Comportamiento en Mercado (T05): cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y emite `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)` **sin revocar ítem**.
+  - `ITEM_REVOKED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}`. Comportamiento en Mercado (T05): confirma la revocación de forma idempotente (`revoked_item_count = 0` indica "nada que revocar").
+  - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
 - No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, commit `b2c3597c`).
-- `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalogItemId` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
+- `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalog_item_id` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
 
 ## Inventario (fusionado desde la nota de Inventario)
 

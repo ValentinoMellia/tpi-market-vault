@@ -65,10 +65,10 @@ La orden pasa a `CANCELLED` y cualquier `ITEM_CREDITED` o `HOLD_CONFIRMED` que l
 sequenceDiagram
     participant M as Mercado
     participant A as Accounting
-    M->>A: ITEM_CONFIRMED (orderId)
+    M->>A: ITEM_CONFIRMED (order_id)
     Note over M: Vence el plazo sin confirmación completa
-    M->>A: ITEM_REVOKE_REQUESTED (orderId, PURCHASE_NOT_COMPLETED)
-    M->>A: HOLD_RELEASE_REQUESTED (holdId, PURCHASE_NOT_COMPLETED)
+    M->>A: ITEM_REVOKE_REQUESTED (order_id, PURCHASE_NOT_COMPLETED)
+    M->>A: HOLD_RELEASE_REQUESTED (hold_id, PURCHASE_NOT_COMPLETED)
     Note over M: Libera el stock, orden CANCELLED
     A-->>M: ITEM_REVOKED (o "nada que revocar")
     A-->>M: HOLD_RELEASED
@@ -133,9 +133,9 @@ El estudiante ve la compra cancelada y puede volver a intentarla con una orden n
 - **Presupuesto de tiempo.** Acreditar y confirmar deben terminar dentro de los 300 s del TTL de `DIRECT_PURCHASE`. Por eso el plazo de Mercado se define como `holdExpiresAt` menos un margen.
 
 ## Pedidos y acuerdos con Accounting
-1. **`ITEM_REVOKE_REQUESTED`** por `orderId` (congelado en Mercado; pendiente de ratificación de Accounting), con respuestas `ITEM_REVOKED` e `ITEM_REVOKE_FAILED`, idempotente y con bloqueo de acreditaciones tardías.
-2. **`ITEM_CREDIT_FAILED`** (`sourceReferenceId`, `reason`) en lugar del fallo silencioso a DLT (propuesto en T05, pendiente de ratificación).
-3. Deseable: `correlationId` en `ITEM_CREDITED`. Hoy se correlaciona por `sourceReferenceId`, que alcanza.
+1. **`ITEM_REVOKE_REQUESTED`** por `order_id` (congelado en Mercado; pendiente de ratificación de Accounting), con respuestas `ITEM_REVOKED` e `ITEM_REVOKE_FAILED` en `snake_case` (`contratos-kafka v8`), idempotente y con bloqueo de acreditaciones tardías.
+2. **`ITEM_CREDIT_FAILED`** (`source_reference_id`, `reason`) en lugar del fallo silencioso a DLT (propuesto en T05, pendiente de ratificación).
+3. Deseable: `correlation_id` en `ITEM_CREDITED`. Hoy se correlaciona por `source_reference_id`, que alcanza.
 
 ## Cambios en Mercado (estado de implementación en US-7697)
 - **Reordenamiento y eventos:** `ITEM_CONFIRMED` después de `HOLD_CREATED` y `HOLD_CONFIRM_REQUESTED` tras `ITEM_CREDITED`. Desaparecen `ITEM_PROVISION_*` salientes (T01, PR #179, commit `b2c3597c`).

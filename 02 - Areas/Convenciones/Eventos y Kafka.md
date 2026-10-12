@@ -13,9 +13,15 @@ tags: [mercado, convenciones, kafka, eventos]
 
 Un dominio = un tópico `<dominio>.events` (contrato de Kafka de la plataforma, v5), con su `.DLT`. Tópicos aprovisionados: `market.events`, `accounting.events`, `notifications.events`, `courses.events` y `users.events`, con 3 particiones y creación automática desactivada en el README (activada en el compose: en disputa). Ver [[Mapa de servicios]]. Los nombres `bank.holds.*`, `inventory.items.*`, `market.orders.events`, `market.auctions.events` y `notifications.alerts` fueron propuestas de diseño, nunca aprovisionadas. Los eventos deben ser hechos, no comandos (estándar de Notificaciones, [[Integración con Notificaciones]]).
 
-## Envelope
+## Envelope y formato de cable
 
-Todos los mensajes usan `EventEnvelope<T>` (`dtos/events/EventEnvelope.java`): `eventId` (UUID), `eventType`, `eventVersion` (1), `timestamp`, `producer` y `payload`. Accounting usa el mismo envelope de 6 campos con `eventVersion` entero y `eventId` UUID canónico. Los payloads de Kafka y del outbox se serializan en `camelCase` con el `ObjectMapper` de `MappersConfig`; el `snake_case` de los cuerpos REST no los afecta ([[Errores de la API]], `application.properties:11-17`).
+Los mensajes de la plataforma usan el estándar `EventEnvelope` de 6 campos. Siguiendo la especificación oficial de **contratos-kafka v8**, el formato de cable para el flujo de compra directa migra a **`snake_case`**:
+- Envelope: `event_id` (UUID), `event_type`, `event_version` (1), `timestamp`, `producer` y `payload`.
+- Payloads de la saga de compras: todos los campos serializados en `snake_case` (`order_id`, `student_id`, `course_id`, `correlation_id`, `source_reference_id`, `revoke_reason`, etc.).
+
+**Estado de la migración de casing:**
+- **Accounting:** En su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11), ya publica y consume exclusivamente en `snake_case`.
+- **Mercado:** Migración en curso en la rama `refactor/kafka-snake-case-purchase-saga` (en desarrollo, no mergeada en `develop`; no desplegada en producción). En `develop@b2c3597c`, el código Java interno convive con la transición.
 
 ## Tópicos (como están en el código de Mercado)
 
@@ -38,18 +44,18 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 2. Lee el `eventType` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
 3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
-### Payloads relevantes del código
+### Payloads contractuales (contratos-kafka v8, snake_case)
 
-- `HOLD_CREATE`: `{studentId, courseId, orderId, orderType, amount, ttlSeconds}`.
-- `HOLD_CONFIRM`: `{correlationId, holdId}`.
-- `HOLD_RELEASE`: `{correlationId, holdId, releaseReason}` donde `releaseReason` es el enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED` (PR #115, `5de30854`).
-- `ITEM_CONFIRMED`: `{studentId, courseId, orderId, catalogItemId, itemName, itemType, effect, maxCharges, applicableChallengeScope, ...}` con `orderId = orderRef` canónico.
+- `HOLD_CREATE_REQUESTED`: `{student_id, course_id, order_id, order_type, amount, ttl_seconds}`.
+- `HOLD_CONFIRM_REQUESTED`: `{correlation_id, hold_id, order_id}`.
+- `HOLD_RELEASE_REQUESTED`: `{correlation_id, hold_id, release_reason}` donde `release_reason` es: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED` (PR #115, `5de30854`).
+- `ITEM_CONFIRMED`: `{student_id, course_id, order_id, catalog_item_id, item_name, item_type, effect, max_charges, applicable_challenge_scope, ...}` con `order_id = orderRef` canónico.
 - `ITEM_REVOKE_REQUESTED` (congelado en Mercado, PR #184):
-  `{correlationId, orderId, studentId, courseId, revokeReason: "PURCHASE_NOT_COMPLETED"}` con clave de partición `studentId:courseId` y `orderId = orderRef`.
+  `{correlation_id, order_id, student_id, course_id, revoke_reason: "PURCHASE_NOT_COMPLETED"}` con clave de partición `student_id:course_id` y `order_id = orderRef`.
 - **Esquemas de respuesta propuestos (en desarrollo en T05, NO implementados en producción, pendientes de ratificación de Accounting):**
-  - `ITEM_CREDIT_FAILED`: `{studentId, courseId, sourceReferenceId, reason, message}`. Cancela sin revocar ítem y libera el hold con `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)`.
-  - `ITEM_REVOKED`: `{correlationId, orderId, studentId, courseId, revokedItemCount}` (`revokedItemCount = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED`: `{correlationId, orderId, studentId, courseId, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+  - `ITEM_CREDIT_FAILED`: `{student_id, course_id, source_reference_id, reason, message}`. Cancela sin revocar ítem y libera el hold con `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)`.
+  - `ITEM_REVOKED`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}` (`revoked_item_count = 0` indica "nada que revocar").
+  - `ITEM_REVOKE_FAILED`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
 
 ## Cómo debe quedar (contrato de Accounting con Propuesta C adoptada)
 
@@ -58,7 +64,7 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 | `accounting.events` | `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED`, `ITEM_REVOKE_REQUESTED` | `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `ITEM_CREDITED`, `ITEM_CREDIT_FAILED` (propuesto), `ITEM_REVOKED` (propuesto), `ITEM_REVOKE_FAILED` (propuesto) |
 | `market.events` | `ITEM_CONFIRMED`, `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` | n/a |
 
-Clave de partición en Accounting: `studentId:courseId` (Mercado usa `studentId:courseId` para los comandos de saga).
+Clave de partición en Accounting: `student_id:course_id` (Mercado usa `student_id:course_id` para los comandos de saga).
 
 ## Publicación con outbox
 
