@@ -1,13 +1,13 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@e456c55f
-actualizado: 2026-10-09
+verificado_contra: DEC-025, codigo@b2c3597c
+actualizado: 2026-10-12
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
 
-> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Desde el PR #88 (US-5193) los tópicos por defecto del **código** ya son esos; el PR #102 (US-5193 T03 y T04, `2485d8cf`) unificó el productor `market-service` en todos los mensajes salientes y resolvió el descarte de comandos propios en el tópico compartido, el PR #115 (US-5193 T08, `5de30854`) fijó `releaseReason` como enum tipado, y el PR #116 (issue #114, `e456c55f`) implementó la resolución por `holdId` de `HOLD_RELEASED` asíncronos sin `correlationId`. Contrato con Accounting: [[DEC-009 - Contrato de holds e ítems según Accounting]].
+> Cómo Mercado emite y recibe mensajes: envelope común, tópicos, publicación con outbox y tratamiento de fallos. Decidido e implementado: productor `market-service`, tópicos `market.events` y `accounting.events`, eventos en inglés `SNAKE_CASE` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). La compra directa de ítems sigue la Propuesta C ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]): emisión de `ITEM_CONFIRMED` en `market.events`, consumo de `ITEM_CREDITED` en `accounting.events`, y compensación con `ITEM_REVOKE_REQUESTED` y `HOLD_RELEASE_REQUESTED`.
 
 ## Regla de plataforma
 
@@ -19,53 +19,58 @@ Todos los mensajes usan `EventEnvelope<T>` (`dtos/events/EventEnvelope.java`): `
 
 ## Tópicos (como están en el código de Mercado)
 
-Valores por defecto de `application.properties:46-51` (`develop` en `349c8e2`); cada uno se cambia con su variable de entorno `MARKET_MESSAGING_TOPIC_*`, que también se pasa en `.compose/docker-compose.yml` y se documenta en `.compose/.env.example`. Se definen en `configs/MessagingProperties.java`.
+Valores por defecto de `application.properties:46-51` (`develop` en `b2c3597c`); cada uno se cambia con su variable de entorno `MARKET_MESSAGING_TOPIC_*`, que también se pasa en `.compose/docker-compose.yml` y se documenta en `.compose/.env.example`. Se definen en `configs/MessagingProperties.java`.
 
 | Tópico por defecto | Variable | Sentido | Mensajes | En la plataforma |
 |---|---|---|---|---|
-| `accounting.events` | `..._ACCOUNTING_HOLDS_COMMANDS` y `..._ACCOUNTING_HOLDS_EVENTS` | Mercado a Accounting y Accounting a Mercado | Comandos `HOLD_CREATE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED`; respuestas `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED` | Existe: es el tópico de Accounting |
-| `market.events` | `..._MARKET_EVENTS`; `..._ORDER_EVENTS` (si falta, usa el anterior) | Mercado a otros | `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED`; `ITEM_CONFIRMED` apagado por `market.events.item-confirmed.enabled=false` | Existe |
-| `inventory.items.commands` | `..._INVENTORY_ITEMS_COMMANDS` | Mercado a inventario | `ITEM_PROVISION_REQUESTED` | No existe ni existirá ([[DEC-001 - Accounting es dueño del inventario]]) |
-| `inventory.items.events` | `..._INVENTORY_ITEMS_EVENTS` | Inventario a Mercado | `ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED` | Ídem |
+| `accounting.events` | `..._ACCOUNTING_HOLDS_COMMANDS` y `..._ACCOUNTING_HOLDS_EVENTS` | Mercado a Accounting y Accounting a Mercado | Comandos `HOLD_CREATE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED`, `ITEM_REVOKE_REQUESTED`; respuestas `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `ITEM_CREDITED` | Existe: es el tópico de Accounting |
+| `market.events` | `..._MARKET_EVENTS`; `..._ORDER_EVENTS` | Mercado a otros | `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED`, `ITEM_CONFIRMED` | Existe |
 
-Antes del PR #88 los defectos eran `accounting.holds.commands`, `accounting.holds.events` y `market.orders.events`, que la plataforma nunca aprovisionó. Los tópicos de inventario siguen sin existir en la plataforma, y Accounting no implementa `ITEM_PROVISION_*`: con transporte `kafka` esa parte de la saga no tiene contraparte ([[Integración con Accounting]]).
+Los antiguos tópicos `inventory.items.*` fueron descartados: T01 (PR #179) eliminó los clientes y listeners salientes a Inventario. Todo el inventario se gestiona en Accounting ([[DEC-001 - Accounting es dueño del inventario]]).
 
-Productores: `market-service` en **todos** los mensajes salientes (PR #102, US-5193 T04, `2485d8cf`). `MessagingProperties` fija `producer = "market-service"` por defecto, configurable mediante `market.messaging.producer` (`MARKET_MESSAGING_PRODUCER`). `OrderConfirmationServiceImpl` usa `resolveProducer()` en lugar del antiguo `tema-09-mercado`, por lo que `PURCHASE_CONFIRMED` e `ITEM_CONFIRMED` se emiten con `market-service` al igual que los comandos de hold y `LIFE_PURCHASE_CONFIRMED`. No queda ninguna aparición de `tema-09-mercado` en el código. Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service` (`spring.kafka.consumer.group-id`).
+Productores: `market-service` en **todos** los mensajes salientes (PR #102, US-5193 T04, `2485d8cf`). `MessagingProperties` fija `producer = "market-service"` por defecto, configurable mediante `market.messaging.producer` (`MARKET_MESSAGING_PRODUCER`). `OrderConfirmationServiceImpl`, `OutboxBankHoldClient` e `ItemRevokeClient` (`OutboxItemRevokeClient.java`) emiten con `market-service`. Accounting usa el productor `tema-08-accounting-service` y el grupo `tema-08-accounting-service-group`; Mercado usa el grupo `market-service` (`spring.kafka.consumer.group-id`).
 
 ### Tópico compartido y filtro de eventos
 
-Como comandos y respuestas de holds comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102, merge `2485d8cf`) `onMessage` filtra **antes** de parsear el payload:
+Como comandos y respuestas de holds y revocación comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102, merge `2485d8cf`) `onMessage` filtra **antes** de parsear el payload:
 
 1. Lee el `producer` del envelope con `SagaEventParser.producerOf` y descarta, con log `DEBUG`, los mensajes de `market-service` (los comandos propios).
-2. Lee el `eventType` con `SagaEventParser.eventTypeOf` y, si `AccountingHoldEventHandler.consumes(eventType)` es falso, descarta con log `DEBUG` el evento que Mercado no consume.
-3. Solo entonces parsea como `HoldEventDto` y llama al handler, que repite la lista blanca (`CONSUMED_EVENT_TYPES`: `HOLD_CREATED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`) sin correlación ni deduplicación.
+2. Lee el `eventType` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
+3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
-Con esto los comandos propios `HOLD_CREATE_REQUESTED`, `HOLD_RELEASE_REQUESTED` y `HOLD_CONFIRM_REQUESTED` ya no lanzan `MalformedEventException` ni llegan a `accounting.events.DLT`. Verificado en `origin/develop` (`74e671ef`) y cubierto por `AccountingHoldKafkaListenerTest` y por `KafkaSagaIntegrationTest` (broker real con Testcontainers: ningún comando propio en el DLT). Antes de `a4e6ac76` el filtro corría después del parseo y esos comandos sí iban al DLT; ese era el gap 23 de [[Estado actual del código]], hoy cerrado.
+### Payloads relevantes del código
 
-Payloads relevantes del código: `HOLD_CREATE` sin moneda; `HOLD_CONFIRM {correlationId, holdId}`; `HOLD_RELEASE {correlationId, holdId, releaseReason}` (donde `releaseReason` es el enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED`; PR #115, `5de30854`); `ItemProvisionEventDto {correlationId, inventoryItemId, provisionedAt, reasonCode, detail}`.
+- `HOLD_CREATE`: `{studentId, courseId, orderId, orderType, amount, ttlSeconds}`.
+- `HOLD_CONFIRM`: `{correlationId, holdId}`.
+- `HOLD_RELEASE`: `{correlationId, holdId, releaseReason}` donde `releaseReason` es el enum tipado `BankHoldReleaseReason`: `AUCTION_LOST`, `AUCTION_CANCELLED` o `PURCHASE_NOT_COMPLETED` (PR #115, `5de30854`).
+- `ITEM_CONFIRMED`: `{studentId, courseId, orderId, catalogItemId, itemName, itemType, effect, maxCharges, applicableChallengeScope, ...}` con `orderId = orderRef` canónico.
+- `ITEM_REVOKE_REQUESTED` (congelado en Mercado, PR #184):
+  `{correlationId, orderId, studentId, courseId, revokeReason: "PURCHASE_NOT_COMPLETED"}` con clave de partición `studentId:courseId` y `orderId = orderRef`.
+- **Esquemas de respuesta propuestos (en desarrollo en T05, NO implementados en producción, pendientes de ratificación de Accounting):**
+  - `ITEM_CREDIT_FAILED`: `{studentId, courseId, sourceReferenceId, reason, message}`. Cancela sin revocar ítem y libera el hold con `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)`.
+  - `ITEM_REVOKED`: `{correlationId, orderId, studentId, courseId, revokedItemCount}` (`revokedItemCount = 0` indica "nada que revocar").
+  - `ITEM_REVOKE_FAILED`: `{correlationId, orderId, studentId, courseId, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
 
-Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
+## Cómo debe quedar (contrato de Accounting con Propuesta C adoptada)
 
-## Cómo debe quedar (contrato de Accounting, decidido)
-
-| Tópico | Mensajes de Mercado a Accounting | Respuestas |
+| Tópico | Mensajes de Mercado a Accounting | Respuestas de Accounting a Mercado |
 |---|---|---|
-| `accounting.events` | `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED` | `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `ITEM_CREDITED` |
-| `market.events` | `ITEM_CONFIRMED` | n/a |
+| `accounting.events` | `HOLD_CREATE_REQUESTED`, `HOLD_INCREASE_REQUESTED`, `HOLD_CONFIRM_REQUESTED`, `HOLD_RELEASE_REQUESTED`, `ITEM_REVOKE_REQUESTED` | `HOLD_CREATED`, `HOLD_INCREASED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED`, `HOLD_EXPIRED`, `ITEM_CREDITED`, `ITEM_CREDIT_FAILED` (propuesto), `ITEM_REVOKED` (propuesto), `ITEM_REVOKE_FAILED` (propuesto) |
+| `market.events` | `ITEM_CONFIRMED`, `PURCHASE_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` | n/a |
 
-Los tópicos de esta tabla ya son los de Mercado por defecto; lo que falta es el flujo de ítems (`ITEM_CREDITED`, y `ITEM_CONFIRMED` con el `orderId` UUID, hoy numérico y apagado) y las subastas (`HOLD_INCREASE_REQUESTED`). Clave de partición en accounting: `studentId:courseId` (Mercado usa `studentId`). Campos y motivos en [[Integración con Accounting]].
+Clave de partición en Accounting: `studentId:courseId` (Mercado usa `studentId:courseId` para los comandos de saga).
 
 ## Publicación con outbox
 
-Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave `studentId`, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `eventId`, y el `correlationId` de la respuesta es ese UUID. El outbox de accounting corre cada ~5 s (S8 pide bajarlo a ~1 s, [[Taller de decisiones]]).
+Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `eventId`, y el `correlationId` de la respuesta es ese UUID.
 
 ## Consumo
 
-`AccountingHoldKafkaListener` e `InventoryItemKafkaListener` (solo con `market.messaging.transport=kafka`) usan `SagaEventParser`. El primero descarta los comandos propios y los eventos no consumidos antes de parsear (ver "Tópico compartido y filtro de eventos"). Si un evento de hold como `HOLD_EXPIRED` o `HOLD_RELEASED` llega sin `correlationId` (eventos asíncronos externos de Accounting), `AccountingHoldEventHandler` resuelve la orden buscando por `holdId` en base de datos (PR #116, `e456c55f`). La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]).
+`AccountingHoldKafkaListener` (solo con `market.messaging.transport=kafka`) usa `SagaEventParser`. Descarta comandos propios antes de parsear. La tabla `processed_events` evita reprocesar un `eventId` en la misma transacción ([[Entrega at-least-once y deduplicación]]). Si un evento asíncrono externo llega sin `correlationId`, se resuelve por `holdId` en la base de datos (PR #116).
 
 ## Fallos
 
-`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. El nombre `<topic>.DLT` lo fija el PR #89 con un resolvedor explícito (`configs/KafkaConfig.java`); antes regía el sufijo `-dlt` de spring-kafka. Accounting: 3 reintentos de 2 s y luego DLT. Si accounting falla al acreditar un item no publica ningún evento de falla.
+`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. Accounting: 3 reintentos de 2 s y luego DLT.
 
 ## Relacionado
-[[Integración con Accounting]], [[Integración con Notificaciones]], [[Saga]].
+[[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Integración con Accounting]], [[Integración con Notificaciones]], [[Saga]].

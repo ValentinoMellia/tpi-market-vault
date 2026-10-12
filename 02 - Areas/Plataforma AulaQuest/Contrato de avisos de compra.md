@@ -44,7 +44,7 @@ Cada orden emite **un solo** evento de resultado, al llegar a su estado final.
 | `REJECTED` con `rejectionReason` `LIFE_CAP_REACHED` (Accounting rechaza con `MAX_LIVES_REACHED`) | `PURCHASE_FAILED` | `LIFE_CAP_REACHED` |
 | `REJECTED` con cualquier otro de los motivos de [[DEC-009 - Contrato de holds e ítems según Accounting]] | `PURCHASE_FAILED` | `PROCESSING_ERROR` |
 | `EXPIRED` (la reserva venció antes de terminar) | `PURCHASE_FAILED` | `RESERVATION_EXPIRED` |
-| `CANCELLED` con motivo `ITEM_PROVISION_FAILED` (el disparador depende de [[Q-008 - Orden de la saga de compra]]) | `PURCHASE_FAILED` | `ITEM_DELIVERY_FAILED` |
+| `CANCELLED` con motivo `ITEM_PROVISION_FAILED` (disparador adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]], cerrando [[Q-008 - Orden de la saga de compra]]) | `PURCHASE_FAILED` | `ITEM_DELIVERY_FAILED` |
 | `CANCELLED` con motivo `HOLD_NOT_SETTLED` (ítem entregado, cobro no realizado) | **No se publica** hasta resolver [[Q-019 - Aviso cuando el ítem se entregó sin cobro]] | — |
 
 El estado `REJECTED` y el campo `rejectionReason` fueron incorporados en `develop` por la tarea T07 de #5193 (PR #110, `f7457882`).
@@ -218,7 +218,7 @@ Estado el 2026-10-05 (`develop` en `9b4c05f9`):
 | T01 (PR #88) | Crea `orderRef` (UUID) en la orden; es el valor de `orderId` en los avisos de compra | Mergeada |
 | T02 (PR #88) | Mueve `PURCHASE_CONFIRMED` a `market.events` | Mergeada |
 | T04 (PR #102) | Cambia el productor a `market-service` | Mergeada |
-| T05 y T06 | Reemplazan la entrega del ítem por `ITEM_CONFIRMED` → `ITEM_CREDITED`; con T06 la orden pasa a `CONFIRMED` al recibir `ITEM_CREDITED`. Accounting no publica una falla de entrega, así que el disparador de `ITEM_DELIVERY_FAILED` depende de [[Q-008 - Orden de la saga de compra]] | Pendientes |
+| T05 y T06 | Reemplazan la entrega del ítem por `ITEM_CONFIRMED` → `ITEM_CREDITED`; con la adopción de la Propuesta C ([[DEC-025 - Saga de compra de ítems según la Propuesta C]], cerrando [[Q-008 - Orden de la saga de compra]]) se propone `ITEM_CREDIT_FAILED` y compensación con `ITEM_REVOKE_REQUESTED` | T01..T04 en develop, T05 en curso |
 | T07 | Agrega el estado `REJECTED` y guarda en la orden cada uno de los 10 motivos de rechazo de Accounting. Los motivos de `PURCHASE_FAILED` se derivan de ese mapeo | Mergeada (PR #110, `f7457882`) |
 
 ## Criterios acordados
@@ -240,7 +240,7 @@ Refinados con el equipo de Mercado el 2026-10-04 y el 2026-10-05, antes de envia
 | Comunicación | La envía el líder de Mercado | El contrato involucra una decisión del líder (DEC-008) |
 | `orderId` | `orderRef` UUID | Es el id que comparten todos los eventos de la compra en el bus (PR #88) |
 | `LIFE_PURCHASE_REJECTED` | Fuera de la versión 1; queda como revisión manual | El alumno ya recibió `PURCHASE_CONFIRMED` y la devolución la hace un administrador |
-| `ITEM_DELIVERY_FAILED` | Se mantiene, sujeto a [[Q-008 - Orden de la saga de compra]] | Existe en el código actual; con #5193 su disparador puede cambiar |
+| `ITEM_DELIVERY_FAILED` | Se mantiene, adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | Cubre falla de acreditación o revocación exitosa tras fallo de cobro |
 | Avisos de ofertas | Dos eventos, destinatario `courseId`, solo avisa un profesor, sin reactivar vencidas | [[DEC-018 - Aviso de ofertas nuevas]] |
 
 ## Qué se espera de Notificaciones

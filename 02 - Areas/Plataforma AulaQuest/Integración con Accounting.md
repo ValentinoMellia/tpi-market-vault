@@ -1,15 +1,15 @@
 ---
 tipo: integracion
-estado: en-disputa
-verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-09
+estado: vigente
+verificado_contra: DEC-025, codigo@b2c3597c
+actualizado: 2026-10-12
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
 
-> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. Mercado adoptó el contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]): en `develop` ya coinciden los holds, los tópicos, el productor, los motivos de rechazo y de liberación, y la consulta del hold (PR #88, #102, #110, #115 y #116). Falta alinear la entrega de ítems: Mercado todavía usa `ITEM_PROVISION_*` en `inventory.items.*` y no `ITEM_CONFIRMED` e `ITEM_CREDITED`. El orden de la compra sigue en disputa: [[Q-008 - Orden de la saga de compra]].
+> Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. Mercado adoptó el contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y la Propuesta C para la saga de compra directa de ítems ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]), que cierra [[Q-008 - Orden de la saga de compra]].
 
-Actualización (2026-10-09): lo que esta nota dice del código de Mercado se verificó contra `e456c55f` (PR #102, #110, #115 y #116). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01: no se reverificó.
+Actualización (2026-10-12): la integración de la saga de compra directa de ítems y la revocación se verificó contra `b2c3597c` (PR #179, #182 y #184 de `tpi-market`, US-7697 T01, T03 y T04). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01; las respuestas de revocación y fallo están pendientes de ratificación de Accounting.
 
 ## Decisiones que gobiernan esta integración
 
@@ -19,10 +19,11 @@ Actualización (2026-10-09): lo que esta nota dice del código de Mercado se ver
 | [[DEC-003 - Holds solo por Kafka]] | Holds solo por Kafka; la única lectura REST es la consulta de estado |
 | [[DEC-007 - Tope de vidas, Accounting decide y reporta]] | Accounting aplica el tope y reporta; Mercado reacciona y, desde la enmienda del 2026-10-04, valida el tope de forma preventiva antes del hold |
 | [[DEC-008 - Nombre de productor y tópicos de Mercado]] | `market-service` en todos los mensajes salientes (unificado en PR #102, `2485d8cf`), `market.events` y `accounting.events`, `SNAKE_CASE` en inglés |
-| [[DEC-009 - Contrato de holds e ítems según Accounting]] | Contrato de holds e ítems de Accounting (no incluye el orden de la compra) |
+| [[DEC-009 - Contrato de holds e ítems según Accounting]] | Contrato de holds e ítems de Accounting |
 | [[DEC-010 - Los efectos de los ítems no son de Mercado]] | Escudos en Accounting, multiplicadores en el motor de desafíos |
 | [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] | Los ítems no vencen |
 | [[DEC-014 - Reglas de subastas]] | Un release por postor al cancelar o cerrar una subasta; sin release por `orderId` |
+| [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | Adopta la Propuesta C para compra directa de ítems: retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación simétrica con `ITEM_REVOKE_REQUESTED` ante fallos o plazos vencidos; cierra [[Q-008 - Orden de la saga de compra]] |
 
 Esta nota reemplaza a las antiguas "Integración con Banco" e "Integración con Inventario" (archivadas), porque [[DEC-001 - Accounting es dueño del inventario]] fusionó ambas responsabilidades en un solo equipo.
 
@@ -63,14 +64,20 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 - Restricción `UNIQUE(account_id, order_id)`: **un hold por `orderId` para siempre**. No hay liberación en lote ni captura parcial.
 - Con esto queda confirmado que `DIRECT_PURCHASE` es un `orderType` válido y que la confirmación no lleva monto ni el hold lleva moneda.
 
-## Entrega del item
+## Entrega del item y compensación
 
 | Dirección | Mensaje | Tópico | Campos |
 |---|---|---|---|
-| Mercado a accounting | `ITEM_CONFIRMED` | `market.events` | `studentId`, `courseId`, `orderId`, `catalogItemId`, `itemName`, `itemType`, `effect` |
-| Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `studentId`, `courseId`, `itemInstanceId`, `itemName`, `itemType`, `sourceReferenceId` (= `orderId`); no trae `correlationId` |
+| Mercado a Accounting | `ITEM_CONFIRMED` | `market.events` | `studentId`, `courseId`, `orderId` (UUID canónico `orderRef`), `catalogItemId`, `itemName`, `itemType`, `effect` |
+| Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `studentId`, `courseId`, `itemInstanceId`, `itemName`, `itemType`, `sourceReferenceId` (= `orderId`); correlaciona por `sourceReferenceId` |
+| Mercado a Accounting | `ITEM_REVOKE_REQUESTED` | `accounting.events` | `correlationId` (UUID igual al `eventId`), `orderId` (`orderRef` UUID canónico), `studentId`, `courseId`, `revokeReason` (`PURCHASE_NOT_COMPLETED`) |
 
-- No existen los eventos `ITEM_PROVISION_*`. Si acreditar falla, hay reintentos y luego DLT; **no se publica ningún evento de falla**.
+- **Contrato congelado de `ITEM_REVOKE_REQUESTED` (lado Mercado, adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Clave de partición `studentId:courseId`, productor `market-service`, envelope versión 1. No lleva `itemInstanceId`: Accounting revoca la unidad asociada a la orden (`orderId`).
+- **Esquemas de respuesta propuestos (en desarrollo en T05, NO implementados en producción, pendientes de ratificación de Accounting):**
+  - `ITEM_CREDIT_FAILED` en `accounting.events`: `{studentId, courseId, sourceReferenceId, reason, message}`. Comportamiento en Mercado (T05): cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y emite `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)` **sin revocar ítem**.
+  - `ITEM_REVOKED` en `accounting.events`: `{correlationId, orderId, studentId, courseId, revokedItemCount}`. Comportamiento en Mercado (T05): confirma la revocación de forma idempotente (`revokedItemCount = 0` indica "nada que revocar").
+  - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlationId, orderId, studentId, courseId, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+- No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, commit `b2c3597c`).
 - `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalogItemId` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
 
 ## Inventario (fusionado desde la nota de Inventario)
@@ -114,16 +121,17 @@ Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máxim
 
 ## Diferencias entre el código de Mercado y el de accounting
 
-Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]), salvo el orden de la saga, que sigue abierto. La columna "Mercado hoy" está verificada contra `develop` en `349c8e2` (los tópicos y el `orderId` cambiaron con el PR #88; el resto, sin cambios en el código).
+Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]]). Los cambios de US-7697 T01, T03 y T04 están verificados contra `b2c3597c`.
 
 | Tema | Mercado hoy | Accounting |
 |---|---|---|
-| Tópicos de holds | `accounting.events` por defecto (antes `accounting.holds.commands` y `accounting.holds.events`); alineado | `accounting.events` |
-| Tópico propio | `market.events` por defecto (antes `market.orders.events`); alineado | `market.events` |
-| Provisión | `ITEM_PROVISION_REQUESTED`, `ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED` en `inventory.items.*` | `ITEM_CONFIRMED` (en `market.events`) y luego `ITEM_CREDITED` (en `accounting.events`); falla silenciosa a DLT |
-| Orden de la saga | provisión, luego confirmar débito | confirmar débito, luego `ITEM_CONFIRMED` ([[Q-008 - Orden de la saga de compra]]) |
-| `orderId` | UUID canónico (`orderRef`) en `HOLD_CREATE_REQUESTED` (US-5193) y en `LIFE_PURCHASE_CONFIRMED` (US-6268); numérico en `ITEM_CONFIRMED` (apagado) y en `PURCHASE_CONFIRMED` | UUID canónico |
-| Correlación del item | `correlationId` | `sourceReferenceId` = `orderId` |
+| Tópicos de holds | `accounting.events` por defecto; alineado | `accounting.events` |
+| Tópico propio | `market.events` por defecto; alineado | `market.events` |
+| Provisión / Ítems | `ITEM_CONFIRMED` (en `market.events`) y `ITEM_CREDITED` (en `accounting.events`); T01 eliminó los clientes salientes de `ITEM_PROVISION_*` | `ITEM_CONFIRMED` e `ITEM_CREDITED`; falla silenciosa a DLT (propuesta de `ITEM_CREDIT_FAILED` pendiente de ratificación) |
+| Orden de la saga | Propuesta C adoptada ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]): retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación con `ITEM_REVOKE_REQUESTED` | Propuesta C acordada para ítems directos; pendiente ratificación de esquemas de respuesta |
+| `orderId` | UUID canónico (`orderRef`) en `HOLD_CREATE_REQUESTED`, `LIFE_PURCHASE_CONFIRMED`, `ITEM_CONFIRMED` e `ITEM_REVOKE_REQUESTED` | UUID canónico |
+| Correlación del item | `sourceReferenceId` = `orderId` | `sourceReferenceId` = `orderId` |
+| Revocación de ítems | `ITEM_REVOKE_REQUESTED` (congelado en Mercado, T04 en `b2c3597c`) | Pendiente de ratificación e implementación |
 | `PURCHASE_CONFIRMED` | se publica | nadie lo consume |
 | Consulta de hold | `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` con token dinámico (PR #116, `e456c55f`); alineado | `GET /api/accounting/holds/{holdId}` |
 | Catálogo | plantillas `tpl-*` | solo `ITEM-PLACEHOLDER-1` a `3` |
@@ -134,29 +142,27 @@ El plan de alineación está en [[Roadmap de trabajo]] (P0).
 
 ## Mensaje de accounting del 2026-10-01 y estado
 
-Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`; los puntos 1 y 2 se reverificaron contra `349c8e2`):
+Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`; los puntos 1 y 2 se reverificaron contra `349c8e2`, y el orden y revocación contra `b2c3597c`):
 
 | # | Pedido de accounting | Estado en Mercado |
 |---|---|---|
 | 1 | Apuntar los tópicos de holds a `accounting.events` | Hecho en `develop` (PR #88): `accounting.events` es el valor por defecto de `accounting-holds-commands` y `accounting-holds-events`, con las variables `MARKET_MESSAGING_TOPIC_ACCOUNTING_HOLDS_COMMANDS` y `_EVENTS` para cambiarlo (`src/main/resources/application.properties:46-47`, `.compose/docker-compose.yml`). **Riesgo del tópico compartido, resuelto**: tras el PR #88 los comandos propios `HOLD_CREATE_REQUESTED` y `HOLD_RELEASE_REQUESTED` terminaban en `accounting.events.DLT` por filtrarse después del parseo. El PR #102 (`2485d8cf`, commit `a4e6ac76`, US-5193 T03) resolvió esto descartando por `producer` (`market-service`) y por `eventType` antes de parsear, con 0 mensajes en DLT ([[Eventos y Kafka]]) |
-| 2 | `orderId` UUID canónico (**bloqueante**) | Cumplido en el comando de hold (PR #88, US-5193): la orden guarda un `orderRef` UUID inmutable y `HOLD_CREATE_REQUESTED` lo envía como `orderId` (`entities/OrderEntity.java:116`, `services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]]). Decidido en D8 del [[Taller de decisiones]] y [[DEC-009 - Contrato de holds e ítems según Accounting]]. No cubre `ITEM_CONFIRMED`, que sigue con el `id` numérico y apagado: con el `id` numérico, el `sourceReferenceId` de `ITEM_CREDITED` (= `orderId`) no coincidiría con el `orderId` del hold |
+| 2 | `orderId` UUID canónico (**bloqueante**) | Cumplido en todos los comandos de Mercado: `HOLD_CREATE_REQUESTED` (PR #88), `LIFE_PURCHASE_CONFIRMED` (PR #95), `ITEM_CONFIRMED` (PR #179, T01) e `ITEM_REVOKE_REQUESTED` (PR #184, T04) envían el `orderRef` UUID inmutable de la orden (`entities/OrderEntity.java:116`; [[Orden de compra]]) |
 | 3 | `HOLD_INCREASE_REQUESTED` (envía el **total nuevo**, no la diferencia) | No implementado; las subastas son Fase 3 ([[Subasta]], [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]) |
 | 4 | Cancelar una subasta con `HOLD_RELEASE_REQUESTED` por `orderId`, sin `holdId`, con `AUCTION_CANCELLED`, liberando todos los holds de la orden | **No adoptado** ([[DEC-014 - Reglas de subastas]]): Mercado envía **un `HOLD_RELEASE_REQUESTED` por postor** (con `holdId`). **A comunicar a Accounting**; es coherente con su restricción de un hold por `orderId` y sin liberación en lote |
 | 5 | Mercado debe manejar `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y el payload de `HOLD_INCREASED` | **Resuelto para los holds en develop** (PR #110, US-5193 T07, `f7457882`): `OrderRejectionReason` mapea los 10 motivos de rechazo del contrato; solo `INSUFFICIENT_BALANCE` pasa a `REJECTED_INSUFFICIENT_FUNDS`, los otros 9 pasan a `REJECTED` y persisten `rejectionReason` con mensaje provisional en español (`OrderRejectionMessageServiceImpl`). `HOLD_INCREASED` sigue en Fase 3 (subastas) |
-| 6 | Deduplicar respuestas reenviadas (misma `correlationId`) | Sí, en dos capas: deduplicación por `eventId` en `processed_events` y guarda de estado (los manejadores ignoran un evento si la orden no está en el estado esperado, p. ej. `services/impl/OrderConfirmationServiceImpl.java`, cerca de la línea 385). Ver [[Entrega at-least-once y deduplicación]] |
-| 7 | `GET /api/accounting/holds/{holdId}` en implementación este sprint; avisarán al integrarlo para encender `bank-hold.reconciliation` | **Resuelto en develop** (PR #116, `e456c55f`, issue #114): `HttpBankHoldQueryClient` implementa la consulta real mediante token dinámico de Identity (`IdentityServiceTokenClient`), alias `camelCase` y `snake_case` vía `@JsonAlias`, timeouts configurables e invalidación ante 401/403. Resuelve el arranque con transporte `kafka` y prepara la activación del scheduler `bank-hold.reconciliation.enabled` |
+| 6 | Deduplicar respuestas reenviadas (misma `correlationId`) | Sí, en dos capas: deduplicación por `eventId` en `processed_events` y guarda de estado (los manejadores ignoran un evento si la orden no está en el estado esperado, p. ej. `services/impl/OrderConfirmationServiceImpl.java`). Ver [[Entrega at-least-once y deduplicación]] |
+| 7 | `GET /api/accounting/holds/{holdId}` en implementación este sprint; avisarán al integrarlo para encender `bank-hold.reconciliation` | **Resuelto en develop** (PR #116, `e456c55f`, issue #114): `HttpBankHoldQueryClient` implementa la consulta real mediante token dinámico de Identity (`IdentityServiceTokenClient`), alias `camelCase` y `snake_case` vía `@JsonAlias`, timeouts configurables e invalidación ante 401/403. Utilizado por la reconciliación periódica de compras directas (T03, PR #182) |
 
-El mensaje **no menciona** el orden de la saga ([[Q-008 - Orden de la saga de compra]]) ni `ITEM_CONFIRMED` e `ITEM_CREDITED`: sigue siendo la conversación principal pendiente con accounting.
-
-Postura de Mercado (2026-10-01, no es una decisión): preferir **entregar el ítem primero**, porque revertir un ítem del inventario se considera más viable que devolver monedas. Con holds, las monedas no se debitan hasta `HOLD_CONFIRM_REQUESTED`, así que antes de confirmar devolver monedas es liberar el hold. El riesgo real es que la confirmación falle después de entregar, y eso exige que Accounting soporte la **revocación de un ítem**, que hoy no existe (no hay REST ni evento para quitar un ítem). Pedido a Accounting: revocación de ítem y evento de error al fallar el acreditado. Detalle en [[Q-008 - Orden de la saga de compra]].
+El orden de la saga quedó resuelto formalmente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]: se adoptó la Propuesta C para compras directas de ítems, cerrando [[Q-008 - Orden de la saga de compra]] (archivada).
 
 ## Estado actual en el código de Mercado
 
-El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`, método `onMessage`) primero descarta por `producer` los mensajes que publicó el propio `market-service` (US-5193 T03, `a4e6ac76`, PR #102 merge `2485d8cf`): así se ignoran los comandos de Mercado en el tópico compartido. Después enruta por `eventType`: `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y el resto (por ejemplo `LIFE_CREDITED`) se ignora en lugar de ir al DLT como malformado. Todos los mensajes salientes usan el productor `market-service` unificado (US-5193 T04, `1e458bb0`, PR #102). Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` y `OutboxInventoryItemProvisionClient.java`; listeners `AccountingHoldKafkaListener` e `InventoryItemKafkaListener`, solo con transporte `kafka`. Con `mock` responden `MockBankHoldClient` y `MockInventoryItemProvisionClient`. `BankHoldQueryClient` cuenta con `HttpBankHoldQueryClient` (con transporte `kafka`, PR #116, `e456c55f`) y `MockBankHoldQueryClient` (con transporte `mock`). Además, `AccountingHoldEventHandler` resuelve `HOLD_RELEASED` por `holdId` cuando llega sin `correlationId` (issue #114). Los nombres de clase conservan "Bank" por historia ([[Estado actual del código]]).
+El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`, método `onMessage`) primero descarta por `producer` los mensajes que publicó el propio `market-service` (US-5193 T03, `a4e6ac76`, PR #102 merge `2485d8cf`): así se ignoran los comandos de Mercado en el tópico compartido. Después enruta por `eventType`: `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y `ITEM_CREDITED` a `AccountingItemCreditedEventHandler` (que correlaciona por `sourceReferenceId = orderId` y procesa la transición a `ITEM_PROVISIONED` con guarda de plazos `ConfirmationDeadlineGuard`). Todos los mensajes salientes usan el productor `market-service` unificado (US-5193 T04, `1e458bb0`, PR #102). Implementado con [[Patrón Outbox]]: `clients/impl/OutboxBankHoldClient.java` e `ItemRevokeClient` (`OutboxItemRevokeClient.java`, T04); listeners en `kafka`. Con `mock` responden `MockBankHoldClient`, `MockOrderEventPublisher` y `MockItemRevokeClient`. `BankHoldQueryClient` cuenta con `HttpBankHoldQueryClient` (con transporte `kafka`, PR #116, `e456c55f`) y `MockBankHoldQueryClient`. Además, `AccountingHoldEventHandler` resuelve `HOLD_RELEASED` por `holdId` cuando llega sin `correlationId`, disparando compensación atómica si la orden está en espera.
 
 ### Pruebas de contrato (PR #90, US-5231 T02)
 
-`src/test/java/ar/edu/utn/frc/tup/p4/contracts/AccountingContractTest.java` fija el contrato de mensajes con archivos canónicos en `src/test/resources/contracts/accounting/` (un JSON por mensaje: los comandos `hold-create-requested`, `hold-increase-requested`, `hold-confirm-requested` y `hold-release-requested`; las respuestas `hold-created`, `hold-rejected`, `hold-increased`, `hold-confirmed`, `hold-released` y `hold-expired`; y `item-confirmed` e `item-credited`). Comprueba el envelope de 6 campos (rechaza con `MalformedEventException` un `eventId` ausente o no UUID, `eventVersion` menor que 1, `eventType` o `timestamp` ausentes, `producer` en blanco y JSON roto), las cadenas de correlación entre comandos y respuestas, la serialización real de `OutboxBankHoldClient` (alta, confirmación y liberación) contra esos archivos y el procesamiento de las respuestas con `AccountingHoldEventHandler`. Son pruebas locales contra los archivos del repositorio, no contra Accounting en ejecución, y los archivos de comandos usan `orderId: "42"`: no exigen que el `orderId` sea un UUID. No cubren el tópico compartido ni el parseo de los comandos propios como `HoldEventDto`. Historia: [[S2-07 - Pruebas integradas con Accounting]].
+`src/test/java/ar/edu/utn/frc/tup/p4/contracts/AccountingContractTest.java` fija el contrato de mensajes con archivos canónicos en `src/test/resources/contracts/accounting/` (un JSON por mensaje: los comandos `hold-create-requested`, `hold-increase-requested`, `hold-confirm-requested` y `hold-release-requested`; las respuestas `hold-created`, `hold-rejected`, `hold-increased`, `hold-confirmed`, `hold-released` y `hold-expired`; y `item-confirmed` e `item-credited`). Comprueba el envelope de 6 campos (rechaza con `MalformedEventException` un `eventId` ausente o no UUID, `eventVersion` menor que 1, `eventType` o `timestamp` ausentes, `producer` en blanco y JSON roto), las cadenas de correlación entre comandos y respuestas, la serialización real de `OutboxBankHoldClient` (alta, confirmación y liberación) contra esos archivos y el procesamiento de las respuestas con `AccountingHoldEventHandler`. Son pruebas locales contra los archivos del repositorio, no contra Accounting en ejecución.
 
 ## Brechas del lado de accounting
 
@@ -165,16 +171,23 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 - `PURCHASE_CONFIRMED` no lo consume nadie; `AccountCoinReservationsPort` no está implementado.
 - Ramas sin integrar en Accounting: la rama `lives-purchase-credit` dio origen al acuerdo del 2026-10-02 formalizando `LIFE_PURCHASE_CONFIRMED`; restan `life-holds-challenge-reservation` y `life-holds-expiration`.
 - Se necesita un reembolso que hoy no existe (ver D6 en [[Taller de decisiones]]).
+- **Revocación de ítems no ratificada ni desplegada:** Accounting no tiene aún implementado el consumidor de `ITEM_REVOKE_REQUESTED` ni las respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED`.
+- **Falta de evento de error de crédito:** Accounting manda al DLT sin evento cuando falla la acreditación de ítems; `ITEM_CREDIT_FAILED` es una propuesta de Mercado aún no ratificada.
 
-## Acuerdos pendientes
+## Acuerdos y tareas pendientes
 
-- **Orden de la saga** y su compensación: [[Q-008 - Orden de la saga de compra]] (abierta). Incluye pedir la revocación de ítems.
+- **Orden de la saga:** Decidido formalmente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] para compras directas de ítems. Cierra [[Q-008 - Orden de la saga de compra]] (archivada).
+- **Ratificación del contrato de revocación:** Accounting debe ratificar e implementar `ITEM_REVOKE_REQUESTED`, soportando idempotencia ("nada que revocar", `revokedItemCount = 0`) y bloqueo de acreditaciones tardías para órdenes revocadas.
+- **Ratificación de esquemas de respuesta:** Respuestas propuestas de Accounting (`ITEM_CREDIT_FAILED`, `ITEM_REVOKED`, `ITEM_REVOKE_FAILED`) pendientes de ratificación por Tema 08.
+- **Implementación en Mercado en curso (T05 y T08):**
+  - T05: Consumo de `ITEM_CREDIT_FAILED` (cancelación sin revocar y liberación de hold) y respuestas de revocación (`ITEM_REVOKED` idempotente e `ITEM_REVOKE_FAILED` con marca de revisión y métrica `market.purchase.revoke_failed{reason}`). En curso, no implementado en producción.
+  - T08: Detección de crédito insuficiente en compras de vidas (`LIFE_CREDITED`) para marcar revisión administrativa. La saga completa de vidas (crédito antes de débito) se difiere para el próximo sprint; no existe acuerdo de saga completa de vidas este sprint.
+- **Condición de base de datos:** La columna `review_reason` en PostgreSQL requiere aplicar manualmente la migración SQL `US7697__order_review_reason.sql` para habilitar las nuevas razones en la restricción `CHECK`.
 - **Comunicar a Accounting** que las subastas usan un release por postor y no por `orderId` ([[DEC-014 - Reglas de subastas]]). Las ofertas superadas mantienen su hold hasta el cierre de la subasta.
 - **Acuerdos de compra de vidas del 2026-10-04**: validación preventiva del tope, `orderId` unificado y `LIFE_PURCHASE_REJECTED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). Implementados en Mercado; falta que Accounting publique `LIFE_PURCHASE_REJECTED` y confirmar cómo se emite el token de servicio.
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
-- Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07), el motivo de liberación como enum tipado se completó en el PR #115 (`5de30854`, US-5193 T08), y la consulta real de holds (`HttpBankHoldQueryClient`) con resolución de `HOLD_RELEASED` por `holdId` se completó en el PR #116 (`e456c55f`, issue #114). Faltan el `orderId` UUID en `ITEM_CONFIRMED` (T05/T06) ([[Roadmap de trabajo]]).
 - Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
 
 ## Relacionado
-[[Eventos y Kafka]], [[Hold y escrow]], [[Orden de compra]], [[Hold de monedas]], [[Tipos de item]], [[Épica 131 - Inventario (otro equipo)]], [[Mapa de servicios]].
+[[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Eventos y Kafka]], [[Hold y escrow]], [[Orden de compra]], [[Hold de monedas]], [[Tipos de item]], [[Épica 131 - Inventario (otro equipo)]], [[Mapa de servicios]].

@@ -38,7 +38,7 @@ tags: [mercado, sprint, planificacion]
 | Spike | Detalle | Tareas | Horas |
 |---|---|---|---|
 | Lectura del vault | Cada integrante recorre el [[Roadmap de entendimiento]] (una tarea por persona) | 10 | 20 |
-| Orden de la compra con Accounting | Reunión y acuerdo sobre [[Q-008 - Orden de la saga de compra]], incluida la revocación de ítems; enviar la respuesta preparada en el Inbox | 1 | 3 |
+| Orden de la compra con Accounting | Reunión y acuerdo formalizado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (cerrando [[Q-008 - Orden de la saga de compra]]), incluida la revocación de ítems | 1 | 3 |
 | Diseño técnico de subastas | Modelo, estados, fase final ciega y contrato con Accounting ([[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]), para que el Sprint 3 empiece implementando | 2 | 10 |
 | SSE en el frontend | Patrón de consumo de SSE con Signals y el kit de UI | 1 | 4 |
 
@@ -53,7 +53,7 @@ tags: [mercado, sprint, planificacion]
 
 - La estimación tiene un margen de ±20 %: es una referencia para la planning, no un compromiso.
 - El Sprint 2 empezó sin historias cargadas; cargar Taiga es lo primero ([[Q-013 - Higiene del backlog]]).
-- Si Accounting no acepta el orden de compra propuesto ([[Q-008 - Orden de la saga de compra]]), la historia 1 puede cambiar.
+- El orden de compra propuesto quedó adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (cerrando [[Q-008 - Orden de la saga de compra]]); resta la ratificación e implementación por Accounting de los esquemas de revocación y respuesta.
 - El sprint de Taiga tiene 25 historias y 92 puntos, no las 13 historias y 73 puntos de este plan: hay nueve historias anteriores y tres de frontend que no estaban previstas ([[Revisión del Sprint 2 en Taiga]]). El alcance final se decide en [[Q-018 - Alcance real del Sprint 2 en Taiga]].
 - Las ~255 h comprometidas ya superan las ~250 h disponibles. Si #1010 se mantiene con sus tareas reescritas, suma unas 10 h más ([[US-1010 - Contrato de la API publicado]]).
 

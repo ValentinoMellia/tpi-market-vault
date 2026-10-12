@@ -1,13 +1,13 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
-tags: [mercado, pregunta-abierta, saga, accounting]
+estado: archivado
+verificado_contra: DEC-025
+actualizado: 2026-10-12
+tags: [mercado, pregunta-cerrada, saga, accounting, decision]
 ---
 # Q-008 - Orden de la saga de compra
 
-> ¿Qué va primero en la compra: entregar el item o confirmar el débito? Hay tres órdenes en conflicto: el código de Mercado, el código de Accounting y la recomendación de los documentos del equipo. Es la decisión de integración más importante que sigue abierta.
+> ¿Qué va primero en la compra: entregar el item o confirmar el débito? Resuelta por [[DEC-025 - Saga de compra de ítems según la Propuesta C]]: se adopta la Propuesta C para compras directas de ítems (acreditar el ítem y luego confirmar el débito, con compensación simétrica mediante revocación de ítems).
 
 ## Los tres órdenes
 
@@ -54,4 +54,4 @@ El líder del equipo de Mercado prefiere **entregar el ítem primero**: consider
 Mercado y Accounting. Relacionada: [[Q-007 - Contrato con Accounting]] (archivada, ver [[DEC-009 - Contrato de holds e ítems según Accounting]]), [[DEC-001 - Accounting es dueño del inventario]].
 
 ## Resolución
-Pendiente.
+**Resuelta el 2026-10-12 mediante [[DEC-025 - Saga de compra de ítems según la Propuesta C]]** (confirmada por el usuario en US-7697). Se adoptó la [[Propuesta C de la saga de compra]] para la compra directa de ítems: retener fondos (`HOLD_CREATED`), acreditar el ítem (`ITEM_CONFIRMED` → `ITEM_CREDITED`), y recién después solicitar la confirmación del débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`). Si el plazo de confirmación expira o la confirmación es rechazada, Mercado compensa atómicamente: emite `ITEM_REVOKE_REQUESTED`, libera el hold con `HOLD_RELEASE_REQUESTED`, libera la unidad de stock reservada y cancela la orden. La compra de vidas queda excluida de la revocación y mantiene su circuito transicional, difiriendo la saga completa de vidas para el próximo sprint.
