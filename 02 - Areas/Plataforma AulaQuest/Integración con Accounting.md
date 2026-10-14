@@ -1,7 +1,7 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, codigo@b2c3597c
+verificado_contra: DEC-025, codigo@d3b7a4de
 actualizado: 2026-10-12
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
@@ -9,7 +9,7 @@ tags: [mercado, integracion, accounting, banco, inventario, kafka]
 
 > Accounting (ex Banco, Tema 08, grupo G12 en Taiga) es el dueño de las monedas, las vidas y el inventario del estudiante. Mercado le pide retener, confirmar o liberar monedas y le avisa qué item se compró. Mercado adoptó el contrato de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]]) y la Propuesta C para la saga de compra directa de ítems ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]), que cierra [[Q-008 - Orden de la saga de compra]].
 
-Actualización (2026-10-12): la integración de la saga de compra directa de ítems y la revocación se verificó contra `b2c3597c` (PR #179, #182 y #184 de `tpi-market`, US-7697 T01, T03 y T04). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01; las respuestas de revocación y fallo están pendientes de ratificación de Accounting.
+Actualización (2026-10-12): la integración de la saga de compra directa de ítems, emisión de `ITEM_CONFIRMED`, revocación, manejo de fallos y vidas se verificó contra `d3b7a4de` (PR #179, #182, #184, #186, #187, #188 y #189 de `tpi-market`, US-7697 T01, T02, T03, T04, T05 y T08). Lo que dice del código de Accounting sigue verificado contra su `develop` del 2026-10-01; las respuestas de revocación y fallo están pendientes de ratificación de Accounting.
 
 ## Decisiones que gobiernan esta integración
 
@@ -72,13 +72,13 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 | Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `student_id`, `course_id`, `item_instance_id`, `item_name`, `item_type`, `source_reference_id` (= `order_id`); correlaciona por `source_reference_id` |
 | Mercado a Accounting | `ITEM_REVOKE_REQUESTED` | `accounting.events` | `correlation_id` (UUID igual al `event_id`), `order_id` (`orderRef` UUID canónico), `student_id`, `course_id`, `revoke_reason` (`PURCHASE_NOT_COMPLETED`) |
 
-- **Formato de cable (`snake_case` según contratos-kafka v8):** Accounting develop ya publica y lee exclusivamente en `snake_case` (`tpi-accounting@10e31d85`, 2026-10-11). La migración de Mercado a `snake_case` está implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga` (PR a `develop` pendiente, no mergeada ni desplegada).
+- **Formato de cable (`snake_case` según contratos-kafka v8):** Accounting develop ya publica y lee exclusivamente en `snake_case` (`tpi-accounting@10e31d85`, 2026-10-11). La migración de Mercado a `snake_case` está mergeada en `develop@d3b7a4de` (PR #186).
 - **Contrato congelado de `ITEM_REVOKE_REQUESTED` (lado Mercado, adoptado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Clave de partición `student_id:course_id`, productor `market-service`, envelope versión 1 (`contratos-kafka v8`). No lleva `item_instance_id`: Accounting revoca la unidad asociada a la orden (`order_id`).
-- **Esquemas de respuesta propuestos (implementados y verificados en Mercado en la rama T05 `feature/us-7697-t05-credit-failure-and-revoke-replies`, PR a `develop` pendiente; NO implementados en producción, pendientes de ratificación de Accounting):**
+- **Esquemas de respuesta propuestos (consumidores implementados en Mercado y mergeados en `develop@d3b7a4de` vía PR #188, T05; pendientes de ratificación por Accounting):**
   - `ITEM_CREDIT_FAILED` en `accounting.events`: `{student_id, course_id, source_reference_id, reason, message}`. Comportamiento en Mercado (T05): cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y emite `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)` **sin revocar ítem**.
   - `ITEM_REVOKED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}`. Comportamiento en Mercado (T05): confirma la revocación de forma idempotente (`revoked_item_count = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
-- No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, commit `b2c3597c`).
+  - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR`, incrementa la métrica `market.purchase.revoke_failed{reason}` y establece la bandera booleana independiente `revoke_failed = true` en la tabla `orders` (mediante `PurchaseReviewService.markRevokeFailed`), la cual se marca siempre ante un fallo de revocación aunque la orden ya tuviera otro motivo de revisión asignado.
+- No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, mergeado en `develop@d3b7a4de`).
 - `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalog_item_id` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
 
 ## Inventario (fusionado desde la nota de Inventario)
@@ -122,7 +122,7 @@ Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máxim
 
 ## Diferencias entre el código de Mercado y el de accounting
 
-Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]]). Los cambios de US-7697 T01, T03 y T04 están verificados contra `b2c3597c`.
+Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]]). Los cambios de US-7697 (T01..T05, T08 y wire format `snake_case`) están verificados contra `develop@d3b7a4de`.
 
 | Tema | Mercado hoy | Accounting |
 |---|---|---|
@@ -132,7 +132,7 @@ Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e í
 | Orden de la saga | Propuesta C adoptada ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]): retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación con `ITEM_REVOKE_REQUESTED` | Propuesta C acordada para ítems directos; pendiente ratificación de esquemas de respuesta |
 | `order_id` | UUID canónico (`orderRef`) en `HOLD_CREATE_REQUESTED`, `LIFE_PURCHASE_CONFIRMED`, `ITEM_CONFIRMED` e `ITEM_REVOKE_REQUESTED` | UUID canónico |
 | Correlación del item | `source_reference_id` = `order_id` | `source_reference_id` = `order_id` |
-| Revocación de ítems | `ITEM_REVOKE_REQUESTED` (congelado en Mercado, T04 en `b2c3597c`) | Pendiente de ratificación e implementación |
+| Revocación de ítems | `ITEM_REVOKE_REQUESTED` (congelado en Mercado, T04 en `develop@d3b7a4de`) | Pendiente de ratificación e implementación |
 | `PURCHASE_CONFIRMED` | se publica | nadie lo consume |
 | Consulta de hold | `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` con token dinámico (PR #116, `e456c55f`); alineado | `GET /api/accounting/holds/{holdId}` |
 | Catálogo | plantillas `tpl-*` | solo `ITEM-PLACEHOLDER-1` a `3` |
@@ -143,7 +143,7 @@ El plan de alineación está en [[Roadmap de trabajo]] (P0).
 
 ## Mensaje de accounting del 2026-10-01 y estado
 
-Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`; los puntos 1 y 2 se reverificaron contra `349c8e2`, y el orden y revocación contra `b2c3597c`):
+Accounting envió siete puntos. Estado de cada uno contra el código de Mercado (`codigo@7528610`; los puntos 1 y 2 se reverificaron contra `349c8e2`, y el orden y revocación contra `d3b7a4de`):
 
 | # | Pedido de accounting | Estado en Mercado |
 |---|---|---|
@@ -180,10 +180,15 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 - **Orden de la saga:** Decidido formalmente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] para compras directas de ítems. Cierra [[Q-008 - Orden de la saga de compra]] (archivada).
 - **Ratificación del contrato de revocación:** Accounting debe ratificar e implementar `ITEM_REVOKE_REQUESTED`, soportando idempotencia ("nada que revocar", `revoked_item_count = 0`) y bloqueo de acreditaciones tardías para órdenes revocadas.
 - **Ratificación de esquemas de respuesta:** Respuestas propuestas de Accounting (`ITEM_CREDIT_FAILED`, `ITEM_REVOKED`, `ITEM_REVOKE_FAILED`) pendientes de ratificación por Tema 08.
-- **Implementación en Mercado (T05 y T08, PR a develop pendiente):**
-  - T05: Consumo de `ITEM_CREDIT_FAILED` (cancelación sin revocar y liberación de hold) y respuestas de revocación (`ITEM_REVOKED` idempotente e `ITEM_REVOKE_FAILED` con marca de revisión y métrica `market.purchase.revoke_failed{reason}`) implementados y verificados en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR a `develop` pendiente; no desplegados en producción; ratificación de Accounting pendiente).
-  - T08: Detección de crédito insuficiente en compras de vidas (`LIFE_CREDITED`) para marcar revisión administrativa implementada y verificada en la rama `feature/us-7697-t08-life-credit-shortfall` (PR a `develop` pendiente). La saga completa de vidas (crédito antes de débito) se difiere para el próximo sprint; no existe acuerdo de saga completa de vidas este sprint.
-- **Condición de base de datos:** La columna `review_reason` en PostgreSQL requiere aplicar manualmente la migración SQL `US7697__order_review_reason.sql` para habilitar las nuevas razones en la restricción `CHECK`.
+- **Implementación en Mercado (mergeada en `develop@d3b7a4de`):**
+  - T05 (PR #188): Consumo de `ITEM_CREDIT_FAILED` (cancelación sin revocar y liberación de hold) y respuestas de revocación (`ITEM_REVOKED` idempotente e `ITEM_REVOKE_FAILED` con marca de revisión `review_reason = 'ITEM_REVOKE_FAILED'`, bandera booleana independiente `revoke_failed = true` y métrica `market.purchase.revoke_failed{reason}`). Ratificación de Accounting pendiente.
+  - T08 (PR #187): Detección de crédito insuficiente en compras de vidas (`LIFE_CREDITED`) para marcar revisión administrativa con `review_reason = 'LIFE_CREDIT_SHORTFALL'`. La saga completa de vidas (crédito antes de débito) se difiere para el próximo sprint; no existe acuerdo de saga completa de vidas este sprint.
+  - T02 (PR #189): Emisión de `ITEM_CONFIRMED` en `market.events` con UUID canónico `orderRef`.
+  - Wire format Kafka (PR #186): Migración completa a `snake_case` según `contratos-kafka v8`.
+- **Scripts SQL manuales de base de datos:** Antes del deploy a entornos con PostgreSQL deben ejecutarse manualmente los 3 scripts SQL ubicados en `db/manual/` para actualizar las restricciones y columnas de la tabla `orders`:
+  1. `US7697__order_review_reason.sql`: agrega la columna `review_reason` y su restricción `CHECK`.
+  2. `US7697__orders_cancellation_reason_check.sql` (T03): amplía la restricción `CHECK` de motivos de cancelación para admitir `CONFIRMATION_DEADLINE_EXCEEDED`.
+  3. `US7697__orders_revoke_failed_flag.sql` (T05): agrega la bandera booleana `revoke_failed` en la tabla `orders`.
 - **Comunicar a Accounting** que las subastas usan un release por postor y no por `orderId` ([[DEC-014 - Reglas de subastas]]). Las ofertas superadas mantienen su hold hasta el cierre de la subasta.
 - **Acuerdos de compra de vidas del 2026-10-04**: validación preventiva del tope, `orderId` unificado y `LIFE_PURCHASE_REJECTED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). Implementados en Mercado; falta que Accounting publique `LIFE_PURCHASE_REJECTED` y confirmar cómo se emite el token de servicio.
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.

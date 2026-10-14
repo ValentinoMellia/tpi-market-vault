@@ -1,7 +1,7 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: codigo@b2c3597c
+verificado_contra: codigo@d3b7a4de
 actualizado: 2026-10-12
 tags: [mercado, decision, saga, accounting, compra, rollback]
 ---
@@ -15,10 +15,10 @@ La compra directa requería coordinar dos pasos en Accounting: confirmar el déb
 2. **Orden B (modelo de Accounting):** Confirmar el débito primero y luego publicar `ITEM_CONFIRMED`. Presentaba el riesgo crítico de cobrar sin entregar si el crédito fallaba, sin mecanismo de reembolso automático.
 3. **Orden C (recomendación D2 y D9 del taller):** Acreditar el ítem primero y confirmar el débito después.
 
-La pregunta abierta [[Q-008 - Orden de la saga de compra]] evaluaba estos tres caminos. Con la formulación de la [[Propuesta C de la saga de compra]], el equipo diseñó un mecanismo de rollback completo por plazo que neutraliza el riesgo de entregar sin cobrar (si el débito falla o expira, se revoca el ítem entregado, se libera el hold y se reintegra el stock reservado). El Product Owner / usuario confirmó la adopción de la Propuesta C para las compras directas de ítems (US-7697).
+La pregunta abierta [[Q-008 - Orden de la saga de compra]] evaluaba estos tres caminos. Con la formulación de la [[Propuesta C de la saga de compra]], el equipo diseñó un mecanismo de rollback completo por plazo que neutraliza el riesgo de entregar sin cobrar (si el débito falla o expira, se revoca el ítem entregado, se libera el hold y se reintegra el stock reservado). El Product Owner y coordinador Tomás Kimmel confirmó la adopción de la Propuesta C para las compras directas de ítems (US-7697).
 
 ## Decisión
-Confirmada por el usuario el 2026-10-12 (US-7697).
+Confirmada por Tomás Kimmel (PO / coordinador) el 2026-10-12 (US-7697).
 
 ### 1. Secuencia de la saga para compras directas de ítems
 El flujo exitoso sigue estrictamente la secuencia de la Propuesta C:
@@ -46,15 +46,16 @@ sequenceDiagram
 ### 2. Semántica de los estados internos
 Los estados `ITEM_PROVISION_REQUESTED` e `ITEM_PROVISIONED` se preservan en la máquina de estados de la [[Orden de compra]] como costuras internas para evitar migraciones disruptivas del `CHECK` constraint de `OrderStatus` en PostgreSQL (`ddl-auto=update` no modifica restricciones de enum). En la T01 (PR #179 de `tpi-market`) se eliminaron los clientes y listeners salientes a Inventario; no existe transporte externo de `ITEM_PROVISION_*`.
 
-### 3. Plazos de confirmación y reconciliación de holds
+### 3. Plazos de confirmación y jobs de vencimiento y reconciliación
 Para evitar que un retardo en Kafka o Accounting provoque confirmaciones sobre holds ya vencidos:
 - **Plazo de corte para confirmación:** Para órdenes en `ITEM_PROVISION_REQUESTED`, el plazo límite para confirmar es `holdExpiresAt` menos un margen de seguridad (por defecto 90 segundos; propiedad `purchase.confirmation-deadline.margin-seconds: 90`). Si `ITEM_CREDITED` llega después de ese plazo, no se confirma el débito y se dispara la compensación (`CONFIRMATION_DEADLINE_EXCEEDED`).
 - **Plazo para órdenes provisionadas:** Para órdenes en `ITEM_PROVISIONED` (cuyo `HOLD_CONFIRM_REQUESTED` ya fue emitido), se consideran vencidas al expirar `holdExpiresAt`.
-- **Job de reconciliación:** Un proceso periódico (`bank-hold.reconciliation.enabled=true`, intervalo 15 s, lote de 50, 4 hilos) identifica compras vencidas y consulta el estado del hold en Accounting (`GET /api/accounting/holds/{holdId}`) fuera de transacciones locales:
+- **Job de chequeo de deadlines (`purchase.confirmation-deadline.*`):** Habilitado por defecto (`purchase.confirmation-deadline.enabled=true`), corre con un intervalo de 15 segundos (`fixedDelayString=15000`) y procesa en lotes de hasta 50 órdenes (`purchase.confirmation-deadline.batch-size: 50`). Identifica órdenes vencidas y consulta el estado del hold en Accounting (`GET /api/accounting/holds/{holdId}`) fuera de transacciones locales:
   - `COMMITTED`: Mercado confirma la orden (`CONFIRMED`).
   - `PENDING` o `RELEASED`: Mercado ejecuta compensación (`rollback`).
   - `UNKNOWN`, error de red o falta de coincidencia de identidad: se reintenta hasta que el vencimiento supere una ventana acotada (por defecto 600 segundos; `purchase.confirmation-deadline.review-delay-seconds: 600`).
   - **Revisión administrativa (`HOLD_VERIFICATION_UNRESOLVED`):** Superada la ventana de reintentos sin resultado concluyente, la orden se marca con `review_reason = 'HOLD_VERIFICATION_UNRESOLVED'`. Se excluye de escaneos automáticos posteriores y preserva el estado y las reservas de stock para resolución de un ADMIN.
+- **Job de reconciliación periódica (`bank-hold.reconciliation.*`):** Job separado, deshabilitado por defecto (`bank-hold.reconciliation.enabled=false`), que corre periódicamente cada 60 segundos (`fixedDelayString=60000`) como salvaguarda general sobre holds pendientes.
 
 ### 4. Rollback completo y contrato de revocación (`ITEM_REVOKE_REQUESTED`)
 Cuando una compra directa se cancela tras haber emitido `ITEM_CONFIRMED` (por vencimiento del plazo, confirmación rechazada, o eventos autoritativos externos `HOLD_RELEASED`/`HOLD_EXPIRED`):
@@ -94,7 +95,7 @@ sequenceDiagram
 ### 6. Alcance respecto a la compra de vidas (LIFE)
 La compra de vidas queda **excluida** de la revocación de ítems.
 - En este sprint, la compra de vidas mantiene su circuito transicional: validación preventiva de tope, retención, confirmación directa del hold y publicación posterior de `LIFE_PURCHASE_CONFIRMED`.
-- En este sprint únicamente se detecta crédito parcial o insuficiente al recibir `LIFE_CREDITED` (T08, implementado y verificado en la rama de Mercado `feature/us-7697-t08-life-credit-shortfall`, PR a `develop` pendiente) y se marca para revisión de un ADMIN.
+- En este sprint únicamente se detecta crédito parcial o insuficiente al recibir `LIFE_CREDITED` (T08, PR #187, mergeado en `develop@d3b7a4de`) y se marca para revisión de un ADMIN con `review_reason = 'LIFE_CREDIT_SHORTFALL'`.
 - La saga completa de vidas (crédito previo al débito) se difiere para el siguiente sprint. **No se adopta ningún acuerdo de saga completa de vidas para este sprint.**
 
 ### 7. Formato de cable Kafka: migración a `snake_case` (contratos-kafka v8)
@@ -102,16 +103,19 @@ La compra de vidas queda **excluida** de la revocación de ítems.
   - Envelope: `event_id`, `event_type`, `event_version`, `timestamp`, `producer`, `payload`.
   - Campos de los payloads: estrictamente en `snake_case` (`order_id`, `student_id`, `course_id`, `correlation_id`, `source_reference_id`, `revoke_reason`, etc.).
 - **Estado en Accounting:** Accounting en su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11) ya publica y lee exclusivamente en `snake_case`.
-- **Estado en Mercado:** Migración a `snake_case` implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga` (PR a `develop` pendiente; no mergeada ni desplegada). En `develop@b2c3597c` convive la configuración previa de serialización mientras concluye la integración.
+- **Estado en Mercado:** Migración a `snake_case` según `contratos-kafka v8` mergeada en `develop@d3b7a4de` (PR #186).
 
 ### 8. Puntos pendientes y condiciones externas
 - **Ratificación de Accounting:** El contrato de `ITEM_REVOKE_REQUESTED` está congelado del lado de Mercado pero pendiente de ratificación de Accounting.
-- **Esquemas de respuesta propuestos (implementados y verificados en Mercado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies`, PR a `develop` pendiente; no desplegados en producción y pendientes de ratificación por Accounting):**
-  - `ITEM_CREDIT_FAILED` `{student_id, course_id, source_reference_id, reason, message}`: cancela la orden sin revocar ítem y libera el hold.
+- **Esquemas de respuesta propuestos (consumidores implementados en Mercado y mergeados en `develop@d3b7a4de` vía PR #188, T05; pendientes de ratificación por Accounting):**
+  - `ITEM_CREDIT_FAILED` `{student_id, course_id, source_reference_id, reason, message}`: cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y libera el hold sin revocar ítem.
   - `ITEM_REVOKED` `{correlation_id, order_id, student_id, course_id, revoked_item_count}`: confirmación idempotente de revocación (`revoked_item_count = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED` `{correlation_id, order_id, student_id, course_id, reason, message}`: marca `ITEM_REVOKE_FAILED` en revisión administrativa, emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+  - `ITEM_REVOKE_FAILED` `{correlation_id, order_id, student_id, course_id, reason, message}`: marca `ITEM_REVOKE_FAILED` en revisión administrativa (`review_reason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`. Además, de forma independiente establece la bandera booleana `revoke_failed = true` en la tabla `orders` (mediante `PurchaseReviewService.markRevokeFailed`), la cual se marca siempre ante un fallo de revocación aunque la orden ya tuviera otro motivo de revisión asignado.
 - **Garantías requeridas en Accounting:** Idempotencia ante revocación ("nada que revocar") y bloqueo de créditos tardíos si `ITEM_CONFIRMED` se procesa tras `ITEM_REVOKE_REQUESTED`.
-- **Condición de base de datos:** La columna `review_reason` en PostgreSQL requiere aplicar manualmente el script de migración SQL (`US7697__order_review_reason.sql`) para ampliar el `CHECK` constraint de la tabla `orders`.
+- **Scripts SQL manuales de base de datos:** Antes del deploy a entornos con PostgreSQL deben ejecutarse manualmente los 3 scripts SQL ubicados en `db/manual/` para actualizar las restricciones y columnas de la tabla `orders`:
+  1. `US7697__order_review_reason.sql`: agrega la columna `review_reason` y su restricción `CHECK`.
+  2. `US7697__orders_cancellation_reason_check.sql` (T03): amplía la restricción `CHECK` de motivos de cancelación para admitir `CONFIRMATION_DEADLINE_EXCEEDED`.
+  3. `US7697__orders_revoke_failed_flag.sql` (T05): agrega la bandera booleana `revoke_failed` en la tabla `orders`.
 
 ## Alternativas descartadas
 - **Orden B (débito primero, según Accounting):** Descartado porque cobra al alumno antes de asegurar la acreditación del ítem y carece de reembolso automático.
@@ -124,7 +128,7 @@ La compra de vidas queda **excluida** de la revocación de ítems.
 - La nota [[Propuesta C de la saga de compra]] pasa de borrador a guía vigente.
 - Actualiza la máquina de estados y diagramas de la [[Orden de compra]] y de la [[Integración con Accounting]].
 - Define los contratos asíncronos en [[Eventos y Kafka]].
-- Código de Mercado (`tpi-market` develop en `b2c3597c`): T01 (PR #179, reordenamiento), T03 (PR #182, plazos) y T04 (PR #184, rollback atómico y cliente de revocación) ya integrados; T05 (consumidores de fallos de crédito y revocación) implementado y verificado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR a `develop` pendiente) y T08 (detección de crédito insuficiente en vidas) implementado y verificado en la rama `feature/us-7697-t08-life-credit-shortfall` (PR a `develop` pendiente); la migración a `snake_case` de Mercado está implementada y verificada en `refactor/kafka-snake-case-purchase-saga` (PR pendiente); los ítems de ratificación de Accounting permanecen pendientes.
+- Código de Mercado (`tpi-market` en `develop@d3b7a4de`): se encuentran completamente integrados y mergeados T01 (PR #179, reordenamiento de saga), T02 (PR #189, publicación de `ITEM_CONFIRMED` con UUID canónico), T03 (PR #182, plazos de confirmación), T04 (PR #184, rollback atómico y cliente de revocación), T05 (PR #188, consumidores de fallos de crédito y revocación, flag `revoke_failed`, métrica `market.purchase.revoke_failed`), T08 (PR #187, detección de crédito insuficiente en vidas `LIFE_CREDIT_SHORTFALL`) y la migración de wire format Kafka a `snake_case` según `contratos-kafka v8` (PR #186). Los ítems de ratificación de Accounting permanecen pendientes.
 
 ## Notas afectadas
 [[Q-008 - Orden de la saga de compra]], [[Propuesta C de la saga de compra]], [[Decisiones - Índice]], [[Integración con Accounting]], [[Eventos y Kafka]], [[Orden de compra]], [[Hold de monedas]], [[Saga]], [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]], [[Taller de decisiones]], [[Roadmap de trabajo]], [[Roadmap de entendimiento]], [[Contrato de avisos de compra]].

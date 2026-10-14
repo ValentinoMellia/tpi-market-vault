@@ -1,7 +1,7 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: DEC-025, codigo@b2c3597c
+verificado_contra: DEC-025, codigo@d3b7a4de
 actualizado: 2026-10-12
 tags: [mercado, saga, accounting, propuesta, decision]
 ---
@@ -100,7 +100,7 @@ Esta compensación no es exclusiva de C: sirve para cualquier orden que entregue
 |---|---|---|---|---|
 | 1 | `HOLD_REJECTED` | Antes de entregar | `REJECTED_INSUFFICIENT_FUNDS` o `REJECTED` y libera el stock | Sí |
 | 2 | `HOLD_EXPIRED` antes de entregar | Antes de entregar | `EXPIRED` y libera el stock | Sí |
-| 3 | Accounting no puede acreditar el ítem | Antes de cobrar | `CANCELLED`, `HOLD_RELEASE_REQUESTED` y libera el stock (sin revocar) | Implementado y verificado en rama T05 (`feature/us-7697-t05-credit-failure-and-revoke-replies`, PR pendiente; ratificación de Accounting pendiente) (`ITEM_CREDIT_FAILED`) |
+| 3 | Accounting no puede acreditar el ítem | Antes de cobrar | `CANCELLED`, `HOLD_RELEASE_REQUESTED` y libera el stock (sin revocar) | Implementado y mergeado en `develop@d3b7a4de` (PR #188, T05; ratificación de Accounting pendiente) (`ITEM_CREDIT_FAILED`) |
 | 4 | `ITEM_CREDITED` no llega | Incierto | Rollback completo por plazo | Sí (T03 y T04 implementados; simulación mock) |
 | 5 | `HOLD_CONFIRM_REQUESTED` falla o el hold vence después de acreditar | Entregado sin cobrar | Rollback completo por plazo | Sí (T03 y T04 implementados; simulación mock) |
 
@@ -138,13 +138,14 @@ El estudiante ve la compra cancelada y puede volver a intentarla con una orden n
 3. Deseable: `correlation_id` en `ITEM_CREDITED`. Hoy se correlaciona por `source_reference_id`, que alcanza.
 
 ## Cambios en Mercado (estado de implementación en US-7697)
-- **Reordenamiento y eventos:** `ITEM_CONFIRMED` después de `HOLD_CREATED` y `HOLD_CONFIRM_REQUESTED` tras `ITEM_CREDITED`. Desaparecen `ITEM_PROVISION_*` salientes (T01, PR #179, commit `b2c3597c`).
-- **Identidad:** `ITEM_CONFIRMED` lleva el `orderRef` UUID canónico como `order_id` (T01).
+- **Reordenamiento y eventos:** `ITEM_CONFIRMED` después de `HOLD_CREATED` y `HOLD_CONFIRM_REQUESTED` tras `ITEM_CREDITED`. Desaparecen `ITEM_PROVISION_*` salientes (T01, PR #179, mergeado en `develop@d3b7a4de`).
+- **Identidad y emisión:** `ITEM_CONFIRMED` lleva el `orderRef` UUID canónico como `order_id` y se emite hacia `market.events` (T01 y T02, PR #189, mergeado en `develop@d3b7a4de`).
 - **Semántica de estados:** Se mantienen `ITEM_PROVISION_REQUESTED` e `ITEM_PROVISIONED` internamente para no alterar el `CHECK` de base de datos.
-- **Plazos y reconciliación:** Plazo de corte de confirmación (`holdExpiresAt - 90 s`), reconciliación periódica con Accounting (`GET /api/accounting/holds/{holdId}`) y escalado a ADMIN con `HOLD_VERIFICATION_UNRESOLVED` tras 600 s (T03, PR #182, commit `b2c3597c`).
-- **Rollback completo:** Compensación atómica que emite `ITEM_REVOKE_REQUESTED`, libera hold y stock, con guarda `REVOKE_IDENTITY_UNRESOLVED` (T04, PR #184, commit `b2c3597c`).
-- **T05 (implementado y verificado en Mercado, PR pendiente):** Consumo de `ITEM_CREDIT_FAILED` (cancela sin revocar) y respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED` (revisión administrativa y métrica `market.purchase.revoke_failed{reason}`) implementados y verificados en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies` (PR a `develop` pendiente; ratificación de Accounting pendiente).
-- **T08 (implementado y verificado en Mercado, PR pendiente):** Detección de crédito insuficiente en compras de vidas al consumir `LIFE_CREDITED` para marcar revisión administrativa implementada y verificada en la rama `feature/us-7697-t08-life-credit-shortfall` (PR a `develop` pendiente). La saga completa de vidas queda diferida para el siguiente sprint.
+- **Plazos y reconciliación:** Plazo de corte de confirmación (`holdExpiresAt - 90 s`), reconciliación periódica con Accounting (`GET /api/accounting/holds/{holdId}`) y escalado a ADMIN con `HOLD_VERIFICATION_UNRESOLVED` tras 600 s (T03, PR #182, mergeado en `develop@d3b7a4de`).
+- **Rollback completo:** Compensación atómica que emite `ITEM_REVOKE_REQUESTED`, libera hold y stock, con guarda `REVOKE_IDENTITY_UNRESOLVED` (T04, PR #184, mergeado en `develop@d3b7a4de`).
+- **T05 (mergeado en develop@d3b7a4de vía PR #188):** Consumo de `ITEM_CREDIT_FAILED` (cancela sin revocar) y respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED`. Marca `review_reason = 'ITEM_REVOKE_FAILED'`, emite métrica `market.purchase.revoke_failed{reason}` y establece la bandera booleana independiente `revoke_failed = true` en `orders` (mediante `PurchaseReviewService.markRevokeFailed`), la cual se marca siempre ante un fallo de revocación aunque la orden ya tuviera otro motivo de revisión asignado (ratificación de Accounting pendiente).
+- **T08 (mergeado en develop@d3b7a4de vía PR #187):** Detección de crédito insuficiente en compras de vidas al consumir `LIFE_CREDITED` para marcar revisión administrativa con `review_reason = 'LIFE_CREDIT_SHORTFALL'`. La saga completa de vidas queda diferida para el siguiente sprint.
+- **Formato de cable Kafka:** Migración a `snake_case` según `contratos-kafka v8` mergeada en `develop@d3b7a4de` (PR #186).
 
 ## Comparación con A y B
 

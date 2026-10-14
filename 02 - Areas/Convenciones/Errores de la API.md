@@ -19,7 +19,7 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 
 - Los valores de `errors[].field` siguen siendo rutas Java en `camelCase` (por ejemplo `offerId`); solo `field` y `message` son claves de ese objeto.
 - Los nombres de los parámetros de consulta y de las cabeceras no se tocan (`courseIds`, `itemType`, `X-User-Id`).
-- Los payloads de Kafka y del outbox usan otro `ObjectMapper`; para el flujo de compras migran a `snake_case` según `contratos-kafka v8` (la migración está implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga`, con PR a `develop` pendiente, no mergeada ni desplegada; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
+- Los payloads de Kafka y del outbox usan otro `ObjectMapper`; para el flujo de compras migraron a `snake_case` según `contratos-kafka v8` (mergeado en `develop@d3b7a4de` vía PR #186; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
 - Las respuestas 401 y 403 que escribe `SecurityConfig` son un texto JSON fijo con claves de una sola palabra (`type`, `title`, `status`, `detail`, `instance`): no pasan por `ErrorApi` y no llevan `request_id` (`configs/SecurityConfig.java`).
 
 `RestWireFormatIntegrationTest` fija el comportamiento con el contexto real de la aplicación. El frontend convierte las claves de vuelta con un interceptor (según la descripción del PR #91, que se coordinó con un PR del frontend; no verificado aquí). Ver [[Estado actual del código]].

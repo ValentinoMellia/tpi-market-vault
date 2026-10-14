@@ -1,7 +1,7 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: DEC-025, codigo@b2c3597c
+verificado_contra: DEC-025, codigo@d3b7a4de
 actualizado: 2026-10-12
 tags: [mercado, convenciones, kafka, eventos]
 ---
@@ -21,11 +21,11 @@ Los mensajes de la plataforma usan el estándar `EventEnvelope` de 6 campos. Sig
 
 **Estado de la migración de casing:**
 - **Accounting:** En su rama `develop` (`tpi-accounting@10e31d85`, 2026-10-11), ya publica y consume exclusivamente en `snake_case`.
-- **Mercado:** Migración a `snake_case` implementada y verificada en la rama `refactor/kafka-snake-case-purchase-saga` (PR a `develop` pendiente, no mergeada ni desplegada). En `develop@b2c3597c`, el código Java interno convive con la transición.
+- **Mercado:** Migración a `snake_case` según `contratos-kafka v8` mergeada en `develop@d3b7a4de` (PR #186).
 
 ## Tópicos (como están en el código de Mercado)
 
-Valores por defecto de `application.properties:46-51` (`develop` en `b2c3597c`); cada uno se cambia con su variable de entorno `MARKET_MESSAGING_TOPIC_*`, que también se pasa en `.compose/docker-compose.yml` y se documenta en `.compose/.env.example`. Se definen en `configs/MessagingProperties.java`.
+Valores por defecto de `application.properties:46-51` (`develop` en `d3b7a4de`); cada uno se cambia con su variable de entorno `MARKET_MESSAGING_TOPIC_*`, que también se pasa en `.compose/docker-compose.yml` y se documenta en `.compose/.env.example`. Se definen en `configs/MessagingProperties.java`.
 
 | Tópico por defecto | Variable | Sentido | Mensajes | En la plataforma |
 |---|---|---|---|---|
@@ -52,10 +52,10 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 - `ITEM_CONFIRMED`: `{student_id, course_id, order_id, catalog_item_id, item_name, item_type, effect, max_charges, applicable_challenge_scope, ...}` con `order_id = orderRef` canónico.
 - `ITEM_REVOKE_REQUESTED` (congelado en Mercado, PR #184):
   `{correlation_id, order_id, student_id, course_id, revoke_reason: "PURCHASE_NOT_COMPLETED"}` con clave de partición `student_id:course_id` y `order_id = orderRef`.
-- **Esquemas de respuesta propuestos (implementados y verificados en Mercado en la rama `feature/us-7697-t05-credit-failure-and-revoke-replies`, PR a `develop` pendiente; NO implementados en producción, pendientes de ratificación de Accounting):**
+- **Esquemas de respuesta propuestos (consumidores implementados en Mercado y mergeados en `develop@d3b7a4de` vía PR #188, T05; pendientes de ratificación por Accounting):**
   - `ITEM_CREDIT_FAILED`: `{student_id, course_id, source_reference_id, reason, message}`. Cancela sin revocar ítem y libera el hold con `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)`.
   - `ITEM_REVOKED`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}` (`revoked_item_count = 0` indica "nada que revocar").
-  - `ITEM_REVOKE_FAILED`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`.
+  - `ITEM_REVOKE_FAILED`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Marca revisión administrativa con causa `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR` e incrementa la métrica `market.purchase.revoke_failed{reason}`. Además, de forma independiente establece la bandera booleana `revoke_failed = true` en la tabla `orders` (mediante `PurchaseReviewService.markRevokeFailed`), la cual se marca siempre ante un fallo de revocación aunque la orden ya tuviera otro motivo de revisión asignado.
 
 ## Cómo debe quedar (contrato de Accounting con Propuesta C adoptada)
 
