@@ -37,6 +37,7 @@ tags: [mercado, decision]
 | DEC-022 | [[DEC-022 - Contrato de membresía con Cursos]] | Acuerdo con Cursos en `tpi-course#87` (cerrada) | 2026-10-08 |
 | DEC-023 | [[DEC-023 - Sin mocks de Cursos en el código]] | Confirmación del PO (sin `Q`); reemplaza T01, T03 y T04 de US-5202 | 2026-10-08 |
 | DEC-024 | [[DEC-024 - Listado Mis mercados]] | Confirmación del PO (sin `Q`) | 2026-10-08 |
+| DEC-026 | [[DEC-026 - Nombre de oferta hasta 50 caracteres]] | Plan de validaciones y máximos, Campo 1 (sin `Q`) | 2026-10-14 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

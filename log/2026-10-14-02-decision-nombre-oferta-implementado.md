@@ -1,0 +1,3 @@
+## [2026-10-14] decision | Nombre de oferta hasta 50: implementación local y aviso de límite
+- Actualizados [[Fix - Límite del nombre de oferta y preview]] y [[DEC-026 - Nombre de oferta hasta 50 caracteres]] con la implementación verificada localmente: backend `f5897791`, frontend `894e6188` y el ajuste `0e445899`, que suma el aviso al llegar a 50 que pidió el usuario después de su QA manual.
+- Se registran los límites: `npm run verify` del frontend termina con exit 1 por un archivo de herramientas sin seguimiento; la suite completa tuvo 8 timeouts ajenos (rerun aislado 73/73); la QA visual del aviso, la revisión nativa, la integración desplegada y la PR siguen pendientes. No se modificó Taiga.
