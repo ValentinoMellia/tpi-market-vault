@@ -7,7 +7,7 @@ tags: [mercado, fix, oferta, validacion, preview]
 ---
 # Fix - Límite del nombre de oferta y preview
 
-> Fix implementado y verificado en la rama `fix/tema-09-offer-name-max-50` de backend y frontend, con su publicación hacia `develop` en preparación (sin merge): el nombre de oferta admite hasta 50 caracteres en frontend y backend, la preview muestra el nombre completo y el formulario avisa al llegar al límite. Decisión: [[DEC-026 - Nombre de oferta hasta 50 caracteres]]. La QA manual del humano pasó y la revisión nativa del frontend está aprobada. Pendientes: publicación y merge del código, e integración con un backend desplegado.
+> Fix implementado y verificado en la rama `fix/tema-09-offer-name-max-50` de backend y frontend, publicado en PR hacia `develop` en borrador ([backend #193](https://github.com/2026-P4-BE/tpi-market/pull/193), [frontend #568](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/568)), sin merge: el nombre de oferta admite hasta 50 caracteres en frontend y backend, la preview muestra el nombre completo y el formulario avisa al llegar al límite. Decisión: [[DEC-026 - Nombre de oferta hasta 50 caracteres]]. La QA manual del humano pasó y la revisión nativa del frontend está aprobada. Pendientes: merge de las PR e integración con un backend desplegado.
 
 ## Estado actual (antes del fix)
 
@@ -47,5 +47,5 @@ Ejecución: Run de Orca `run_95fb3331d08e`, rama `fix/tema-09-offer-name-max-50`
 - El humano hizo QA manual del tope y la preview, y pidió el aviso.
 - La QA manual del aviso (2026-10-14) **pasó**: «Pasó correctamente». Se hizo en el front local con el worktree que contiene `0e445899`, y cubrió que el aviso aparece en 50, que desaparece al borrar y que deja guardar.
 - La plataforma compartida no tiene desplegado el backend nuevo: no hay verificación de integración real.
-- Revisión nativa (RDD): frontend (S2 + S3) aprobado. Dejó dos sugerencias informativas que no se aplicaron. El backend no tuvo revisión debida porque quedó por debajo del presupuesto. La publicación hacia `develop` de backend y frontend está en preparación; sin merge.
+- Revisión nativa (RDD): frontend (S2 + S3) aprobado. Dejó dos sugerencias informativas que no se aplicaron. El backend no tuvo revisión debida porque quedó por debajo del presupuesto. PR hacia `develop` en borrador: [backend #193](https://github.com/2026-P4-BE/tpi-market/pull/193) y [frontend #568](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/568); sin merge. El CI de GitHub no corrió en la PR del backend por facturación de la cuenta.
 - Seguimiento posible, fuera de alcance: las vistas de inventario y de compra también muestran el nombre y no se tocaron.
