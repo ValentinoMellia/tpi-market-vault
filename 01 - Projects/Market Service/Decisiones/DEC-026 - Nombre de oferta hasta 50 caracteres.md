@@ -35,7 +35,7 @@ Cambian la validación del nombre en backend y frontend, el payload de edición 
 
 Refinamiento pedido por el usuario el 2026-10-14, después de su QA manual: al llegar a 50 caracteres, el formulario avisa «Llegaste al máximo de 50 caracteres. No podés escribir más.». El aviso no bloquea el envío y no aparece en un nombre antiguo intacto.
 
-Estado al 2026-10-14: implementado y verificado localmente (backend `f5897791`; frontend `894e6188` y `0e445899`), con PR hacia `develop` sin merge. La QA manual del usuario del aviso pasó y la revisión nativa del frontend está aprobada. Quedan pendientes el merge de las PR y la integración con un backend desplegado. Detalle en [[Fix - Límite del nombre de oferta y preview]]. No cambia estados de Taiga.
+Estado al 2026-10-14: implementado y verificado localmente (backend `f5897791`; frontend `894e6188` y `0e445899`), con su publicación hacia `develop` en preparación, sin merge. La QA manual del usuario del aviso pasó y la revisión nativa del frontend está aprobada. Quedan pendientes la publicación y el merge del código, y la integración con un backend desplegado. Detalle en [[Fix - Límite del nombre de oferta y preview]]. No cambia estados de Taiga.
 
 ## Notas afectadas
 
