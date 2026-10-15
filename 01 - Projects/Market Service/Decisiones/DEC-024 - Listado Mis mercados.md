@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: equipo-cursos@2026-10-08
-actualizado: 2026-10-08
+verificado_contra: codigo@2fc155ad, equipo-cursos@2026-10-08
+actualizado: 2026-10-15
 tags: [mercado, decision, cursos, api]
 ---
 # DEC-024 - Listado Mis mercados
@@ -29,6 +29,15 @@ Confirmada por el PO el 2026-10-08.
 ## Consecuencias
 - Es la US-6 de [[S2-02 - Clientes reales de Cursos]]. Queda bloqueada hasta que Cursos despliegue los listados por servicio.
 - La ruta nueva entra en la matriz de roles de Mercado y en su OpenAPI.
+
+## Estado de implementación (2026-10-10)
+
+Implementado en `develop@2fc155ad` (PR #159 de `tpi-market`, historia Taiga US #7382, tareas T01 a T04):
+- **Controlador:** `MyMarketsController` (`src/main/java/ar/edu/utn/frc/tup/p4/controllers/MyMarketsController.java`), expone `GET /api/market/courses` (vía `@RequestMapping("${app.api.private-path:/api/market}/courses")`) con autorización `@PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")` y documentación completa en OpenAPI (T03). Se incorporó a la matriz de seguridad (`RoleEndpointMatrixAcceptanceTest`, endpoint 17).
+- **Servicio y deduplicación:** `MyMarketsServiceImpl` (`src/main/java/ar/edu/utn/frc/tup/p4/services/impl/MyMarketsServiceImpl.java`) valida que `X-User-Id` no esté en blanco (lanza `IllegalArgumentException` mapeada a 400). Obtiene las asignaciones y matrículas desde `CourseCohortClient`, filtra `cohort_status = ACTIVE` y `enrollment_status = VALIDATED`, descarta `GESTOR` y combina por curso: la entrada de docente prevalece sobre la de alumno, y entre docentes prevalece `canManage = true` (T02).
+- **Listados de Cursos:** `GatewayCourseListings` (`src/main/java/ar/edu/utn/frc/tup/p4/clients/impl/GatewayCourseListings.java`) consulta `GET /api/course/enrollments?student_id={id}` y `GET /api/course/course-cohorts?professor_id={id}&status=ACTIVE` con token de servicio M2M y paginación exhaustiva (páginas de 50 elementos hasta `totalPages`) (T01). Ante errores de red o HTTP 5xx propaga `CourseServiceUnavailableException` (503).
+- **DTOs y wire format:** `MyMarketDto` (`course_id`, `course_name`, `role`, `can_manage`), `CourseCohortItemResponseDto`, `CourseCohortPageResponseDto` y `StudentCohortEnrollmentResponseDto` con nombres estrictos `snake_case` y alias tolerantes (T01 y T02).
+- **Pruebas:** `MyMarketsEndpointIntegrationTest` (T04), `MyMarketsControllerTest`, `MyMarketsServiceTest`, `GatewayCourseCohortClientTest` y pruebas unitarias de wire.
 
 ## Notas afectadas
 [[S2-02 - Clientes reales de Cursos]], [[Integración con Cursos]], [[Decisiones - Índice]].

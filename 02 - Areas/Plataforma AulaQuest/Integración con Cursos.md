@@ -1,13 +1,13 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: equipo-cursos@2026-10-08
-actualizado: 2026-10-08
+verificado_contra: codigo@2fc155ad, equipo-cursos@2026-10-08
+actualizado: 2026-10-15
 tags: [mercado, integracion, cursos]
 ---
 # Integración con Cursos
 
-> Cursos decide si el mercado de una cohorte está habilitado y quién puede entrar: Mercado lo consulta como servicio con `membership?user_id=`, que devuelve el estado de la cohorte, el rol y los permisos en una sola llamada. El contrato quedó acordado el 2026-10-08; hoy el código todavía usa un camino provisorio y simulados.
+> Cursos decide si el mercado de una cohorte está habilitado y quién puede entrar: Mercado lo consulta como servicio con `membership?user_id=`, y desde US-7382 implementa los listados por servicio para 'Mis mercados'. El contrato quedó acordado el 2026-10-08; la membresía puntual aún usa un camino provisorio.
 
 ## Equipo y responsabilidad
 `course-service` (Tema 02, repositorio `tpi-course`) administra cursos, cohortes e inscripciones. Para Mercado es la fuente de verdad sobre el estado de cada cohorte y sobre quién es alumno o docente en ella. El `courseId` de la tienda es la cohorte ([[DEC-013 - Reglas de la tienda]]).
@@ -21,14 +21,14 @@ Confirmadas por el PO el 2026-10-08:
 | Solo acceden `STUDENT` (inscripción `VALIDATED`) y `PROFESSOR` / `PROFESSOR_READ_ONLY`; escribir exige `can_write`. `GESTOR` no tiene acceso y no es el `ADMIN` de Mercado. La revalidación en la saga queda para el sprint 3 | [[DEC-021 - Acceso al mercado por membresía de Cursos]] |
 | Contrato `membership?user_id=` con `cohort_status` y dos listados por servicio | [[DEC-022 - Contrato de membresía con Cursos]] |
 | Se eliminan los simulados de Cursos del código | [[DEC-023 - Sin mocks de Cursos en el código]] |
-| Ruta nueva `GET /api/market/courses` ("Mis mercados") | [[DEC-024 - Listado Mis mercados]] |
+| Ruta nueva `GET /api/market/courses` ("Mis mercados") | [[DEC-024 - Listado Mis mercados]] (implementada en `develop@2fc155ad`) |
 
 ## Cómo nos comunicamos
 | Dirección | Mecanismo | Mensaje / endpoint | Para qué | Estado |
 |---|---|---|---|---|
 | Mercado a Cursos | REST por el Gateway, token de servicio con `course.enrollment.read` | `GET /api/course/course-cohorts/{id}/membership?user_id={uuid}` | Estado de la cohorte (`cohort_status`), rol (`STUDENT`, `PROFESSOR`, `PROFESSOR_READ_ONLY`, `GESTOR` o `null`), `can_read`, `can_write`. 404 si la cohorte no existe o está desactivada | Acordado; en un PR de Cursos contra `develop`, se publica al mergear |
-| Mercado a Cursos | REST | `GET /api/course/course-cohorts?professor_id={uuid}&status=ACTIVE` | Cohortes del docente, paginadas | Confirmado; siguiente rama del sprint de Cursos |
-| Mercado a Cursos | REST | `GET /api/course/enrollments?student_id={uuid}` | Inscripciones del alumno, todos los estados (Mercado filtra `VALIDATED` y `ACTIVE`) | Confirmado; siguiente rama del sprint de Cursos |
+| Mercado a Cursos | REST por el Gateway, token con `course.enrollment.read` | `GET /api/course/course-cohorts?professor_id={uuid}&status=ACTIVE` | Cohortes del docente, paginadas | Implementado en Mercado (`GatewayCourseListings`, PR #159) |
+| Mercado a Cursos | REST por el Gateway, token con `course.enrollment.read` | `GET /api/course/enrollments?student_id={uuid}` | Inscripciones del alumno, todos los estados (Mercado filtra `VALIDATED` y `ACTIVE`) | Implementado en Mercado (`GatewayCourseListings`, PR #159) |
 | Cursos a Mercado | Kafka (`courses.events`) | `COURSE_COHORT_ARCHIVED` | Hoy marca el curso como cerrado en `course_closure` | Implementado en Mercado |
 | Cursos a Mercado (previsto) | Kafka (`courses.events`) | Baja de un estudiante | Retirar sus ofertas de subasta ([[DEC-014 - Reglas de subastas]]) | Pendiente |
 
@@ -44,8 +44,9 @@ Mercado pidió el contrato en la issue `tpi-course#87` el 2026-10-08 y Cursos la
 Seguimiento: el merge del PR de Cursos (necesario para probar contra el ambiente real) y el despliegue de los listados.
 
 ## Estado actual en el código
-Verificado en `develop@fb5f82d9` de `tpi-market`:
+Verificado en `develop@2fc155ad` (PR #159) y `develop@fb5f82d9` de `tpi-market`:
 
+- **Listados de Cursos y 'Mis mercados':** implementados en `develop@2fc155ad` (PR #159, US-7382 T01-T04). `CourseCohortClient` / `GatewayCourseCohortClient` delega en `GatewayCourseListings` las llamadas HTTP a `/enrollments?student_id=` y `/course-cohorts?professor_id=&status=ACTIVE` (paginado de a 50 elementos) con token de servicio `course.enrollment.read`. `MyMarketsServiceImpl` combina y deduplica las cohortes activas (prevaleciendo docente sobre estudiante y `canManage=true` sobre solo lectura), y `MyMarketsController` expone `GET /api/market/courses` con `@PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")`.
 - **Asignación de profesor:** `clients/impl/MockCourseInstructorClient.java` es `@Primary` sin condición; siempre `true` salvo el centinela `prof-unassigned`. `CourseInstructorClient` todavía no tiene implementación real; el único cliente HTTP hacia Cursos es el de inscripción (abajo).
 - **Inscripción:** el interruptor `market.course.client` (`MARKET_COURSE_CLIENT`, por defecto `mock`) elige entre `MockCourseEnrollmentClient` y `GatewayCourseEnrollmentClient`. El real usa `clients/impl/CourseMembershipResolver.java`, que llama a `/api/course/course-cohorts/roster-membership?courseCohortId=&userId=` con un contrato supuesto, y `models/enums/CourseMembership.java`, que trata a `GESTOR` como docente con escritura.
 - **Curso cerrado:** `services/impl/CourseClosureServiceImpl.requireOpen` rechaza con `CourseClosedException` (403) si el curso está en la tabla `course_closure`, que llena `COURSE_COHORT_ARCHIVED` (`listeners/CourseEventHandler.java`). Deja el mercado cerrado en solo lectura y la vitrina no lo chequea.

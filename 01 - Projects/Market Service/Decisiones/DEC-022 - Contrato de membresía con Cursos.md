@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: equipo-cursos@2026-10-08
-actualizado: 2026-10-08
+verificado_contra: codigo@2fc155ad, equipo-cursos@2026-10-08
+actualizado: 2026-10-15
 tags: [mercado, decision, cursos, integracion]
 ---
 # DEC-022 - Contrato de membresía con Cursos
@@ -39,6 +39,13 @@ Acordada con Cursos en `tpi-course#87` (cerrada el 2026-10-08).
 - Hoy el código llama a `roster-membership` con parámetros supuestos; DEC-022 pide cambiar el cliente a `membership?user_id=` y leer `cohort_status` (US-1 de [[S2-02 - Clientes reales de Cursos]]).
 - Hasta que Cursos mergee su PR, las pruebas del cliente fijan el contrato con un servidor HTTP simulado; la prueba contra el ambiente real espera ese merge.
 - El registro de servicios de la plataforma debería declarar que Mercado necesita `course.enrollment.read` ([[Mapa de servicios]]).
+
+## Estado de implementación de listados (2026-10-10)
+
+Los dos listados por servicio quedaron implementados en `develop@2fc155ad` (PR #159 de `tpi-market`, US-7382 T01):
+- `GatewayCourseListings.studentEnrollments`: invoca `GET /api/course/enrollments?student_id={id}` y filtra `enrollment_status = VALIDATED` y `cohort_status = ACTIVE`.
+- `GatewayCourseListings.professorCohorts`: invoca `GET /api/course/course-cohorts?professor_id={id}&status=ACTIVE` con páginas de 50 elementos (`PROFESSOR_COHORTS_PAGE_SIZE = 50`) recorriendo todas las páginas hasta `totalPages`.
+- Ambos endpoints utilizan el cliente HTTP del Gateway con interceptor de token de servicio para `course.enrollment.read` y propagan `CourseServiceUnavailableException` (503) ante timeout o códigos 5xx.
 
 ## Notas afectadas
 [[Integración con Cursos]], [[Mapa de servicios]], [[S2-02 - Clientes reales de Cursos]], [[Decisiones - Índice]].
