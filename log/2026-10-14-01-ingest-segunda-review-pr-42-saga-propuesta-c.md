@@ -1,0 +1,5 @@
+## [2026-10-14] ingest | Segunda revisión de PR #42 sobre DEC-025 y saga Propuesta C
+- Se corrigieron referencias inexistentes y contradicciones internas: `ADMIN_PENDING_REVIEW` (no existe; la revisión de un ADMIN se marca con `review_reason`) en [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] y en el log del 2026-10-12.
+- Se completó el casing `snake_case` del wire de Kafka en [[Propuesta C de la saga de compra]], [[Integración con Accounting]] y [[Hold de monedas]], y se actualizó "Estado actual de la saga" de la propuesta.
+- Se restauró contenido ajeno al alcance que se había eliminado: el TTL propuesto para subastas en [[Subasta]] (y se aclaró que [[DEC-025 - Saga de compra de ítems según la Propuesta C]] adopta la Propuesta C solo para compra directa) y tres datos de [[Eventos y Kafka]].
+- [[DEC-004 - Máquina de estados de la orden según el código]] ya no dice que [[Q-008 - Orden de la saga de compra]] sigue abierta; se ajustaron [[Estado actual del código]], [[Roadmap de trabajo]] y [[Contrato de avisos de compra]] (motivos de cancelación nuevos sin aviso definido).

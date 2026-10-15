@@ -12,7 +12,7 @@ horas: 3
 ---
 # S2-09b - SPIKE Orden de la compra con Accounting
 
-> Reunión con Accounting y acuerdo sobre [[Q-008 - Orden de la saga de compra]]: qué va primero, entregar el ítem o confirmar el débito, y cómo se compensa cada fallo (incluida la revocación de ítems). Se envía la respuesta preparada en el Inbox. 1 tarea, 3 h, 2 puntos, Must: define cómo se activa `ITEM_CONFIRMED` en [[S2-01 - Contrato con Accounting]].
+> Reunión con Accounting y acuerdo sobre la saga de compra, formalizado en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (cerrando [[Q-008 - Orden de la saga de compra]]): adopta la Propuesta C (acreditar y luego debitar) y congela el contrato de revocación (`ITEM_REVOKE_REQUESTED`). 1 tarea, 3 h, 2 puntos, Must: define cómo se activa `ITEM_CONFIRMED` en [[S2-01 - Contrato con Accounting]].
 
 ## [G11] — SPIKE: Orden de la compra con Accounting
 
@@ -36,7 +36,7 @@ Cerrar con Accounting el orden de la saga de compra y su compensación, para dec
 
 ## Entregable
 
-- **Qué queda al terminar**: acta del acuerdo; una `DEC-NNN` que cierre Q-008 (o, si no hay acuerdo, la pregunta actualizada con la propuesta de cada lado); mensaje enviado a Accounting con los pedidos.
+- **Qué queda al terminar**: acta del acuerdo; [[DEC-025 - Saga de compra de ítems según la Propuesta C]] que cierra [[Q-008 - Orden de la saga de compra]]; mensaje enviado a Accounting con los pedidos de ratificación.
 - **Dónde**: `01 - Projects/Market Service/Decisiones/` y [[Integración con Accounting]]; respuesta preparada en el Inbox del vault (borrador de respuesta a Accounting).
 
 ---
