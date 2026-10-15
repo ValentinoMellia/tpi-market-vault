@@ -38,8 +38,8 @@ Servicio `accounting-service` (repositorio `2026-P4-BE/tpi-accounting`, rama `de
 | Registro | Eureka como `accounting-service` |
 | Kafka | grupo consumidor `tema-08-accounting-service-group`, productor `tema-08-accounting-service` |
 | Outbox | relay cada ~5 s; 3 reintentos de 2 s y luego DLT |
-| Clave de partición | `studentId:courseId` |
-| Envelope | 6 campos; `eventVersion` entero (1) y `eventId` UUID canónico |
+| Clave de partición | `student_id:course_id` |
+| Envelope | 6 campos en `snake_case`; `event_version` entero (1) y `event_id` UUID canónico |
 
 Es dueño de:
 
@@ -117,7 +117,7 @@ Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máxim
 | Cuántas puede comprar | `max(0, maxLives − currentLives)`, validación preventiva | `PurchaseValidationServiceImpl.validateLifeCap` calcula `max(0, maxLives − (currentLives + livesInFlight))`, donde `livesInFlight` son las vidas de las órdenes de vidas propias todavía en vuelo (`CREATED`, `HOLD_REQUESTED`, `HOLD_GRANTED`, `ITEM_PROVISION_REQUESTED`, `ITEM_PROVISIONED`; `OrderRepository.sumLivesInFlight`): dos compras seguidas se frenan aunque Accounting no haya acreditado la primera. `reservedLives` se lee pero no se usa. Si la oferta otorga más vidas, 422 `LIFE_CAP_REACHED` antes de crear la orden y el hold, con el texto de US-142 si no entra ninguna o con cuántas entran si entran algunas. Sin cuenta (404) no bloquea: el hold se rechaza con `ACCOUNT_NOT_FOUND`. Accounting caído: 503 |
 | Identificadores | `courseId` igual al del hold; `orderId` igual al de la orden y el hold, como máximo 36 caracteres | `LIFE_PURCHASE_CONFIRMED.orderId` = `orderRef` UUID (`OrderEntity.bankOrderId()`). `dtos/events/ExternalId.java` valida `orderId`, `studentId` y `courseId` (36 caracteres como máximo) en `HOLD_CREATE_REQUESTED` y en `LIFE_PURCHASE_CONFIRMED`; `PurchaseOrderServiceImpl` responde 400 si `studentId` o `courseId` se pasan |
 | Cantidad | Sin tope por orden; entero `>= 1` | `quantity` = `livesGranted` de la oferta |
-| Cuenta inexistente o inactiva | `LIFE_PURCHASE_REJECTED {orderId, studentId, courseId, quantity, reason, message}` en `accounting.events`, `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE`; sin crédito ni reintento | `AccountingLifePurchaseEventHandler`: deduplica por `eventId` y marca la orden `SETTLED_UNCREDITED` con alerta de auditoría y métrica `market_life_purchase_uncredited_total`. La devolución la pide un ADMIN desde BackOffice (`COIN_LEDGER_REVERSAL_REQUESTED`), solo con la cuenta activa |
+| Cuenta inexistente o inactiva | `LIFE_PURCHASE_REJECTED {order_id, student_id, course_id, quantity, reason, message}` en `accounting.events`, `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE`; sin crédito ni reintento | `AccountingLifePurchaseEventHandler`: deduplica por `event_id` y marca la orden `SETTLED_UNCREDITED` con alerta de auditoría y métrica `market_life_purchase_uncredited_total`. La devolución la pide un ADMIN desde BackOffice (`COIN_LEDGER_REVERSAL_REQUESTED`), solo con la cuenta activa |
 | Prevención | `LIFE_PURCHASE_CONFIRMED` solo después de `HOLD_CONFIRMED`, nunca tras `HOLD_RELEASED` o `HOLD_REJECTED` | Se publica en la misma transacción que pasa la orden a `CONFIRMED` al recibir `HOLD_CONFIRMED` |
 
 ## Diferencias entre el código de Mercado y el de accounting

@@ -44,6 +44,8 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 2. Lee el `event_type` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
 3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
+Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
+
 ### Payloads contractuales (contratos-kafka v8, snake_case)
 
 - `HOLD_CREATE_REQUESTED`: `{student_id, course_id, order_id, order_type, amount, ttl_seconds}`.
@@ -68,7 +70,7 @@ Clave de partición en Accounting: `student_id:course_id` (Mercado usa `student_
 
 ## Publicación con outbox
 
-Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `event_id`, y el `correlation_id` de la respuesta es ese UUID.
+Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `event_id`, y el `correlation_id` de la respuesta es ese UUID. El outbox de accounting corre cada ~5 s (S8 pide bajarlo a ~1 s, [[Taller de decisiones]]).
 
 ## Consumo
 
@@ -76,7 +78,7 @@ Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacci
 
 ## Fallos
 
-`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. Accounting: 3 reintentos de 2 s y luego DLT.
+`KafkaConfig` de Mercado: 2 reintentos con 1 segundo de espera y luego tópico `<topic>.DLT`; `MalformedEventException` va directo a DLT. Accounting: 3 reintentos de 2 s y luego DLT. Si accounting falla al acreditar un item no publica ningún evento de falla; `ITEM_CREDIT_FAILED` es una propuesta de Mercado pendiente de ratificación.
 
 ## Relacionado
 [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Integración con Accounting]], [[Integración con Notificaciones]], [[Saga]].

@@ -23,7 +23,7 @@ Confirmada por el líder del equipo de Mercado el 2026-10-01: se adopta la máqu
 
 ## Consecuencias
 - La historia #143 deja de usar `PENDING_COMPENSATION` ([[Épica 137 - Compra directa]]).
-- Esta decisión describe los estados **de hoy**. Si el orden de la saga cambia ([[Q-008 - Orden de la saga de compra]], sigue abierta) o Accounting reporta resultados nuevos ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[DEC-009 - Contrato de holds e ítems según Accounting]]), la máquina se ajustará con una decisión posterior; el mapeo de motivos de rechazo puede sumar estados o razones.
+- Esta decisión describe los estados **de hoy**. Si el orden de la saga cambia ([[Q-008 - Orden de la saga de compra]], resuelta en [[DEC-025 - Saga de compra de ítems según la Propuesta C]], que ajusta la máquina para las compras directas de ítems) o Accounting reporta resultados nuevos ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[DEC-009 - Contrato de holds e ítems según Accounting]]), la máquina se ajustará con una decisión posterior; el mapeo de motivos de rechazo puede sumar estados o razones.
 
 ## Estado de implementación (2026-10-09)
 Nota de seguimiento, verificada contra `develop` en `f7457882` (PR #110, US-5193 T07); no contradice la decisión sino que concreta la evolución prevista en Consecuencias:

@@ -28,9 +28,9 @@ Pedido (`HOLD_CREATE_REQUESTED`), creado (`HOLD_CREATED`) o rechazado (`HOLD_REJ
 
 ## Reglas de negocio
 - En la compra directa de ítems se retiene primero, se acredita el ítem y recién después se confirma el hold (`HOLD_CONFIRM_REQUESTED`); si la confirmación falla o vence el plazo, se revoca el ítem y se libera el hold ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
-- La confirmación lleva `holdId`, sin monto.
-- Accounting fija el TTL: 300 s para `DIRECT_PURCHASE` (ignora `ttlSeconds`); en `AUCTION_BID` es obligatorio y mayor que 0.
-- Un hold por `orderId` para siempre (`UNIQUE(account_id, order_id)`); no hay liberación en lote ni captura parcial.
+- La confirmación lleva `hold_id`, sin monto.
+- Accounting fija el TTL: 300 s para `DIRECT_PURCHASE` (ignora `ttl_seconds`); en `AUCTION_BID` es obligatorio y mayor que 0.
+- Un hold por `order_id` para siempre (`UNIQUE(account_id, order_id)`); no hay liberación en lote ni captura parcial.
 - Consulta de estado implementada (PR #116, issue #114, `e456c55f`): `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` bajo transporte `kafka` con token dinámico (`IdentityServiceTokenClient`), alias tolerantes a `camelCase` / `snake_case` y timeouts configurables.
 - `orderId` debe ser UUID canónico, o accounting rechaza el comando con `MALFORMED_COMMAND`. Desde el PR #88 (`develop` en `349c8e2`) Mercado envía el `orderRef` UUID de la orden (`services/impl/OrderHoldServiceImpl.java:100`; [[Orden de compra]], [[Integración con Accounting]]).
 - Mercado mapea los 10 motivos de rechazo del contrato de Accounting (`OrderRejectionReason`, PR #110, US-5193 T07, `f7457882`): solo `INSUFFICIENT_BALANCE` / `INSUFFICIENT_FUNDS` transiciona a `REJECTED_INSUFFICIENT_FUNDS`; los otros nueve motivos (`ACCOUNT_NOT_FOUND`, `ACCOUNT_INACTIVE`, `HOLD_ALREADY_EXISTS`, `HOLD_NOT_FOUND`, `INVALID_HOLD_STATE`, `INVALID_AMOUNT`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND`) y los códigos no reconocidos (fallback a `PROVISION_FAILED`) pasan a `REJECTED` registrando su causa en la orden (`OrderEntity.rejectionReason`) y liberando el stock reservado ([[DEC-009 - Contrato de holds e ítems según Accounting]], [[Estado actual del código]], gap 22 cerrado).

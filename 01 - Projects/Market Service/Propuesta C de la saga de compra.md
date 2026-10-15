@@ -22,7 +22,7 @@ La propuesta tiene dos partes independientes:
 **Alcance:** compra directa de ítems. La compra de vidas no cambia: sigue con `HOLD_CONFIRMED` y luego `LIFE_PURCHASE_CONFIRMED` ([[S2-11 - Acuerdos de compra de vidas con Accounting]]).
 
 ## Estado actual de la saga
-La saga ya existe en Mercado: máquina de estados de la [[Orden de compra]], envío con [[Patrón Outbox]], deduplicación de respuestas y compensaciones para hold rechazado, hold vencido y fallo al proveer el ítem. Corre completa con el transporte `mock`. Contra Accounting real no cierra: usa el orden A con `ITEM_PROVISION_*`, mensajes que Accounting no conoce, y faltan compensaciones (reconciliación apagada, órdenes trabadas en `CREATED`, sin revocación de ítems; ver [[Estado actual del código]]). Esta propuesta define cómo terminarla, no cómo empezarla.
+La saga ya está implementada en Mercado según esta propuesta (US-7697, T01 a T05 y T08 en `develop@d3b7a4de`): máquina de estados de la [[Orden de compra]], envío con [[Patrón Outbox]], deduplicación de respuestas, plazo de confirmación, rollback completo con `ITEM_REVOKE_REQUESTED` y escalado a revisión de un ADMIN. Lo que sigue pendiente es la ratificación de Accounting de la revocación y de sus respuestas (ver "Pedidos y acuerdos con Accounting"). Hasta US-7697 el código usaba el orden A con `ITEM_PROVISION_*`, mensajes que Accounting no conoce ([[Estado actual del código]]).
 
 ## Flujo feliz
 
@@ -30,11 +30,11 @@ La saga ya existe en Mercado: máquina de estados de la [[Orden de compra]], env
 sequenceDiagram
     participant M as Mercado
     participant A as Accounting
-    M->>A: HOLD_CREATE_REQUESTED (orderId, DIRECT_PURCHASE)
-    A-->>M: HOLD_CREATED (holdId, vence en 300 s)
-    M->>A: ITEM_CONFIRMED (orderId) en market.events
-    A-->>M: ITEM_CREDITED (sourceReferenceId = orderId)
-    M->>A: HOLD_CONFIRM_REQUESTED (holdId)
+    M->>A: HOLD_CREATE_REQUESTED (order_id, DIRECT_PURCHASE)
+    A-->>M: HOLD_CREATED (hold_id, vence en 300 s)
+    M->>A: ITEM_CONFIRMED (order_id) en market.events
+    A-->>M: ITEM_CREDITED (source_reference_id = order_id)
+    M->>A: HOLD_CONFIRM_REQUESTED (hold_id)
     A-->>M: HOLD_CONFIRMED
     Note over M: Orden CONFIRMED
 ```
