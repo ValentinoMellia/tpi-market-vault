@@ -13,7 +13,7 @@ tags: [mercado, glosario]
 - **Banco**: nombre anterior de Accounting; ver esa entrada.
 - **Boost**: item que multiplica XP o monedas ganadas. [[Tipos de item]].
 - **Catálogo**: conjunto de ofertas de un curso. [[Oferta de catálogo]].
-- **Colecta**: propuesta de meta colectiva para financiar un item entre varios estudiantes. [[Meta colectiva (Colecta)]].
+- **Meta colectiva** (antes "Colecta"): compra en la que los alumnos de un curso juntan monedas para un beneficio que define el profesor. [[Meta colectiva]], [[DEC-029 - Meta colectiva]].
 - **Cofre**: propuesta de item con premios al azar. [[Cofres y nuevos ítems]].
 - **Curso/cohorte**: unidad de clase donde se publica el catálogo; en el código `courseId`. [[Integración con Cursos]].
 - **Escrow**: custodia de fondos hasta cumplir una condición. [[Hold y escrow]].

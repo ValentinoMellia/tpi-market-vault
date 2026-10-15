@@ -57,6 +57,9 @@ Hoy el código hace todo eso; las decisiones del 2026-10-08 piden: cliente sobre
 - Declarar `course.enrollment.read` como necesidad de Mercado en el registro de servicios ([[Mapa de servicios]]).
 - Destino de `course_closure` y de `CourseEventHandler` con la nueva regla: se decide en la fase de diseño (tarea US2-T4).
 - Nombre real del tópico ([[DEC-008 - Nombre de productor y tópicos de Mercado]], el repositorio usa `courses.events`) y evento de baja de estudiante para subastas.
+- **Meta colectiva** ([[DEC-029 - Meta colectiva]]):
+  - Mercado necesita la lista de alumnos del curso, para los avisos a todo el curso y para mostrarle al profesor quiénes no aportaron. Hoy solo consulta la membresía de un alumno puntual.
+  - Para cancelar las metas de un curso archivado, Mercado tiene que escuchar `COURSE_COHORT_ARCHIVED` en `courses.events` (hoy no lo escucha). Accounting ya libera los holds por su cuenta.
 
 ## Recomendación del taller del equipo
 D12: verificar matrícula y asignación del profesor vía Cursos ([[Taller de decisiones]]). Para subastas, S5, confirmada en [[DEC-014 - Reglas de subastas]]: al archivarse un curso se cancelan sus subastas abiertas y al darse de baja un estudiante se retiran sus ofertas.
