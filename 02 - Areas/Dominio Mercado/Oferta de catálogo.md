@@ -2,7 +2,7 @@
 tipo: entidad
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-10
+actualizado: 2026-10-14
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -44,6 +44,7 @@ Decididas en [[DEC-013 - Reglas de la tienda]] (origen: [[Q-015 - Reglas de la t
 - T5: al publicar se valida plantilla existente y activa, tipo coincidente y multiplicador en rango.
 - T6 (modificada): `publicationExpiresAt` puede extenderse. En el snapshot `7528610` los DTO de entrada no lo aceptaban. El contrato propuesto de US-5207 conserva TTL o fecha explícita excluyentes; `PATCH` omitido/`null` no cambia la fecha, permite la primera futura y aplica extensión estrictamente posterior provisional (ratificación pendiente). Véase [[DEC-013 - Reglas de la tienda]].
 - El stock opcional está decidido en [[DEC-002 - Stock opcional por oferta]].
+- Máximo del nombre aprobado el 2026-10-14: 50 caracteres al crear y al renombrar, en frontend y backend; la columna sigue en 150 y los nombres existentes más largos se conservan hasta renombrarse. La preview muestra el nombre completo creciendo en vertical y el formulario avisa al llegar a 50. En [[DEC-026 - Nombre de oferta hasta 50 caracteres]]; detalle en [[Fix - Límite del nombre de oferta y preview]]. Implementado y verificado en la rama `fix/tema-09-offer-name-max-50` de backend y frontend, en PR listas para revisión ([backend #193](https://github.com/2026-P4-BE/tpi-market/pull/193), [frontend #568](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/568)), sin merge: `develop` todavía acepta hasta 150.
 
 ## Dónde vive en el código
 `entities/CourseCatalogOfferEntity.java` (tabla `course_catalog_offers`), `services/impl/CourseCatalogManageServiceImpl.java`, `StorefrontCatalogServiceImpl.java`, `OfferStockServiceImpl.java`, `validation/ValidOfferConfigurationValidator.java`. Datos de demostración en `configs/CatalogDataInitializer.java` (seis ofertas en `COURSE_PROG4_2026` y una en `COURSE_OTHER_9999`, solo en dev y docker).
