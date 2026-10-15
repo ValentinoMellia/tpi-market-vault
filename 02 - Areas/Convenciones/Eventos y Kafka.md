@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: DEC-025, codigo@d3b7a4de
-actualizado: 2026-10-12
+verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de
+actualizado: 2026-10-14
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
@@ -41,7 +41,7 @@ Productores: `market-service` en **todos** los mensajes salientes (PR #102, US-5
 Como comandos y respuestas de holds y revocación comparten `accounting.events`, `AccountingHoldKafkaListener` recibe también los comandos de Mercado y los eventos de Accounting que no consume. Desde `a4e6ac76` (US-5193 T03, tpi-market#102, merge `2485d8cf`) `onMessage` filtra **antes** de parsear el payload:
 
 1. Lee el `producer` del envelope con `SagaEventParser.producerOf` y descarta, con log `DEBUG`, los mensajes de `market-service` (los comandos propios).
-2. Lee el `event_type` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler`, `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
+2. Lee el `event_type` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler` (incorporado en el PR #151, US-5193 T06), `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
 3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
 Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
@@ -70,11 +70,11 @@ Clave de partición en Accounting: `student_id:course_id` (Mercado usa `student_
 
 ## Publicación con outbox
 
-Los comandos se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `event_id`, y el `correlation_id` de la respuesta es ese UUID. El outbox de accounting corre cada ~5 s (S8 pide bajarlo a ~1 s, [[Taller de decisiones]]).
+Los comandos y eventos salientes se guardan en la tabla `outbox_events` dentro de la misma transacción que cambia la orden ([[Patrón Outbox]]). `ItemProvisionDispatcher` (PR #151, US-5193 T05) publica `ITEM_CONFIRMED` implementando `OrderScopedPayload` con `@JsonIgnore aggregateOrderId` para asociar la fila de outbox a la orden sin exponer el identificador interno en el cable. `OutboxRelayJob` corre cada 2 segundos, en lotes de 20, envía con la clave de saga, espera confirmación 5 segundos y se detiene en el primer fallo para conservar el orden. `acks=all` e idempotencia del productor activados. El `id` de la fila es el `event_id`, y el `correlation_id` de la respuesta es ese UUID. El outbox de accounting corre cada ~5 s (S8 pide bajarlo a ~1 s, [[Taller de decisiones]]).
 
 ## Consumo
 
-`AccountingHoldKafkaListener` (solo con `market.messaging.transport=kafka`) usa `SagaEventParser`. Descarta comandos propios antes de parsear. La tabla `processed_events` evita reprocesar un `event_id` en la misma transacción ([[Entrega at-least-once y deduplicación]]). Si un evento asíncrono externo llega sin `correlation_id`, se resuelve por `hold_id` en la base de datos (PR #116).
+`AccountingHoldKafkaListener` (solo con `market.messaging.transport=kafka`) usa `SagaEventParser`. Descarta comandos propios antes de parsear. La tabla `processed_events` evita reprocesar un `event_id` en la misma transacción ([[Entrega at-least-once y deduplicación]]); en particular, `AccountingItemCreditedEventHandler` (PR #151, US-5193 T06) marca el `event_id` transaccionalmente al consumir `ITEM_CREDITED` antes de avanzar la orden a `ITEM_PROVISIONED` y encadenar la confirmación. Si un evento asíncrono externo llega sin `correlation_id`, se resuelve por `hold_id` en la base de datos (PR #116).
 
 ## Fallos
 
