@@ -1,7 +1,7 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: ninguno
+verificado_contra: codigo@8303981c
 actualizado: 2026-10-14
 tags: [mercado, decision, oferta, validacion, preview]
 ---
