@@ -163,7 +163,7 @@ sequenceDiagram
 ```
 
 - **TTL** (*Propuesta*): `ttlSeconds` de cada hold = tiempo que falta hasta `endsAt` más un margen de **24 horas** para liquidar y, si hace falta, para que un ADMIN intervenga. Esto exige un TTL largo (hasta 14 días más 24 horas) solo para `AUCTION_BID`. La compra directa no cambia: Accounting ignora `ttlSeconds` y usa 300 s fijos. A confirmar con Accounting (ver "Abierto").
-- **Liquidación del ganador** (*Propuesta*): orden C de [[Propuesta C de la saga de compra]], condicionado a [[Q-008 - Orden de la saga de compra]]: se acredita el ítem y recién después se confirma el débito. Si algo falla, la liquidación **se reintenta** y la subasta no se cancela (indicado en la sesión del spike, falta que el equipo lo confirme); ver "Abierto". El rollback por plazo de esa propuesta no aplica a las subastas.
+- **Liquidación del ganador** (*Propuesta*): orden C de [[Propuesta C de la saga de compra]]. [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (que cierra [[Q-008 - Orden de la saga de compra]]) la adopta solo para la compra directa de ítems; para las subastas sigue siendo una propuesta: se acredita el ítem y recién después se confirma el débito. Si algo falla, la liquidación **se reintenta** y la subasta no se cancela (indicado en la sesión del spike, falta que el equipo lo confirme); ver "Abierto". El rollback por plazo de esa propuesta no aplica a las subastas.
 - **Cancelación**: un `HOLD_RELEASE_REQUESTED` por postor con `AUCTION_CANCELLED`, nunca uno por `orderId` ([[DEC-014 - Reglas de subastas]]).
 
 ### Cursos

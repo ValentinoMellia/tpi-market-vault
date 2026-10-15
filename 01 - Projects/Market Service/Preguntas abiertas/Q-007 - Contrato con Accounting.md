@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: archivado
 verificado_contra: DEC-009
-actualizado: 2026-10-01
+actualizado: 2026-10-10
 tags: [mercado, pregunta-abierta, accounting, banco]
 ---
 # Q-007 - Contrato con Accounting
@@ -33,9 +33,9 @@ La tabla completa de diferencias, incluida la entrega del item, está en [[Integ
 - **D5**: Accounting expone `GET /holds/{holdId}` para Mercado (hoy no existe).
 - **D6**: sin reembolso por ahora; si hace falta, lo resuelve un ADMIN manualmente.
 - **D8**: Mercado genera un `orderRef` UUID y lo persiste (hoy el `orderId` es numérico).
-- **D10**: Accounting acepta cualquier `catalogItemId` y toma las cargas del payload (hoy solo acepta `ITEM-PLACEHOLDER-1` a `3`).
+- **D10**: Accounting acepta cualquier `catalogItemId` y toma las cargas del payload (hoy solo acepta `ITEM-PLACEHOLDER-1` a `3`). Decidida el 2026-10-10 en cuanto a las cargas: [[DEC-027 - Las cargas del ítem las decide el profesor]].
 
-Ver [[Taller de decisiones]]. Ninguna está formalmente decidida.
+El estado de cada una está en [[Taller de decisiones]].
 
 ## Mensaje de accounting del 2026-10-01
 Accounting confirmó que `orderId` debe ser UUID (D8 deja de ser solo una recomendación: es requisito para que funcione cualquier hold), propuso unificar los tópicos en `accounting.events` (Mercado lo puede configurar por variables de entorno, con el riesgo de recibir sus propios comandos) y anunció que implementa la consulta de holds este sprint. Punto por punto en [[Integración con Accounting]].

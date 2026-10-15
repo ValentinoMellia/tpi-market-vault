@@ -16,7 +16,7 @@ Hay que garantizar que el comprador tenga fondos durante una operación larga si
 Se retiene el monto (el saldo disponible baja, el total no). Si la operación termina bien se confirma (débito real); si falla o vence se libera.
 
 ## Cómo lo usamos en Mercado
-En la compra directa se retiene el precio, se entrega el item y luego se confirma (orden del código de Mercado; ver [[Q-008 - Orden de la saga de compra]]). En subastas, la opción elegida por el equipo retiene cada oferta completa; retener solo al líder se descartó ([[Ideas descartadas]]). Ver [[Hold de monedas]] y [[Integración con Accounting]].
+En la compra directa se retiene el precio (`HOLD_CREATED`), se acredita el ítem en Accounting (`ITEM_CREDITED`) y luego se confirma el débito del hold (`HOLD_CONFIRMED`), compensando ante fallos de cobro mediante revocación atómica ([[DEC-025 - Saga de compra de ítems según la Propuesta C]], cerrando [[Q-008 - Orden de la saga de compra]]). En subastas, la opción elegida por el equipo retiene cada oferta completa; retener solo al líder se descartó ([[Ideas descartadas]]). Ver [[Hold de monedas]] y [[Integración con Accounting]].
 
 ## Relacionado
-[[Saga]], [[Subasta]].
+[[Saga]], [[Subasta]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]].

@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-08
+actualizado: 2026-10-09
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -25,7 +25,7 @@ flowchart LR
 3. Elimina las cabeceras `X-*` reservadas y reinyecta `X-User-Id`, `X-User-Roles` y `X-Principal-Type` (y las de servicio).
 4. Enruta con `lb://` vía Eureka al microservicio.
 
-Las llamadas **de microservicio a microservicio también pasan por el gateway**, con un token de servicio (`aud` y rol `MS`). Cada microservicio tiene su propia red; no existe una red compartida entre ellos. Una ruta fuera de `GATEWAY_ALLOWLIST` responde 404.
+Las llamadas **de microservicio a microservicio también pasan por el gateway**, con un token de servicio (`aud` y rol `MS`). Cada servicio llamado puede exigir además el scope de la operación, que el llamador debe declarar en sus `needs` del registro de la plataforma: Accounting exige `accounting.account.read` en las rutas que usa Mercado ([[Integración con Accounting]]). Cada microservicio tiene su propia red; no existe una red compartida entre ellos. Una ruta fuera de `GATEWAY_ALLOWLIST` responde 404.
 
 ## Cómo funciona el gateway
 

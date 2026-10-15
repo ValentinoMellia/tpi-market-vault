@@ -7,7 +7,7 @@ tags: [mercado, decision, accounting, contrato, hold]
 ---
 # DEC-009 - Contrato de holds e ítems según Accounting
 
-> Mercado adopta el contrato de Accounting para holds y entrega de ítems, tal como lo define su código más el mensaje del 2026-10-01. **Excluye el orden de la compra** (cobrar o entregar primero), que sigue abierto en [[Q-008 - Orden de la saga de compra]].
+> Mercado adopta el contrato de Accounting para holds y entrega de ítems, tal como lo define su código más el mensaje del 2026-10-01. **Excluye el orden de la compra** (cobrar o entregar primero), que fue resuelto posteriormente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (cerrando [[Q-008 - Orden de la saga de compra]]).
 
 ## Contexto
 Mercado asumió un contrato (`commandId`, `ttlSeconds`, release en lote, `orderId` numérico, tópicos propios) que difiere del que Accounting implementa. En su propio lado manda el código de Accounting (jerarquía de verdad, rango 4). Pregunta de origen: [[Q-007 - Contrato con Accounting]].
@@ -36,13 +36,13 @@ Los detalles de campos están en [[Integración con Accounting]].
 - **Un comando único `PURCHASE_SETTLEMENT_REQUESTED`**: ningún lado lo implementa ([[Ideas descartadas]]).
 
 ## Excluido de esta decisión
-- **El orden de la compra** (`ITEM_CONFIRMED` antes o después de `HOLD_CONFIRM_REQUESTED`) y su compensación: sigue en [[Q-008 - Orden de la saga de compra]].
+- **El orden de la compra** (`ITEM_CONFIRMED` antes o después de `HOLD_CONFIRM_REQUESTED`) y su compensación: resuelto posteriormente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (cerrando [[Q-008 - Orden de la saga de compra]]).
 - La liberación de subastas (por postor o por `orderId`): se decidió en [[DEC-014 - Reglas de subastas]] (un release por postor; [[Q-012 - Alcance de subastas]] archivada).
 - Los pedidos que Mercado hace a Accounting y no están acordados (`HOLD_EXPIRED` confiable, aceptar cualquier `catalogItemId`, reembolso, D4, D6 y D10 del [[Taller de decisiones]]).
 
 ## Consecuencias
 - Tareas de código en [[Roadmap de trabajo]]: `orderRef` UUID como `orderId`, mapeo de todos los motivos de rechazo, `BankHoldQueryClient` real al integrarse la consulta, `HOLD_INCREASED` y envío del total nuevo (Fase 3).
-- El `ITEM_CONFIRMED` hacia `market.events` reemplaza a los mensajes `ITEM_PROVISION_*` de un inventario que no existe; su activación depende del orden de la compra.
+- El `ITEM_CONFIRMED` hacia `market.events` reemplaza a los mensajes `ITEM_PROVISION_*` de un inventario que no existe; su activación y flujo quedaron formalizados en [[DEC-025 - Saga de compra de ítems según la Propuesta C]].
 - Qué ve el estudiante ante cada motivo de rechazo queda por definir con producto.
 
 ## Notas afectadas
