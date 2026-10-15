@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-15
 tags: [mercado, backlog, sprint-2, opcional]
 sprint: 2
 taiga: "#5266"
@@ -29,7 +29,7 @@ horas: 14
 ## Notas / Observaciones
 
 - [ ] Reglas de negocio: el profesor solo gestiona los cursos a los que está asignado. Las ofertas no se borran: se desactivan ([[DEC-013 - Reglas de la tienda]], T4). publicationExpiresAt puede extenderse. Al publicar se elige una plantilla activa de GET /api/market/templates.
-- [ ] Validaciones: precio mínimo 1; stock opcional (sin totalStock o unlimitedStock significa ilimitado, [[DEC-002 - Stock opcional por oferta]]); errores de validación del backend (errors[]) se muestran junto a cada campo.
+- [ ] Validaciones: precio entero entre 1 y 999999 al crear o cambiar, conservando precios antiguos intactos según [[DEC-028 - Precio de oferta hasta 999.999 monedas]] (mergeado en `develop`, ver [[Fix - Límite del precio de oferta y preview]]); stock opcional (sin totalStock o unlimitedStock significa ilimitado, [[DEC-002 - Stock opcional por oferta]]); errores de validación del backend (errors[]) se muestran junto a cada campo.
 - [ ] Datos obligatorios: templateId, itemType, customName, coinPrice al publicar; configuración según el tipo de ítem.
 - [ ] Performance (tiempos, volumen, límites): lista de gestión con carga inicial menor a 2 s (a medir).
 - [ ] Seguridad (roles, permisos, datos sensibles): rutas visibles solo para PROFESSOR, ADMIN y GESTOR; la API valida igualmente ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]).
