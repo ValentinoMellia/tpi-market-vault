@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: codigo@fb5f82d9
-actualizado: 2026-10-08
+verificado_contra: codigo@2fc155ad, codigo@fb5f82d9
+actualizado: 2026-10-15
 tags: [mercado, backlog, sprint-2]
 sprint: 2
 taiga: "#5202"
@@ -35,11 +35,11 @@ Qué cambia respecto del texto original:
 | US-3 - Acceso del alumno | Solo `STUDENT` con `can_read`; vitrina, detalle y creación de la orden | US3-T1 a US3-T3 | US-2 |
 | US-4 - Acceso del docente | Lectura con `PROFESSOR` o `PROFESSOR_READ_ONLY`; escritura con `PROFESSOR` y `can_write`; `GESTOR` rechazado; resúmenes por curso | US4-T1 a US4-T5 | US-2; US4-T5 espera el listado por `professor_id` |
 | US-5 - Quitar los simulados | Borrar simulados, interfaces y su prueba; migrar unas 20 clases de pruebas; documentar la ejecución local | US5-T1 a US5-T3 | US-3 y US-4 |
-| US-6 - Mis mercados | `GET /api/market/courses` → `[{courseId, courseName, role, canManage}]` | US6-T1 a US6-T4 | US-1 y los listados de Cursos (próximo sprint de Cursos) |
+| US-6 - Mis mercados | `GET /api/market/courses` → `[{courseId, courseName, role, canManage}]`. **Implementada en Taiga como US #7382 (T01 a T04) y mergeada en PR #159 (`develop@2fc155ad`)** | US6-T1 a US6-T4 (US-7382 T01-T04) | US-1 y los listados de Cursos |
 
 Fuera de alcance: revalidar inscripción y estado dentro de la saga de compra (sprint 3) y cualquier cambio de `GESTOR` o `ADMIN` en rutas sin curso. Tamaño estimado de 1.500 a 2.000 líneas: se entrega en PR encadenados por historia.
 
-Estado en el código (`develop@fb5f82d9`): la T01 se mergeó en cuatro partes (PR #128 a #131) con un `GatewayCourseEnrollmentClient` detrás de `market.course.client=gateway` que llama a `roster-membership`; `MockCourseInstructorClient` sigue `@Primary`. Ver [[Integración con Cursos]].
+Estado en el código (`develop@fb5f82d9` y `develop@2fc155ad`): la T01 se mergeó en cuatro partes (PR #128 a #131) con un `GatewayCourseEnrollmentClient` detrás de `market.course.client=gateway` que llama a `roster-membership`; `MockCourseInstructorClient` sigue `@Primary`. La US-6 se implementó como US #7382 (T01 a T04) y quedó mergeada en `develop@2fc155ad` (PR #159). Ver [[Integración con Cursos]].
 
 ---
 

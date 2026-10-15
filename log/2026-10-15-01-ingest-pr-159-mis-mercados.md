@@ -1,0 +1,16 @@
+## [2026-10-15] ingest | PR #159 de tpi-market: listados de Cursos y endpoint 'Mis mercados' (US-7382 T01-T04)
+- Fuente: PR #159 de `tpi-market` (`feature/us-7382-t01-cohorts-listing`, Taiga US #7382 T01 a T04), mergeado en `develop` el 2026-10-10 (`2fc155ad`, aprobado y mergeado por tommikimmel). Verificado contra `develop@2fc155ad`.
+- Contenido del PR:
+  - T01 (`CourseCohortClient`): métodos `listStudentEnrollments(studentId)` y `listProfessorCohorts(professorId)` implementados en `GatewayCourseCohortClient` delegando en `GatewayCourseListings`. Paginación exhaustiva en bloques de 50 elementos (`PROFESSOR_COHORTS_PAGE_SIZE = 50`) hasta `totalPages`. DTOs de wire `snake_case` con tolerancia a alias `camelCase`: `StudentCohortEnrollmentResponseDto`, `CourseCohortItemResponseDto`, `CourseCohortPageResponseDto`.
+  - T02 (`MyMarketsService`): `MyMarketsServiceImpl` valida `X-User-Id` no en blanco (400), filtra cohortes `ACTIVE` e inscripciones `VALIDATED`, descarta asignaciones `GESTOR` y combina por curso aplicando precedencia (docente sobre alumno, y dentro de docente `canManage = true` sobre solo lectura). DTO `MyMarketDto`.
+  - T03 (`MyMarketsController`): expone `GET /api/market/courses` con autorización `@PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")` y documentación OpenAPI. Se incorpora a `RoleEndpointMatrixAcceptanceTest` (endpoint 17).
+  - T04 (`MyMarketsEndpointIntegrationTest`): pruebas de integración completas sobre el endpoint cubriendo roles, cabeceras, respuestas 200, 400, 401, 403 y propagación 503 ante fallos de Cursos.
+- Verificación contra decisiones previas:
+  - Totalmente conforme con [[DEC-024 - Listado Mis mercados]], [[DEC-022 - Contrato de membresía con Cursos]], [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]] y [[DEC-021 - Acceso al mercado por membresía de Cursos]]. No hay contradicciones; no se abren preguntas (`Q`).
+- Notas actualizadas (anotado commit en `verificado_contra`):
+  - [[Estado actual del código]]: actualización del 2026-10-10, adición de `GET /courses` en la tabla de Endpoints, registro de `CourseCohortClient` en la tabla de Clientes, actualización del gap 2 y detalle de pruebas en la sección Pruebas.
+  - [[Integración con Cursos]]: resumen actualizado, estado de endpoints de listado marcado como implementado en `GatewayCourseListings`, y detalle en la sección de estado del código.
+  - [[DEC-024 - Listado Mis mercados]]: sección de estado de implementación con detalle de controlador, servicio, DTOs y tests.
+  - [[DEC-022 - Contrato de membresía con Cursos]]: sección de estado de implementación de los listados por servicio.
+  - [[S2-02 - Clientes reales de Cursos]]: fila de US-6 actualizada como implementada vía US #7382.
+  - [[Roadmap de trabajo]]: avance registrado en el ítem P0 #4.
