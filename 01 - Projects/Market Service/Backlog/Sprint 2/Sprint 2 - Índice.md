@@ -2,12 +2,12 @@
 tipo: indice
 estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-08
+actualizado: 2026-10-10
 tags: [mercado, backlog, sprint-2]
 ---
 # Sprint 2 - Índice
 
-> Las historias del Sprint 2 en formato Taiga, una nota por historia, con puntos, horas y prioridad. Total comprometido: 86 puntos, 319 h y 80 tareas (sin contar los puntos de S2-11 ni los puntos y horas de #4888, que están a completar). Cada nota se copia en la descripción de la historia al cargarla en Taiga ([[Carga en Taiga - Sprints 2 y 3]]).
+> Las historias del Sprint 2 en formato Taiga, una nota por historia, con puntos, horas y prioridad. Total comprometido: 99 puntos, 355 h y 87 tareas (sin contar los puntos de S2-11 ni los puntos y horas de #4888, que están a completar). Cada nota se copia en la descripción de la historia al cargarla en Taiga ([[Carga en Taiga - Sprints 2 y 3]]).
 
 ## Estado en Taiga
 
@@ -31,9 +31,10 @@ Las historias comprometidas se cargaron en Taiga el 2026-10-02 (columna Taiga). 
 | [[S2-09d - SPIKE SSE en el frontend]] | #5259 | 2 | 4 | 1 | Should |
 | [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]] | #5899 | 5 | 16 | 4 | Must |
 | [[S2-11 - Acuerdos de compra de vidas con Accounting]] | #6268 | a completar | 20 | 5 | Must |
+| [[S2-12 - Saga de compra según la Propuesta C]] | #7697 | 13 | 36 | 7 | Must |
 | [[S3-01 - Subastas, lanzar y ver las abiertas]] (adelantada del Sprint 3) | #5347 | 8 | 27 | 6 | Should |
 | [[US-4888 - Organizar la documentación en un vault]] | #4888 | a completar | a completar | 6 (4 hechas) | Should |
-| **Total comprometido** | | **86** | **319** | **80** | |
+| **Total comprometido** | | **99** | **355** | **87** | |
 
 Las historias 1 a 8 suman 61 puntos, 219 h y 45 tareas; los spikes de la historia 9 suman 12 puntos, 37 h y 14 tareas. La historia 9 de [[Plan del Sprint 2]] se carga como cuatro historias de tipo spike con la plantilla `Taiga - Spike`.
 

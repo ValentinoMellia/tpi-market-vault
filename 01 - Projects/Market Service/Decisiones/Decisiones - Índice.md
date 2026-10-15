@@ -1,13 +1,13 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-025
-actualizado: 2026-10-12
+verificado_contra: DEC-027
+actualizado: 2026-10-14
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay veinticinco decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay veintiséis decisiones registradas.
 
 ## Decisiones registradas
 
@@ -38,6 +38,7 @@ tags: [mercado, decision]
 | DEC-023 | [[DEC-023 - Sin mocks de Cursos en el código]] | Confirmación del PO (sin `Q`); reemplaza T01, T03 y T04 de US-5202 | 2026-10-08 |
 | DEC-024 | [[DEC-024 - Listado Mis mercados]] | Confirmación del PO (sin `Q`) | 2026-10-08 |
 | DEC-025 | [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | [[Q-008 - Orden de la saga de compra]] (archivada; confirmada en US-7697) | 2026-10-12 |
+| DEC-027 | [[DEC-027 - Las cargas del ítem las decide el profesor]] | [[Q-007 - Contrato con Accounting]] (archivada; recomendación D10) | 2026-10-10 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

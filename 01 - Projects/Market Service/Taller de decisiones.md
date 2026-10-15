@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: equipo-taller@2026-09-30
-actualizado: 2026-10-01
+actualizado: 2026-10-10
 tags: [mercado, taller, decisiones]
 ---
 # Taller de decisiones
@@ -16,7 +16,7 @@ tags: [mercado, taller, decisiones]
 - Esta lista puede estar incompleta: se extrajeron 28 de las 33 (falta D11 y cuatro más) y el taller también define tareas K01 a K33.
 
 ## Resumen del 2026-10-01 y actualizaciones
-Confirmadas: D7 ([[DEC-008 - Nombre de productor y tópicos de Mercado]]), D8 y D5 en lo que cubre el contrato ([[DEC-009 - Contrato de holds e ítems según Accounting]]), D13 ([[DEC-001 - Accounting es dueño del inventario]]) y T2 ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). Confirmadas el mismo día en [[DEC-014 - Reglas de subastas]]: S1, S3, S5 y S6; reemplazada S10 (14 días). Reemplazada: D1 ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]). Confirmadas en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]: D2 y D9 integrando `ITEM_CONFIRMED` -> `ITEM_CREDITED`, manejo de falla de acreditación y compensación por revocación. El resto sigue sin decidir.
+Confirmadas: D7 ([[DEC-008 - Nombre de productor y tópicos de Mercado]]), D8 y D5 en lo que cubre el contrato ([[DEC-009 - Contrato de holds e ítems según Accounting]]), D13 ([[DEC-001 - Accounting es dueño del inventario]]) y T2 ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). Confirmadas el mismo día en [[DEC-014 - Reglas de subastas]]: S1, S3, S5 y S6; reemplazada S10 (14 días). Reemplazada: D1 ([[DEC-007 - Tope de vidas, Accounting decide y reporta]]). Confirmadas en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]: D2 y D9 integrando `ITEM_CONFIRMED` -> `ITEM_CREDITED`, manejo de falla de acreditación y compensación por revocación. El 2026-10-10 se confirmó D10 en cuanto a las cargas ([[DEC-027 - Las cargas del ítem las decide el profesor]]). El resto sigue sin decidir.
 
 ## Integración con Accounting y otros equipos
 
@@ -31,7 +31,7 @@ Confirmadas: D7 ([[DEC-008 - Nombre de productor y tópicos de Mercado]]), D8 y 
 | D7 | Tópicos | Adoptar `accounting.events` y `market.events` | **Confirmada** en [[DEC-008 - Nombre de productor y tópicos de Mercado]] | [[Q-006 - Naming de eventos y topics]] (archivada) |
 | D8 | Identificador de orden | Mercado genera un `orderRef` UUID y lo persiste | **Confirmada** en [[DEC-009 - Contrato de holds e ítems según Accounting]] | [[Q-007 - Contrato con Accounting]] (archivada) |
 | D9 | Falla del item | Accounting publica un evento de error y Mercado libera el hold | **Confirmada / Integrada** en [[DEC-025 - Saga de compra de ítems según la Propuesta C]] (se propone `ITEM_CREDIT_FAILED` y Mercado libera hold y stock; ante fallos de cobro posteriores se emite `ITEM_REVOKE_REQUESTED`) | [[Q-008 - Orden de la saga de compra]] (archivada) |
-| D10 | Catálogo de accounting | Acepta cualquier `catalogItemId` y toma las cargas del payload | Sin decidir (excluida de [[DEC-009 - Contrato de holds e ítems según Accounting]]) | [[Q-007 - Contrato con Accounting]] (archivada) |
+| D10 | Catálogo de accounting | Acepta cualquier `catalogItemId` y toma las cargas del payload | **Confirmada** en cuanto a las cargas por [[DEC-027 - Las cargas del ítem las decide el profesor]]: `maxCharges` son las cargas que configura el profesor | [[Q-007 - Contrato con Accounting]] (archivada) |
 | D12 | Matrícula y profesor | Verificar vía Cursos (recomendación sin extraer del todo) | Sin decidir | [[Integración con Cursos]] |
 | D13 | Dueño de monedas e inventario | Accounting | **Decidida** en [[DEC-001 - Accounting es dueño del inventario]] | [[Q-001 - Dueño del inventario]] (archivada) |
 

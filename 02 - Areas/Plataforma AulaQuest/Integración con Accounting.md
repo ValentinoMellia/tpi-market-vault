@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, codigo@d3b7a4de
-actualizado: 2026-10-12
+verificado_contra: DEC-025, DEC-027, codigo@d3b7a4de, accounting@develop-2026-10-01
+actualizado: 2026-10-14
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -24,6 +24,7 @@ Actualización (2026-10-12): la integración de la saga de compra directa de ít
 | [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] | Los ítems no vencen |
 | [[DEC-014 - Reglas de subastas]] | Un release por postor al cancelar o cerrar una subasta; sin release por `orderId` |
 | [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | Adopta la Propuesta C para compra directa de ítems: retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación simétrica con `ITEM_REVOKE_REQUESTED` ante fallos o plazos vencidos; cierra [[Q-008 - Orden de la saga de compra]] |
+| [[DEC-027 - Las cargas del ítem las decide el profesor]] | `maxCharges` de `ITEM_CONFIRMED` son las cargas que configura el profesor en la oferta |
 
 Esta nota reemplaza a las antiguas "Integración con Banco" e "Integración con Inventario" (archivadas), porque [[DEC-001 - Accounting es dueño del inventario]] fusionó ambas responsabilidades en un solo equipo.
 
@@ -68,7 +69,7 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 
 | Dirección | Mensaje | Tópico | Campos |
 |---|---|---|---|
-| Mercado a Accounting | `ITEM_CONFIRMED` | `market.events` | `student_id`, `course_id`, `order_id` (UUID canónico `orderRef`), `catalog_item_id`, `item_name`, `item_type`, `effect` |
+| Mercado a Accounting | `ITEM_CONFIRMED` | `market.events` | `student_id`, `course_id`, `order_id` (UUID canónico `orderRef`), `catalog_item_id`, `item_name`, `item_type`, `effect`, más `max_charges` y `applicable_challenge_scope` (ver «Cargas del ítem») |
 | Accounting a Mercado | `ITEM_CREDITED` | `accounting.events` | `student_id`, `course_id`, `item_instance_id`, `item_name`, `item_type`, `source_reference_id` (= `order_id`); correlaciona por `source_reference_id` |
 | Mercado a Accounting | `ITEM_REVOKE_REQUESTED` | `accounting.events` | `correlation_id` (UUID igual al `event_id`), `order_id` (`orderRef` UUID canónico), `student_id`, `course_id`, `revoke_reason` (`PURCHASE_NOT_COMPLETED`) |
 
@@ -78,8 +79,9 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
   - `ITEM_CREDIT_FAILED` en `accounting.events`: `{student_id, course_id, source_reference_id, reason, message}`. Comportamiento en Mercado (T05): cancela la orden con motivo `ITEM_CREDIT_FAILED`, libera el stock reservado y emite `HOLD_RELEASE_REQUESTED(PURCHASE_NOT_COMPLETED)` **sin revocar ítem**.
   - `ITEM_REVOKED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, revoked_item_count}`. Comportamiento en Mercado (T05): confirma la revocación de forma idempotente (`revoked_item_count = 0` indica "nada que revocar").
   - `ITEM_REVOKE_FAILED` en `accounting.events`: `{correlation_id, order_id, student_id, course_id, reason, message}`. Comportamiento en Mercado (T05): escala a revisión administrativa duradera con motivo `ITEM_REVOKE_FAILED` (`OrderReviewReason`), emite log `ERROR`, incrementa la métrica `market.purchase.revoke_failed{reason}` y establece la bandera booleana independiente `revoke_failed = true` en la tabla `orders` (mediante `PurchaseReviewService.markRevokeFailed`), la cual se marca siempre ante un fallo de revocación aunque la orden ya tuviera otro motivo de revisión asignado.
-- No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, mergeado en `develop@d3b7a4de`).
-- `InventoryCatalog` solo acepta `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3`; cualquier otro `catalog_item_id` va a DLT. Las cargas máximas (`max_charges`) están fijas ahí y el ámbito se guarda `NULL` (equivale a `ALL`).
+- No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, mergeado en `develop@d3b7a4de`). Hoy, si acreditar falla, Accounting reintenta y luego manda a DLT: **no publica ningún evento de falla**; `ITEM_CREDIT_FAILED` es un esquema propuesto (abajo), pendiente de su ratificación.
+- Antes de la HU58 de Accounting, `InventoryCatalog` solo aceptaba `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3` (cualquier otro `catalog_item_id` iba a DLT), con las cargas máximas (`max_charges`) fijas ahí y el ámbito `NULL` (equivale a `ALL`); ver «Cargas del ítem».
+- **Cargas del ítem:** `max_charges` son las cargas que el profesor configuró en la oferta (`charges`), y Mercado las manda en `ITEM_CONFIRMED` ([[DEC-027 - Las cargas del ítem las decide el profesor]]). Desde su HU58 (T02 #5640 en Taiga, cerrada el 2026-10-08), Accounting acepta `max_charges` y `applicable_challenge_scope` del payload y los guarda en la unidad (`max_charges`, `applicable_challenge_scope`), en lugar de tomarlos de su `InventoryCatalog` con placeholders. Hoy Mercado todavía no los envía (`tpi-market` en `6926af1d`): queda en la T01 #7698 de [[S2-12 - Saga de compra según la Propuesta C]]. Los valores por tipo de ítem están en la DEC-027. Accounting (`develop`, `10bb4ec`) manda al DLT, sin reintentos, un `max_charges` ausente o no positivo y un scope desconocido; por eso los boosts `TTL`, que se mandan con `max_charges` nulo, quedan bloqueados hasta su [G12-HU88].
 
 ## Inventario (fusionado desde la nota de Inventario)
 
@@ -97,7 +99,7 @@ Lectura REST para Mercado y otros, bajo `/api/accounting/courses/{courseId}/acco
 | `GET /me/items` | STUDENT |
 | `GET /{studentId}/items` | ADMIN |
 | `GET /{studentId}/items-history` | ADMIN |
-| `GET /{studentId}/equip-summary` | MS, ADMIN, STUDENT (Mercado la consume con token de servicio antes de vender vidas) |
+| `GET /{studentId}/equip-summary` | MS, ADMIN, STUDENT (Mercado la consume con su token de servicio antes de vender vidas. Accounting todavía no exige `accounting.account.read` en esta ruta (sí en `GET /holds/{holdId}`); ver la sección *Token de servicio para Accounting*) |
 | `POST /courses/{courseId}/challenge-reservations` | MS (motor de desafíos) |
 
 ## Vidas
@@ -112,13 +114,28 @@ Como Accounting acredita 0 y no devuelve monedas si el alumno ya tiene el máxim
 
 | Punto | Acuerdo | Cómo lo implementa Mercado |
 |---|---|---|
-| Vidas actuales | `GET /api/accounting/courses/{courseId}/accounts/{studentId}/equip-summary` por el Gateway con token de servicio; devuelve `currentLives` y `reservedLives` | `AccountingEquipSummaryClient` (`clients/impl/GatewayAccountingEquipSummaryClient.java`, activo con `MARKET_ACCOUNTING_CLIENT=gateway` y `ACCOUNTING_SERVICE_TOKEN`); por defecto `MockAccountingEquipSummaryClient` |
+| Vidas actuales | `GET /api/accounting/courses/{courseId}/accounts/{studentId}/equip-summary` por el Gateway con token de servicio; devuelve `currentLives` y `reservedLives` | `AccountingEquipSummaryClient` (`clients/impl/GatewayAccountingEquipSummaryClient.java`, activo con `MARKET_ACCOUNTING_CLIENT=gateway`); por defecto `MockAccountingEquipSummaryClient`. Desde el PR #139 envía el token de servicio propio de Mercado para `accounting-service` / `accounting.account.read`; el token fijo `ACCOUNTING_SERVICE_TOKEN` ya no existe (sección *Token de servicio para Accounting*) |
 | Máximo | PAR-12 de Backoffice; Accounting no lo expone | `market.lives.max-lives` (`MARKET_LIVES_MAX_LIVES`, por defecto 3) en `configs/LifeCapProperties.java` |
 | Cuántas puede comprar | `max(0, maxLives − currentLives)`, validación preventiva | `PurchaseValidationServiceImpl.validateLifeCap` calcula `max(0, maxLives − (currentLives + livesInFlight))`, donde `livesInFlight` son las vidas de las órdenes de vidas propias todavía en vuelo (`CREATED`, `HOLD_REQUESTED`, `HOLD_GRANTED`, `ITEM_PROVISION_REQUESTED`, `ITEM_PROVISIONED`; `OrderRepository.sumLivesInFlight`): dos compras seguidas se frenan aunque Accounting no haya acreditado la primera. `reservedLives` se lee pero no se usa. Si la oferta otorga más vidas, 422 `LIFE_CAP_REACHED` antes de crear la orden y el hold, con el texto de US-142 si no entra ninguna o con cuántas entran si entran algunas. Sin cuenta (404) no bloquea: el hold se rechaza con `ACCOUNT_NOT_FOUND`. Accounting caído: 503 |
 | Identificadores | `courseId` igual al del hold; `orderId` igual al de la orden y el hold, como máximo 36 caracteres | `LIFE_PURCHASE_CONFIRMED.orderId` = `orderRef` UUID (`OrderEntity.bankOrderId()`). `dtos/events/ExternalId.java` valida `orderId`, `studentId` y `courseId` (36 caracteres como máximo) en `HOLD_CREATE_REQUESTED` y en `LIFE_PURCHASE_CONFIRMED`; `PurchaseOrderServiceImpl` responde 400 si `studentId` o `courseId` se pasan |
 | Cantidad | Sin tope por orden; entero `>= 1` | `quantity` = `livesGranted` de la oferta |
 | Cuenta inexistente o inactiva | `LIFE_PURCHASE_REJECTED {order_id, student_id, course_id, quantity, reason, message}` en `accounting.events`, `reason` `ACCOUNT_NOT_FOUND` o `ACCOUNT_INACTIVE`; sin crédito ni reintento | `AccountingLifePurchaseEventHandler`: deduplica por `event_id` y marca la orden `SETTLED_UNCREDITED` con alerta de auditoría y métrica `market_life_purchase_uncredited_total`. La devolución la pide un ADMIN desde BackOffice (`COIN_LEDGER_REVERSAL_REQUESTED`), solo con la cuenta activa |
 | Prevención | `LIFE_PURCHASE_CONFIRMED` solo después de `HOLD_CONFIRMED`, nunca tras `HOLD_RELEASED` o `HOLD_REJECTED` | Se publica en la misma transacción que pasa la orden a `CONFIRMED` al recibir `HOLD_CONFIRMED` |
+
+## Token de servicio para Accounting (issue 126)
+
+Accounting exige, además del rol `MS`, el scope de cada operación en sus endpoints para otros servicios (tpi-accounting PR 150, hallazgo de seguridad S4 de su relevamiento). Los dos endpoints que usa Mercado, `equip-summary` y `GET /api/accounting/holds/{holdId}`, corresponden a `accounting.account.read`. Accounting los dejó solo con `MS` hasta que Mercado confirmara que su token trae el scope (issue #126 de `tpi-market`). Verificado contra tpi-accounting `develop@e3f857ea` (2026-10-13): `GET /holds/{holdId}` exige el scope desde el PR #205 (`7c078885`, 2026-10-10); `equip-summary` sigue con `hasAnyRole('MS', 'ADMIN', 'STUDENT')`, sin scope.
+
+Cómo quedó del lado de Mercado (verificado contra `codigo@6926af1`, PR #139, US-5193 T09):
+
+- **Registro de la plataforma**: `market-service` declara `needs: [accounting.account.read]` en `registry/services.yml` de tpi-system-compose (PR 120, release 1.26.0). Sin eso Identity no emite el token.
+- **Un solo mecanismo de token**: los dos clientes de Accounting usan el mismo proveedor que Cursos (`clients/impl/GatewayServiceTokenProvider.java`), que pide un token `client_credentials` por destino y lo guarda en caché hasta su vencimiento ([[Gateway e identidad]], [[Integración con Cursos]]). El bean `ACCOUNTING_TOKEN_INTERCEPTOR` de `configs/ServiceTokenConfig.java` lo agrega como `Authorization: Bearer` al final de la cadena de cada cliente.
+- **Configuración**: `market.service-token.accounting-audience` (por defecto `accounting-service`) y `market.service-token.accounting-scope` (por defecto `accounting.account.read`), con las variables `MARKET_ACCOUNTING_AUDIENCE` y `MARKET_ACCOUNTING_SCOPE` (`configs/ServiceTokenProperties.java`). Las credenciales son las del cliente `market-service` (`APP_CLIENT_ID`, `APP_CLIENT_SECRET`).
+- **Errores**: un 401 de Accounting se reintenta una vez con un token nuevo; un 403 no se reintenta. Si no se puede obtener el token, `equip-summary` responde 503 `accounting-service-unavailable` y la consulta de holds lanza `BankHoldUnavailableException`, que sus llamadores ya manejan sin cortar la saga. Los mensajes de 401/403 nombran `APP_CLIENT_SECRET` y la propiedad del scope, nunca el token.
+- **Eliminado**: el token fijo `ACCOUNTING_SERVICE_TOKEN` (`market.accounting.service-token`), `market.accounting.read-scope` y el cliente duplicado `IdentityServiceTokenClient` / `ServiceTokenClient` del PR #116. Desde el PR #139 queda un solo mecanismo de token en el servicio.
+- **Confirmación**: Mercado avisó en la issue #126 (2026-10-09) que Accounting ya puede exigir el scope. La issue se cerró el 2026-10-10.
+
+Pendiente: probar contra la plataforma real que el Gateway y Accounting aceptan el token. Del lado de Cursos falta pedir `course.enrollment.read` en los `needs` de `market-service`.
 
 ## Diferencias entre el código de Mercado y el de accounting
 
@@ -134,7 +151,7 @@ Mercado se alinea a la columna de Accounting ([[DEC-009 - Contrato de holds e í
 | Correlación del item | `source_reference_id` = `order_id` | `source_reference_id` = `order_id` |
 | Revocación de ítems | `ITEM_REVOKE_REQUESTED` (congelado en Mercado, T04 en `develop@d3b7a4de`) | Pendiente de ratificación e implementación |
 | `PURCHASE_CONFIRMED` | se publica | nadie lo consume |
-| Consulta de hold | `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` con token dinámico (PR #116, `e456c55f`); alineado | `GET /api/accounting/holds/{holdId}` |
+| Consulta de hold | `HttpBankHoldQueryClient` consume `GET /api/accounting/holds/{holdId}` (PR #116, `e456c55f`) con el token de servicio de Mercado para `accounting.account.read` (PR #139, `6926af1`); alineado | `GET /api/accounting/holds/{holdId}`, rol `MS` y scope `accounting.account.read` |
 | Catálogo | plantillas `tpl-*` | solo `ITEM-PLACEHOLDER-1` a `3` |
 
 Los motivos de rechazo y de release **no** figuran como diferencia: Mercado mapea los 10 motivos de rechazo contractuales de Accounting (`OrderRejectionReason`, PR #110, US-5193 T07, `f7457882`), y restringe `BankHoldReleaseReason` estrictamente a los 3 valores canónicos del contrato (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) con DTO tipado (`BankHoldReleaseRequestDto`, PR #115, US-5193 T08, `5de30854`), liberando siempre con `PURCHASE_NOT_COMPLETED` (`services/impl/OrderItemProvisionServiceImpl.java:63`).
@@ -152,8 +169,8 @@ Accounting envió siete puntos. Estado de cada uno contra el código de Mercado 
 | 3 | `HOLD_INCREASE_REQUESTED` (envía el **total nuevo**, no la diferencia) | No implementado; las subastas son Fase 3 ([[Subasta]], [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]) |
 | 4 | Cancelar una subasta con `HOLD_RELEASE_REQUESTED` por `orderId`, sin `holdId`, con `AUCTION_CANCELLED`, liberando todos los holds de la orden | **No adoptado** ([[DEC-014 - Reglas de subastas]]): Mercado envía **un `HOLD_RELEASE_REQUESTED` por postor** (con `holdId`). **A comunicar a Accounting**; es coherente con su restricción de un hold por `orderId` y sin liberación en lote |
 | 5 | Mercado debe manejar `ACCOUNT_INACTIVE`, `INVALID_ORDER_TYPE`, `INVALID_TTL`, `MALFORMED_COMMAND` y el payload de `HOLD_INCREASED` | **Resuelto para los holds en develop** (PR #110, US-5193 T07, `f7457882`): `OrderRejectionReason` mapea los 10 motivos de rechazo del contrato; solo `INSUFFICIENT_BALANCE` pasa a `REJECTED_INSUFFICIENT_FUNDS`, los otros 9 pasan a `REJECTED` y persisten `rejectionReason` con mensaje provisional en español (`OrderRejectionMessageServiceImpl`). `HOLD_INCREASED` sigue en Fase 3 (subastas) |
-| 6 | Deduplicar respuestas reenviadas (misma `correlation_id`) | Sí, en dos capas: deduplicación por `event_id` en `processed_events` y guarda de estado (los manejadores ignoran un evento si la orden no está en el estado esperado, p. ej. `services/impl/OrderConfirmationServiceImpl.java`). Ver [[Entrega at-least-once y deduplicación]] |
-| 7 | `GET /api/accounting/holds/{holdId}` en implementación este sprint; avisarán al integrarlo para encender `bank-hold.reconciliation` | **Resuelto en develop** (PR #116, `e456c55f`, issue #114): `HttpBankHoldQueryClient` implementa la consulta real mediante token dinámico de Identity (`IdentityServiceTokenClient`), alias `camelCase` y `snake_case` vía `@JsonAlias`, timeouts configurables e invalidación ante 401/403. Utilizado por la reconciliación periódica de compras directas (T03, PR #182) |
+| 6 | Deduplicar respuestas reenviadas (misma `correlation_id`) | Sí, en dos capas: deduplicación por `event_id` en `processed_events` y guarda de estado (los manejadores ignoran un evento si la orden no está en el estado esperado, p. ej. `services/impl/OrderConfirmationServiceImpl.java`, cerca de la línea 385). Ver [[Entrega at-least-once y deduplicación]] |
+| 7 | `GET /api/accounting/holds/{holdId}` en implementación este sprint; avisarán al integrarlo para encender `bank-hold.reconciliation` | **Resuelto en develop** (PR #116, `e456c55f`, issue #114): `HttpBankHoldQueryClient` implementa la consulta real con el token de servicio de Mercado (desde el PR #139 lo pide el proveedor compartido; antes, `IdentityServiceTokenClient`, ya eliminado), alias `camelCase` y `snake_case` vía `@JsonAlias`, timeouts configurables e invalidación ante 401/403. Utilizado por la reconciliación periódica de compras directas (T03, PR #182) |
 
 El orden de la saga quedó resuelto formalmente en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]: se adoptó la Propuesta C para compras directas de ítems, cerrando [[Q-008 - Orden de la saga de compra]] (archivada).
 
@@ -167,7 +184,8 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 
 ## Brechas del lado de accounting
 
-- La consulta REST del estado de un hold de monedas (`GET /api/accounting/holds/{holdId}`) fue integrada en Mercado mediante `HttpBankHoldQueryClient` (PR #116, `e456c55f`); resta validar los permisos de ruta y token en el despliegue integrado con Eureka y Gateway.
+- La consulta REST del estado de un hold de monedas (`GET /api/accounting/holds/{holdId}`) fue integrada en Mercado mediante `HttpBankHoldQueryClient` (PR #116, `e456c55f`). Accounting exige `accounting.account.read` en esa ruta desde su PR #205 (`equip-summary` todavía no); Mercado envía ese scope desde el PR #139 (sección *Token de servicio para Accounting*). Resta validar la ruta y el token en el despliegue integrado con el Gateway.
+- `equip-summary` está encendido en la configuración de producción de Accounting: `app.inventory.queries.enabled=true` en `application-prod.properties` desde el PR #202 de tpi-accounting (`37bc705d`, 2026-10-10); el `false` queda solo en su perfil base. En Mercado el cliente real sigue apagado por defecto (`MARKET_ACCOUNTING_CLIENT=mock`).
 - El listener de comandos de hold está apagado por defecto (`app.holds.commands.enabled=false` y `accounting.messaging.consumers-enabled=false`). La documentación del equipo afirma que no se puede encender sin un `HoldReplyResender` de producción; esa afirmación está en disputa.
 - `PURCHASE_CONFIRMED` no lo consume nadie; `AccountCoinReservationsPort` no está implementado.
 - Ramas sin integrar en Accounting: la rama `lives-purchase-credit` dio origen al acuerdo del 2026-10-02 formalizando `LIFE_PURCHASE_CONFIRMED`; restan `life-holds-challenge-reservation` y `life-holds-expiration`.
@@ -190,9 +208,10 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
   2. `US7697__orders_cancellation_reason_check.sql` (T03): amplía la restricción `CHECK` de motivos de cancelación para admitir `CONFIRMATION_DEADLINE_EXCEEDED`.
   3. `US7697__orders_revoke_failed_flag.sql` (T05): agrega la bandera booleana `revoke_failed` en la tabla `orders`.
 - **Comunicar a Accounting** que las subastas usan un release por postor y no por `orderId` ([[DEC-014 - Reglas de subastas]]). Las ofertas superadas mantienen su hold hasta el cierre de la subasta.
-- **Acuerdos de compra de vidas del 2026-10-04**: validación preventiva del tope, `orderId` unificado y `LIFE_PURCHASE_REJECTED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). Implementados en Mercado; falta que Accounting publique `LIFE_PURCHASE_REJECTED` y confirmar cómo se emite el token de servicio.
+- **Acuerdos de compra de vidas del 2026-10-04**: validación preventiva del tope, `orderId` unificado y `LIFE_PURCHASE_REJECTED` ([[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-11 - Acuerdos de compra de vidas con Accounting]]). Implementados en Mercado; falta que Accounting publique `LIFE_PURCHASE_REJECTED`. El token de servicio quedó resuelto en el PR #139 (sección *Token de servicio para Accounting*).
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
+- Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07), el motivo de liberación como enum tipado se completó en el PR #115 (`5de30854`, US-5193 T08), y la consulta real de holds (`HttpBankHoldQueryClient`) con resolución de `HOLD_RELEASED` por `hold_id` se completó en el PR #116 (`e456c55f`, issue #114), y el token de servicio con `accounting.account.read` para las dos llamadas REST se completó en el PR #139 (`6926af1`, US-5193 T09, issue #126). El `order_id` UUID en `ITEM_CONFIRMED` ya está (US-7697 T02, PR #189, `develop@d3b7a4de`) ([[Roadmap de trabajo]]).
 - Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
 
 ## Relacionado

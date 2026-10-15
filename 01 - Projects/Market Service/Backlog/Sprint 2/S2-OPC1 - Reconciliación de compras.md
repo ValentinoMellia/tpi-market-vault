@@ -117,7 +117,7 @@ Relación: [[Estado actual del código]] (gaps 1, 3 y 20), [[Roadmap de trabajo]
 - Corrige el error de arranque por bean ausente
 - URL base por variable de entorno
 - Hecho cuando: con `market.messaging.transport=kafka` la aplicación arranca y el cliente consulta el hold
-- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Se implementó `HttpBankHoldQueryClient` con `@ConditionalOnProperty(name = "market.messaging.transport", havingValue = "kafka")`, consultando `GET /api/accounting/holds/{holdId}` mediante `gatewayRestClient` con token dinámico (`IdentityServiceTokenClient`), alias `camelCase` y `snake_case` (`@JsonAlias`), y timeouts configurables.
+- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Se implementó `HttpBankHoldQueryClient` con `@ConditionalOnProperty(name = "market.messaging.transport", havingValue = "kafka")`, consultando `GET /api/accounting/holds/{holdId}` mediante `gatewayRestClient` con token dinámico (entonces `IdentityServiceTokenClient`; desde el PR #139 el proveedor compartido con `accounting.account.read`), alias `camelCase` y `snake_case` (`@JsonAlias`), y timeouts configurables.
 
 Estimación: 6 h
 
@@ -151,6 +151,6 @@ Estimación: 6 h
 - Casos `COMMITTED` y `RELEASED`
 - Casos 404, 5xx y timeout sin romper el job
 - Hecho cuando: las pruebas de los cinco casos pasan en verde
-- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Cobertura completa en `HttpBankHoldQueryClientTest`, `IdentityServiceTokenClientTest`, `BankHoldReconciliationServiceImplTest` y `AccountingContractTest`.
+- **Estado:** Resuelta en `develop` (PR #116, `e456c55f`, issue #114). Cobertura completa en `HttpBankHoldQueryClientTest`, `IdentityServiceTokenClientTest` (eliminado con su clase en el PR #139), `BankHoldReconciliationServiceImplTest` y `AccountingContractTest`.
 
 Estimación: 4 h
