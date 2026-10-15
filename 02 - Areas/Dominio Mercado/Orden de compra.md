@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-025, codigo@d3b7a4de
-actualizado: 2026-10-12
+verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de
+actualizado: 2026-10-14
 tags: [mercado, dominio, orden, saga]
 ---
 # Orden de compra
@@ -55,7 +55,7 @@ stateDiagram-v2
 `PROCESSING` es solo el nombre HTTP de `CREATED`; nunca se persiste. Estados terminales: `CONFIRMED`, `REJECTED_INSUFFICIENT_FUNDS`, `REJECTED`, `CANCELLED`, `EXPIRED`. Los estados `ITEM_PROVISION_REQUESTED` ("esperando `ITEM_CREDITED`") e `ITEM_PROVISIONED` ("acreditado, esperando confirmación del hold") se mantienen como costuras internas para preservar la compatibilidad del esquema PostgreSQL sin alterar el enum (`ddl-auto=update` no modifica restricciones `CHECK`).
 
 ## Reglas de negocio
-- **Saga adoptada para ítems directos ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Se retiene el dinero (`HOLD_CREATED`), se emite `ITEM_CONFIRMED` hacia `market.events`, se espera en `ITEM_PROVISION_REQUESTED`, al recibir `ITEM_CREDITED` se transiciona a `ITEM_PROVISIONED` y se emite `HOLD_CONFIRM_REQUESTED`, y con `HOLD_CONFIRMED` pasa a `CONFIRMED`.
+- **Saga adoptada para ítems directos ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]):** Se retiene el dinero (`HOLD_CREATED`), se emite `ITEM_CONFIRMED` hacia `market.events` (despachado por `ItemProvisionDispatcher` en el PR #151, US-5193 T05), se espera en `ITEM_PROVISION_REQUESTED`, al recibir `ITEM_CREDITED` (procesado por `AccountingItemCreditedEventHandler` en el PR #151, US-5193 T06) se transiciona a `ITEM_PROVISIONED` y se emite `HOLD_CONFIRM_REQUESTED`, y con `HOLD_CONFIRMED` pasa a `CONFIRMED`.
 - **Plazos de confirmación y reconciliación:** Para compras directas de ítems, el plazo de corte para confirmar es `holdExpiresAt - 90 s`. El job de chequeo de deadlines (`purchase.confirmation-deadline.*`, habilitado por defecto, intervalo 15 s, lote de 50) consulta `GET /api/accounting/holds/{holdId}`:
   - `COMMITTED`: confirma la orden (`CONFIRMED`).
   - `PENDING` o `RELEASED`: ejecuta compensación atómica (`CONFIRMATION_DEADLINE_EXCEEDED`).
@@ -75,7 +75,7 @@ stateDiagram-v2
 - Rechazos posibles (`OrderRejectionReason`): 12 valores en total (PR #110, US-5193 T07, `f7457882`). Los 10 motivos contractuales de Accounting más `LIFE_CAP_REACHED` y el fallback `PROVISION_FAILED`. En todos los rechazos se libera el stock reservado (`releaseStockIfReserved`).
 
 ## Dónde vive en el código
-`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`, `reject`, `bankOrderId`, `markForReview`), `models/enums/OrderCancellationReason.java`, `models/enums/OrderReviewReason.java`, `models/enums/OrderRejectionReason.java`, `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `OrderConfirmationServiceImpl.java`, `PurchaseRollbackServiceImpl.java`, `ConfirmationDeadlinePolicy.java`, `ConfirmationDeadlineGuard.java`, `PurchaseReconciliationSupport.java`, `PurchaseReviewService.java`, `listeners/AccountingHoldKafkaListener.java`, `listeners/AccountingItemCreditedEventHandler.java`.
+`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`, `reject`, `bankOrderId`, `markForReview`), `models/enums/OrderCancellationReason.java`, `models/enums/OrderReviewReason.java`, `models/enums/OrderRejectionReason.java`, `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `ItemProvisionDispatcher.java`, `OrderConfirmationServiceImpl.java`, `PurchaseRollbackServiceImpl.java`, `ConfirmationDeadlinePolicy.java`, `ConfirmationDeadlineGuard.java`, `PurchaseReconciliationSupport.java`, `PurchaseReviewService.java`, `listeners/AccountingHoldKafkaListener.java`, `listeners/AccountingItemCreditedEventHandler.java`, `dtos/accounting/ItemCreditedPayloadDto.java`, `dtos/events/ItemConfirmedPayloadDto.java`.
 
 ## Relacionado
 [[Épica 137 - Compra directa]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Eventos y Kafka]], [[SSE]], [[Integración con Accounting]], [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].

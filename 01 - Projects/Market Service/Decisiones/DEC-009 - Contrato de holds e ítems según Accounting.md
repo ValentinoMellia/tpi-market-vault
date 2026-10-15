@@ -1,8 +1,8 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: accounting@develop-2026-10-01
-actualizado: 2026-10-01
+verificado_contra: accounting@develop-2026-10-01, codigo@966bdd00
+actualizado: 2026-10-14
 tags: [mercado, decision, accounting, contrato, hold]
 ---
 # DEC-009 - Contrato de holds e ítems según Accounting
@@ -44,6 +44,11 @@ Los detalles de campos están en [[Integración con Accounting]].
 - Tareas de código en [[Roadmap de trabajo]]: `orderRef` UUID como `orderId`, mapeo de todos los motivos de rechazo, `BankHoldQueryClient` real al integrarse la consulta, `HOLD_INCREASED` y envío del total nuevo (Fase 3).
 - El `ITEM_CONFIRMED` hacia `market.events` reemplaza a los mensajes `ITEM_PROVISION_*` de un inventario que no existe; su activación y flujo quedaron formalizados en [[DEC-025 - Saga de compra de ítems según la Propuesta C]].
 - Qué ve el estudiante ante cada motivo de rechazo queda por definir con producto.
+
+## Estado de implementación (2026-10-10)
+Nota de seguimiento, verificada contra `develop` en `966bdd00` (PR #151, US-5193 T05 y T06); no cambia la decisión:
+- La entrega de ítems mediante publicación de `ITEM_CONFIRMED` en `market.events` (despachada por `ItemProvisionDispatcher` con los 7 campos del contrato de Accounting y UUID `orderRef`) y el consumo de `ITEM_CREDITED` desde `accounting.events` (manejado por `AccountingItemCreditedEventHandler`, con correlación por `sourceReferenceId = order_id` y deduplicación transaccional en `processed_events`) quedaron implementados en `develop`.
+- `MockOrderEventPublisher` soporta el loopback asíncrono para desarrollo y pruebas, y `PurchaseOrderProposalCSagaIntegrationTest` cubre la saga completa.
 
 ## Notas afectadas
 [[Integración con Accounting]], [[Hold de monedas]], [[Eventos y Kafka]], [[Orden de compra]], [[Estado actual del código]], [[Subasta]], [[Roadmap de trabajo]], [[Taller de decisiones]], [[Decisiones - Índice]].
