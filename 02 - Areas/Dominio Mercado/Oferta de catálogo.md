@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: codigo@7528610
-actualizado: 2026-10-14
+verificado_contra: DEC-028
+actualizado: 2026-10-15
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -18,7 +18,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `courseId` | Curso al que pertenece |
 | `templateId`, `itemType` | Plantilla de origen y tipo |
 | `customName`, `description` | Nombre y descripción elegidos |
-| `coinPrice` | Precio en monedas (mínimo 1) |
+| `coinPrice` | Precio entero entre 1 y 999999 al crear o cambiar el precio; los antiguos superiores se conservan hasta cambiarlos ([[DEC-028 - Precio de oferta hasta 999.999 monedas]]; implementación local pendiente de integración) |
 | `totalStock`, `availableStock` | Stock total y disponible; `availableStock` nulo significa ilimitado ([[DEC-002 - Stock opcional por oferta]]) |
 | `active`, `deleted` | Disponibilidad |
 | `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). En el snapshot `7528610` solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]) |
@@ -30,6 +30,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 Se publica activa, puede editarse, activarse o desactivarse y vencer por `publicationExpiresAt`. La vitrina muestra solo las activas y no vencidas. Desde el PR #134 de `tpi-market` (`8b23425e`, T04 de [[S2-05 - Robustez de la compra]]), el detalle de una oferta vencida le responde 409 `catalog-offer-expired` al alumno, aunque siga con `active = true`; `ADMIN`, `GESTOR`, `MS` y el profesor asignado la siguen viendo (`services/impl/StorefrontCatalogServiceImpl.java`, `validateStudentAccess`).
 
 ## Reglas de negocio
+- Precio según [[DEC-028 - Precio de oferta hasta 999.999 monedas]]: al crear o cambiar, entero entre 1 y 999999 inclusive. Un precio antiguo superior se conserva al editar otros campos o cambiar el estado; omitirlo o enviar `null` conserva el guardado, pero enviarlo por encima del máximo se rechaza incluso si coincide con el actual. Implementación local en `tpi-market@b8aa60e6` (`entities/CourseCatalogOfferEntity.java`, `dtos/manage/CatalogOfferPublishDto.java`, `dtos/manage/CatalogOfferUpdateDto.java`), con seguimiento hasta `10d38e3c`; frontend `7395a8e8`, `7d256ff3`, `c2c9ff80` y evidencia hasta `3832a180`. Sin merge ni despliegue; detalle en [[Fix - Límite del precio de oferta y preview]]. El resto de esta nota conserva las verificaciones históricas contra `codigo@7528610` y los commits específicos indicados en cada sección.
 - El precio se congela al comprar en `appliedPrice` de la [[Orden de compra]].
 - Comprar descuenta stock de forma atómica si es finito y lo devuelve ante fallo.
 - Rechazos de compra: no encontrada (404), inactiva, sin stock o vencida (409). Ver [[Errores de la API]].

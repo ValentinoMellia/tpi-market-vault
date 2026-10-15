@@ -1,0 +1,6 @@
+## [2026-10-15] decision | Precio de oferta entre 1 y 999999 monedas
+- Registrada [[DEC-028 - Precio de oferta hasta 999.999 monedas]] a partir del plan de precio P2 aprobado el 2026-10-14 y los refinamientos humanos del 2026-10-14/15, sin pregunta previa ni cierre de preguntas existentes.
+- Creado [[Fix - Límite del precio de oferta y preview]] con evidencia verificada por el coordinador: backend `b8aa60e6`, `94c94c28`, `a3b815da`, `10d38e3c`; frontend `7395a8e8`, `7d256ff3`, `c2c9ff80` y ODD hasta `3832a180`. Se distinguen verificaciones locales, aceptación parcial, QA manual e integración pendientes; sin publicación, merge, despliegue ni aceptación en producción.
+- Actualizados [[Decisiones - Índice]], [[Oferta de catálogo]] y las menciones anteriores del mínimo en [[S2-03 - Reglas de la tienda]] y [[S2-OPC2 - Frontend de gestión del profesor]], preservando las demás verificaciones históricas y los estados de tareas. No se modificó Taiga.
+- Generados localmente `index.md` y `log.md` mediante `node scripts/generate-index.mjs`, sin edición manual ni inclusión en el commit.
+- Validación local: `node scripts/lint-vault.mjs` terminó con exit 0: `Notas revisadas: 129 (archivos totales: 275)` y `Lint OK: sin errores.`; `git diff --check` sin errores.
