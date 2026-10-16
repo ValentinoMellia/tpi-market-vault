@@ -28,4 +28,4 @@ Hay once decisiones abiertas (D-1 a D-11), por ejemplo si se permite un solo boo
 ## Impacto
 Cualquier tipo nuevo exige que accounting lo reconozca: hoy su catálogo acepta solo `ITEM-PLACEHOLDER-1` a `3` ([[Integración con Accounting]], recomendación D10 en [[Taller de decisiones]]) y no tiene lógica de efectos más allá de `SHIELD`.
 
-Relacionada: [[Plantilla base]], [[Meta colectiva (Colecta)]].
+Relacionada: [[Plantilla base]], [[Meta colectiva]].

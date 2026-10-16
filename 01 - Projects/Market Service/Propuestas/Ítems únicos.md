@@ -24,4 +24,4 @@ Un concepto de ítem distinto de los cuatro tipos soportados hoy ([[Tipos de ite
 Mientras la propuesta no se apruebe, las subastas del Sprint 3 ofrecen ítems regulares del catálogo ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], que cerró [[Q-017 - Qué se subasta mientras no existan ítems únicos]]). El motor de subastas no depende del tipo de ítem, así que los únicos podrían sumarse luego como otro tipo subastable.
 
 ## Relacionado
-[[Cofres y nuevos ítems]], [[Meta colectiva (Colecta)]], [[Épica 577 - Subastas]], [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]].
+[[Cofres y nuevos ítems]], [[Meta colectiva]], [[Épica 577 - Subastas]], [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]].

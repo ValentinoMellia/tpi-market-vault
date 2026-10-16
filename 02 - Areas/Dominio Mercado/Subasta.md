@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-09
+actualizado: 2026-10-15
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
@@ -141,6 +141,8 @@ Pueden ofertar los estudiantes del curso y cohorte donde se da la subasta. La pe
 ### Contrato con Accounting
 Todo viaja por Kafka en `accounting.events`, con `orderId` = id de la subasta.
 
+Varias piezas se comparten con la meta colectiva y conviene construirlas una sola vez: `HOLD_INCREASE` en Mercado, la extensión del vencimiento de los holds, el job de cierre, la correlación para entidades que no son órdenes y escuchar `COURSE_COHORT_ARCHIVED`. Ver [[Meta colectiva#Qué sirve también para subastas]].
+
 ```mermaid
 sequenceDiagram
     participant E as Estudiante
@@ -192,4 +194,4 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 No existe.
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]].
+[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].

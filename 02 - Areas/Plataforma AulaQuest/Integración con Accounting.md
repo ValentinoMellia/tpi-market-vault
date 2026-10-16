@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, DEC-027, codigo@966bdd00, codigo@d3b7a4de, accounting@develop-2026-10-01
-actualizado: 2026-10-14
+verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd
+actualizado: 2026-10-15
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -25,6 +25,7 @@ Actualización (2026-10-12): la integración de la saga de compra directa de ít
 | [[DEC-014 - Reglas de subastas]] | Un release por postor al cancelar o cerrar una subasta; sin release por `orderId` |
 | [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | Adopta la Propuesta C para compra directa de ítems: retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación simétrica con `ITEM_REVOKE_REQUESTED` ante fallos o plazos vencidos; cierra [[Q-008 - Orden de la saga de compra]] |
 | [[DEC-027 - Las cargas del ítem las decide el profesor]] | `maxCharges` de `ITEM_CONFIRMED` son las cargas que configura el profesor en la oferta |
+| [[DEC-029 - Meta colectiva]] | Holds `COLLECTIVE_PURCHASE` con `order_id` = `goal_ref`, cobro atómico en lote antes de la entrega, devoluciones de a un hold y un comando para extender el vencimiento (ver «Meta colectiva») |
 
 Esta nota reemplaza a las antiguas "Integración con Banco" e "Integración con Inventario" (archivadas), porque [[DEC-001 - Accounting es dueño del inventario]] fusionó ambas responsabilidades en un solo equipo.
 
@@ -186,12 +187,54 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 
 - La consulta REST del estado de un hold de monedas (`GET /api/accounting/holds/{holdId}`) fue integrada en Mercado mediante `HttpBankHoldQueryClient` (PR #116, `e456c55f`). Accounting exige `accounting.account.read` en esa ruta desde su PR #205 (`equip-summary` todavía no); Mercado envía ese scope desde el PR #139 (sección *Token de servicio para Accounting*). Resta validar la ruta y el token en el despliegue integrado con el Gateway.
 - `equip-summary` está encendido en la configuración de producción de Accounting: `app.inventory.queries.enabled=true` en `application-prod.properties` desde el PR #202 de tpi-accounting (`37bc705d`, 2026-10-10); el `false` queda solo en su perfil base. En Mercado el cliente real sigue apagado por defecto (`MARKET_ACCOUNTING_CLIENT=mock`).
-- El listener de comandos de hold está apagado por defecto (`app.holds.commands.enabled=false` y `accounting.messaging.consumers-enabled=false`). La documentación del equipo afirma que no se puede encender sin un `HoldReplyResender` de producción; esa afirmación está en disputa.
-- `PURCHASE_CONFIRMED` no lo consume nadie; `AccountCoinReservationsPort` no está implementado.
+- Comandos de hold (verificado en `tpi-accounting@8f11dbd`, 2026-10-14):
+  - `app.holds.commands.enabled=true` en el perfil base.
+  - El listener común (`accounting.messaging.consumers-enabled`) vale `false` en el repositorio, pero la plataforma lo prende con `KAFKA_CONSUMERS_ENABLED=true`.
+- `PURCHASE_CONFIRMED` no lo consume nadie.
+- `AccountCoinReservationsPort` ya está implementado (`CoinHoldDeactivationAdapter`): la baja de un alumno y el archivado del curso liberan los holds `PENDING` con `ACCOUNT_DEACTIVATED`.
 - Ramas sin integrar en Accounting: la rama `lives-purchase-credit` dio origen al acuerdo del 2026-10-02 formalizando `LIFE_PURCHASE_CONFIRMED`; restan `life-holds-challenge-reservation` y `life-holds-expiration`.
 - Se necesita un reembolso que hoy no existe (ver D6 en [[Taller de decisiones]]).
 - **Revocación de ítems no ratificada ni desplegada:** Accounting no tiene aún implementado el consumidor de `ITEM_REVOKE_REQUESTED` ni las respuestas `ITEM_REVOKED` / `ITEM_REVOKE_FAILED`.
 - **Falta de evento de error de crédito:** Accounting manda al DLT sin evento cuando falla la acreditación de ítems; `ITEM_CREDIT_FAILED` es una propuesta de Mercado aún no ratificada.
+
+## Meta colectiva
+Flujo acordado en [[DEC-029 - Meta colectiva]] (detalle en [[Meta colectiva]]). Lo que sigue sin acordar está en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]].
+
+**Mapa de tópicos actual** (verificado el 2026-10-14):
+- **Fuentes:** `tpi-market@8303981c`, `tpi-accounting@8f11dbd`, el `event-bus/init-topics.sh` de `tpi-system-compose@ca440ef` y `tpi-notifications@f42a96d`. Entre `8303981c` y `ac05a77f` no cambió nada de mensajería.
+- **Tópicos:** los dos existen con 3 particiones y su `.DLT`. El cable va en `snake_case`.
+- **Keys:** Accounting no usa la key de lo que recibe; solo define el orden dentro de la partición.
+
+| Tópico | Publica → Consume | Qué viaja | Key |
+|---|---|---|---|
+| `accounting.events` | Mercado → Accounting | Comandos de hold (`HOLD_*_REQUESTED`) | `student_id` (la que pone el relay en las filas de orden sin `message_key`) |
+| `accounting.events` | Accounting → Mercado (un solo listener, que ignora lo que publicó Mercado) | Respuestas de hold, `HOLD_EXPIRED`, `ITEM_CREDITED`, `BALANCE_*` | `student_id:course_id` (`AccountingKey`) |
+| `market.events` | Mercado → Accounting | `ITEM_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` | `student_id` |
+| `courses.events` | Cursos → Accounting (Mercado no lo escucha) | `STUDENT_UNENROLLED`, `COURSE_COHORT_ARCHIVED` | — |
+
+**Mensajes de la meta** (todos por `accounting.events`, salvo `ITEM_CONFIRMED`):
+
+| Paso | Mensaje | Campos |
+|---|---|---|
+| Primer aporte | `HOLD_CREATE_REQUESTED` (existe) | `order_id = goal_ref`, `order_type = COLLECTIVE_PURCHASE` (nuevo), `amount` y `ttl_seconds`, que es obligatorio para lo que no es compra directa y no tiene máximo |
+| Aportes siguientes | `HOLD_INCREASE_REQUESTED` (existe en Accounting) | `hold_id`, `new_total_amount`; Accounting lo habilita para `COLLECTIVE_PURCHASE` |
+| Meta cumplida o pérdida | `COLLECTIVE_PURCHASE_CONFIRM_REQUESTED` (nuevo) | `order_id`, `course_id`, `expected_hold_ids`, `expected_total_amount`, `settlement` (`GOAL_REACHED` o `GOAL_FORFEITED`) |
+| Devolución | `HOLD_RELEASE_REQUESTED` (existe) | `hold_id`, `release_reason` (motivos nuevos para la meta) |
+| Extender el cierre | Comando nuevo de Accounting (D20) | `order_id`, `new_expires_at` |
+| Entrega | `ITEM_CONFIRMED` (existe, por `market.events`) | Uno por aportante, con `order_id = goal_ref` |
+
+- **Key de los mensajes colectivos:** se acordó `course_id:order_id`. Cambia la `AccountingKey` del AsyncAPI de Accounting, así que necesita el visto bueno de Tema 11.
+- **Orden de los pasos:** a diferencia de la compra directa ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]), la meta cobra antes de entregar, porque Accounting no atiende `ITEM_REVOKE_REQUESTED` ni emite `ITEM_CREDIT_FAILED`. Una entrega fallida se detecta por plazo.
+- **Qué hace Accounting:**
+  - El tipo de orden, `increaseHold` (en el servicio y en `CoinHoldEntity.increaseTo`) y los dos tipos de débito, incluidos en `CoinLedgerEventType.resolveFrom` y `CoinsLedgerEntryEntity.validateSign`. Esos tres lugares compilan sin el cambio, pero fallan al ejecutar.
+  - Los motivos de liberación aceptados desde Mercado, el cobro atómico y el comando de extensión.
+- **Qué hace Mercado:**
+  - `ttl_seconds` en `BankHoldRequestDto`.
+  - Publicar `HOLD_INCREASE_REQUESTED` y procesar `HOLD_INCREASED`.
+  - Una correlación de respuestas que no asuma un id de orden `Long`.
+  - `message_key` explícito para las filas de la meta.
+  - Buscar el `hold_id` también en los aportes.
+  - Escuchar `courses.events` para `COURSE_COHORT_ARCHIVED`.
 
 ## Acuerdos y tareas pendientes
 
@@ -212,7 +255,7 @@ El listener de `accounting.events` (`listeners/AccountingHoldKafkaListener.java`
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
 - Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07), el motivo de liberación como enum tipado se completó en el PR #115 (`5de30854`, US-5193 T08), la consulta real de holds (`HttpBankHoldQueryClient`) con resolución de `HOLD_RELEASED` por `hold_id` se completó en el PR #116 (`e456c55f`, issue #114), el token de servicio con `accounting.account.read` para las dos llamadas REST se completó en el PR #139 (`6926af1`, US-5193 T09, issue #126), y la emisión de `ITEM_CONFIRMED` mediante `ItemProvisionDispatcher` y el consumo de `ITEM_CREDITED` con avance de orden se completaron en el PR #151 (`966bdd00`, US-5193 T05 y T06). El `order_id` UUID en `ITEM_CONFIRMED` ya está (US-7697 T02, PR #189, `develop@d3b7a4de`) ([[Roadmap de trabajo]]).
-- Propuestas que exigen cambios en accounting: [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
+- Propuestas que exigen cambios en accounting: [[Cofres y nuevos ítems]]. La meta colectiva ya está decidida ([[DEC-029 - Meta colectiva]], sección «Meta colectiva»).
 
 ## Relacionado
 [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Eventos y Kafka]], [[Hold y escrow]], [[Orden de compra]], [[Hold de monedas]], [[Tipos de item]], [[Épica 131 - Inventario (otro equipo)]], [[Mapa de servicios]].
