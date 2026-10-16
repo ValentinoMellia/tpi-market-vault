@@ -1,0 +1,5 @@
+## [2026-10-16] decision | Los ítems no tienen vigencia después de la compra
+- Registrada [[DEC-029 - Los ítems no tienen vigencia después de la compra]] a partir de la confirmación de Accounting y del equipo de Mercado del 2026-10-15, sin pregunta previa; refuerza [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] y no reabre [[Q-014 - Vencimiento de items]].
+- Verificado en lectura: `tpi-market@ac05a77f` no tiene el campo en `src/main` (lo quitó `fda3fca4`) y Accounting (`develop@b339d205`) no modela vigencia de ítems. El frontend lo sigue mostrando; su retiro (Task #9330) está en la rama `fix/tema-09-remove-item-validity`, pendiente de PR.
+- Actualizados [[Decisiones - Índice]], [[Vencimiento de items]], [[Oferta de catálogo]], [[Épica 770 - Vencimiento de items]] y el gap 15 de [[Estado actual del código]]. Las notas históricas de los sprints conservan su texto. No se modificó Taiga.
+- Generados localmente `index.md` y `log.md` mediante `node scripts/generate-index.mjs`, sin edición manual ni inclusión en el commit.

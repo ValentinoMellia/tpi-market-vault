@@ -1,13 +1,13 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-012
-actualizado: 2026-10-05
+verificado_contra: DEC-029, DEC-012
+actualizado: 2026-10-16
 tags: [mercado, dominio, vencimiento]
 ---
 # Vencimiento de items
 
-> Los ítems del inventario **no vencen** ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). Lo que sí vence es la publicación de una [[Oferta de catálogo]] (`publicationExpiresAt`). El campo `itemValidityDays` es un residuo que se debe quitar del código.
+> Los ítems del inventario **no vencen** y no tienen vigencia después de la compra ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], confirmada por [[DEC-029 - Los ítems no tienen vigencia después de la compra]]). Lo que sí vence es la publicación de una [[Oferta de catálogo]] (`publicationExpiresAt`). El campo `itemValidityDays` ya no existe en el backend y se retira del frontend.
 
 ## Qué representa
 Esta nota distingue dos vencimientos que se confundían:
@@ -23,14 +23,14 @@ La intención original era una regla opcional por oferta (fecha fija o 1 a 180 d
 | Campo | Significado |
 |---|---|
 | `publicationExpiresAt` | Vencimiento de la publicación de la oferta |
-| `itemValidityDays` | Residuo: la función entró en el PR #44 y se revirtió en el PR #60; el campo se guarda pero **nunca se envía a accounting**. Se quita ([[Roadmap de trabajo]]) |
+| `itemValidityDays` | Retirado. La función entró en el PR #44 y se revirtió en el PR #60; el backend lo quitó de `src/main` en `fda3fca4` (Task 5229, US-5225) y descarta `item_validity_days` si llega (201). La columna `course_catalog_offers.item_validity_days` queda nula y sin uso. El formulario del frontend lo seguía mostrando; [[DEC-029 - Los ítems no tienen vigencia después de la compra]] lo retira |
 
 ## Reglas de negocio
 - Los ítems en el inventario nunca vencen. Accounting, dueño del inventario, no modela vencimiento ([[Integración con Accounting]], [[DEC-001 - Accounting es dueño del inventario]]).
 - Las vidas tampoco vencen.
 
 ## Dónde vive en el código
-`entities/CourseCatalogOfferEntity.java` (`itemValidityDays`, a quitar).
+Ya no vive en el código de `src/main` de `tpi-market` (verificado en `ac05a77f`). La publicación de la oferta se guarda en `publicationExpiresAt` de `entities/CourseCatalogOfferEntity.java`.
 
 ## Relacionado
 [[Épica 770 - Vencimiento de items]] (descartada), [[Oferta de catálogo]].
