@@ -48,7 +48,7 @@ Estos puntos siguen abiertos. Son propuestas del diseño, no reglas:
   - **Monedas:** hoy Banco solo reserva y cobra. Falta un contrato para que Mercado pida acreditar monedas a un alumno, con idempotencia por orden.
   - **XP:** no está identificado qué servicio es dueño del XP. Hay que averiguarlo y acordar cómo se acredita.
 
-  Esto amplía la task T02 #8427, que solo nombra a Accounting.
+  Por eso la task T02 #8427 se amplió el 2026-10-16: en Taiga recibió un comentario con este alcance y su título ahora suma a Banco y al dueño del XP.
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Cambia la entrega, que depende de la clase de premio que salió. El sorteo tiene que guardarse en la orden, para que un reintento no vuelva a sortear.
 - **Código.** Nada cambia hasta que la task T03 #8428 decida avanzar. Hoy no existe ningún tipo `CHEST` en `models/enums/ItemType.java`.
 - **Frontend.** La pantalla del profesor suma premios de monedas y de XP junto a las ofertas. La vista del alumno muestra cada premio con su probabilidad.
