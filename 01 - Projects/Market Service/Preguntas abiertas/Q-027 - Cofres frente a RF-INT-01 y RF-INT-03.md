@@ -1,11 +1,11 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: codigo@ac05a77f
+estado: archivado
+verificado_contra: DEC-031
 actualizado: 2026-10-16
-tags: [mercado, pregunta-abierta, cofres, prd]
+tags: [mercado, pregunta-archivada, cofres, prd]
 ---
-# Q-026 - Cofres frente a RF-INT-01 y RF-INT-03
+# Q-027 - Cofres frente a RF-INT-01 y RF-INT-03
 
 > La propuesta de [[Cofres y nuevos ítems]] choca con dos requisitos del PRD sobre el uso de las monedas. El PO tiene que decir si RF-INT-01 sigue igual y si un cofre que solo da vidas o equipamiento cuenta como compra directa. Hasta que responda, rige el PRD y los cofres no avanzan.
 
@@ -56,4 +56,4 @@ El PO. Patricio le lleva la pregunta en persona (task T01 #8426 de la US-8400). 
 Fuera de esta pregunta: los catorce tipos de ítem nuevos de la propuesta, los ítems `COSMETIC` (US-8401) y la posible tensión entre `BOOST_COINS` y RF-INT-01.
 
 ## Resolución
-Pendiente.
+Archivada el 2026-10-16. El PO (Santoro) no siguió la recomendación: aprobó en persona, el 2026-10-12 en una charla con Kimmel, que los cofres puedan dar monedas y XP. El equipo definió que el cofre es totalmente configurable por el profesor. Registrado en [[DEC-031 - Cofres configurables con ítems, monedas y XP]].

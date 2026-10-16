@@ -1,0 +1,4 @@
+## [2026-10-16] decision | DEC-031, cofres configurables con ítems, monedas y XP
+- Registrada [[DEC-031 - Cofres configurables con ítems, monedas y XP]]. El PO (Santoro) aprobó en persona, el 2026-10-12 en una clase de MSI II y en charla con Kimmel, que los cofres puedan dar monedas y XP. El 2026-10-16 el equipo definió el cofre como totalmente configurable por el profesor: la rareza de ítems y monedas se sugiere por precio, y la del XP la elige el profesor.
+- Archivada [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]]. [[Cofres y nuevos ítems]] vuelve a `borrador`. Actualizados [[Decisiones - Índice]], [[Market Service - Overview]] y [[Roadmap de trabajo]].
+- Se usa DEC-031 porque DEC-029 ya está tomada por la meta colectiva y la PR #49, todavía abierta, necesita un número propio (DEC-030).

@@ -1,6 +1,6 @@
 ---
 tipo: guia
-estado: en-disputa
+estado: borrador
 verificado_contra: equipo-propuestas@2026-09-30
 actualizado: 2026-10-16
 tags: [mercado, propuesta, cofres, items]
@@ -15,7 +15,7 @@ Una plantilla `CHEST` con un conjunto de premios ponderados (peso por premio) y 
 ## Conflicto con el PRD
 Contradice RF-INT-01 (las monedas solo se usan para vidas o equipamiento y nunca se obtienen por intercambio) y RF-INT-03. Por la jerarquía de verdad el PRD prevalece sobre una propuesta, así que los cofres con monedas no pueden avanzar sin una decisión explícita del PO.
 
-La pregunta para el PO está en [[Q-026 - Cofres frente a RF-INT-01 y RF-INT-03]]: separa los cofres que dan monedas, los que dan XP y los que solo dan vidas o equipamiento, porque cada variante se lleva distinto con el PRD. Hasta que el PO responda, rige el PRD.
+Resuelto en [[DEC-031 - Cofres configurables con ítems, monedas y XP]], a partir de [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]]: el PO aprobó cofres que pueden dar ítems, monedas o XP, configurados por el profesor. Para los cofres, RF-INT-01 deja de aplicarse. El resto de la propuesta (tipos de ítem nuevos y las decisiones D-1 a D-11) sigue sin acordar.
 
 ## Ideas de nuevos items
 `HINT`, `AI_ASSIST`, `FIFTY_FIFTY`, `TEST_REVEAL`, `SOLUTION_UNLOCK`, `BONUS_CHALLENGE`, `STREAK_FREEZE`, `RECOVERY_REROLL`, `EXTRA_TIME`, `LATE_PASS`, `GOAL_INSURANCE`, `AUCTION_ALERT`, `COSMETIC`, `KUDOS`.
