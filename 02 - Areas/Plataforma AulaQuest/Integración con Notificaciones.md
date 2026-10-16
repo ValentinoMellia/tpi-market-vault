@@ -2,7 +2,7 @@
 tipo: integracion
 estado: vigente
 verificado_contra: equipo-notificaciones@2026-10-04
-actualizado: 2026-10-05
+actualizado: 2026-10-15
 tags: [mercado, integracion, notificaciones]
 ---
 # Integración con Notificaciones
@@ -37,6 +37,7 @@ Verificado en la rama `develop` de `tpi-notifications` el 2026-10-04 (PR #67, de
 - Alinear el evento de ofertas nuevas: Notificaciones espera `TRADE_ITEM_PUBLISHED` con su propio payload y la lista de destinatarios; Mercado decidió publicar `CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED` solo con `courseId`, y que Notificaciones resuelva los alumnos con Cursos ([[DEC-018 - Aviso de ofertas nuevas]], #1052).
 - Avisarles que el productor de Mercado es `market-service` y no `tema-09-...` ([[DEC-008 - Nombre de productor y tópicos de Mercado]]). Hoy no validan ese campo.
 - Ya no hay aviso de vencimiento de ítems: los ítems no vencen ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
+- **Meta colectiva** ([[DEC-029 - Meta colectiva]]): faltan tipos de evento para la publicación, el aviso de 24 h y el resultado. En `tpi-notifications@f42a96d` (2026-10-14), `MarketEventsListener` acepta solo `TRADE_ITEM_PUBLISHED` y `AUCTION_STARTED`/`CLOSED`/`CANCELLED`, y espera la lista de destinatarios (`student_user_ids`). Por eso Mercado necesita además la lista de alumnos de [[Integración con Cursos|Cursos]].
 
 ## Relacionado
 [[Eventos y Kafka]], [[Roadmap de trabajo]], [[Contrato de avisos de compra]].

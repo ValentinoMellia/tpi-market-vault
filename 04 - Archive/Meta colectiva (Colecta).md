@@ -1,13 +1,27 @@
 ---
 tipo: guia
-estado: borrador
+estado: archivado
 verificado_contra: equipo-propuestas@2026-09-30
-actualizado: 2026-10-01
-tags: [mercado, propuesta, colecta]
+actualizado: 2026-10-15
+tags: [mercado, propuesta, colecta, archivo]
 ---
 # Meta colectiva (Colecta)
 
-> Propuesta: los estudiantes juntan monedas entre todos para conseguir un item que define el profesor. **No está aprobada por el PO** y no hay código.
+> Propuesta anterior de Mercado, archivada: la reemplaza [[DEC-029 - Meta colectiva]], con el detalle en [[Meta colectiva]]. Se conserva como registro de lo que se propuso el 2026-09-30.
+
+## Motivo del archivo
+- El equipo la descartó el 2026-10-14 por desactualizada y sin verificar contra el código.
+- Varias de sus afirmaciones sobre Accounting ya no son ciertas: Accounting sí vence los holds, sí los libera ante la baja de una cuenta y ya publica `ITEM_CONFIRMED` con `order_id` UUID.
+- [[DEC-029 - Meta colectiva]] cambió reglas centrales:
+  - Si la meta falla, por defecto se devuelve todo (la pérdida es opcional).
+  - Puede dar un beneficio externo.
+  - Usa el id de la meta como `order_id` para todos los holds.
+  - Cobra en un solo paso atómico.
+  - Agrega un comando para extender el vencimiento de los holds.
+
+---
+
+Contenido original de la propuesta:
 
 ## Idea en una línea
 El profesor define un item, un monto objetivo y una fecha de cierre; los estudiantes aportan monedas. Si se alcanza la meta, todos los que aportaron reciben el item y se les cobra; si no, los aportantes pierden un porcentaje (`forfeitPercent`, por defecto 100) y nadie recibe el item.

@@ -64,4 +64,4 @@ Confirmadas: D7 ([[DEC-008 - Nombre de productor y tópicos de Mercado]]), D8 y 
 | T6 | El vencimiento de la publicación no se extiende: se publica una oferta nueva | **Modificada** en [[DEC-013 - Reglas de la tienda]]: `publicationExpiresAt` sí puede extenderse (reemplaza la recomendación) | [[Q-015 - Reglas de la tienda]] (archivada) |
 
 ## Relacionado
-[[Decisiones - Índice]], [[Roadmap de trabajo]], [[Integración con Accounting]], [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]].
+[[Decisiones - Índice]], [[Roadmap de trabajo]], [[Integración con Accounting]], [[Meta colectiva]], [[Cofres y nuevos ítems]].
