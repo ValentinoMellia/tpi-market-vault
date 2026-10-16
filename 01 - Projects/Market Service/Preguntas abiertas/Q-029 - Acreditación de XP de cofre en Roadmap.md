@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: roadmap@c7d60f9
+estado: archivado
+verificado_contra: DEC-033
 actualizado: 2026-10-16
-tags: [mercado, pregunta-abierta, cofres, roadmap, xp]
+tags: [mercado, pregunta-archivada, cofres, roadmap, xp]
 ---
 # Q-029 - Acreditación de XP de cofre en Roadmap
 
@@ -44,4 +44,4 @@ Roadmap (Tema 10). Patricio les lleva la pregunta (task T02 #8427 de la US-8400)
 5. ¿El XP de cofre se multiplica por un `BOOST_XP` activo? La propuesta original del equipo sugería que no: es XP de recompensa, no de desafío.
 
 ## Resolución
-Pendiente.
+Archivada el 2026-10-16. Roadmap aceptó la opción 1: `challenge_id` opcional, `source_type` (`MARKET_CHEST`) y `reference_id` con el `order_id`, por evento en `market.events`. El XP de cofre cuenta para el nivel, el ranking y las insignias de umbral, no para el avance académico, y un `BOOST_XP` no lo multiplica. Mercado definió que no hay evento de respuesta y que el XP va a la cohorte de la orden. Registrado en [[DEC-033 - Acreditación de XP de cofre en Roadmap]].

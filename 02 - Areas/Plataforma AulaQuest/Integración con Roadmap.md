@@ -1,13 +1,13 @@
 ---
 tipo: integracion
-estado: borrador
-verificado_contra: roadmap@c7d60f9
+estado: vigente
+verificado_contra: roadmap@c7d60f9, DEC-033
 actualizado: 2026-10-16
 tags: [mercado, integracion, roadmap, xp]
 ---
 # Integración con Roadmap
 
-> Roadmap (Tema 10) es el dueño del XP, el nivel, el ranking y las insignias del alumno. Hoy Mercado no intercambia nada directo con Roadmap. La relación aparece con los cofres que dan XP ([[DEC-031 - Cofres configurables con ítems, monedas y XP]]) y todavía no está acordada ([[Q-029 - Acreditación de XP de cofre en Roadmap]]).
+> Roadmap (Tema 10) es el dueño del XP, el nivel, el ranking y las insignias del alumno. Hoy Mercado no intercambia nada directo con Roadmap. La relación aparece con los cofres que dan XP ([[DEC-031 - Cofres configurables con ítems, monedas y XP]]), y el contrato quedó acordado en [[DEC-033 - Acreditación de XP de cofre en Roadmap]].
 
 ## Equipo y responsabilidad
 Servicio `roadmap-service` (repositorio `2026-P4-BE/tpi-roadmap`). Datos verificados contra `c7d60f9` (2026-10-14):
@@ -31,15 +31,17 @@ Según [[Mapa de servicios]], también le pide a Accounting equipar y desequipar
 | Dirección | Mecanismo | Mensaje / endpoint | Para qué |
 |---|---|---|---|
 | — | — | — | Hoy no hay comunicación directa |
-| Mercado → Roadmap (propuesto) | Kafka, `market.events` | Acreditación de XP de un cofre, idempotente por `orderId` | Entregar un premio de XP ([[Q-029 - Acreditación de XP de cofre en Roadmap]]) |
+| Mercado → Roadmap (acordado, sin implementar) | Kafka, `market.events` | Acreditación de XP de un cofre, idempotente por `event_id` y `order_id`; sin respuesta | Entregar un premio de XP ([[DEC-033 - Acreditación de XP de cofre en Roadmap]]) |
 
 ## Estado actual en el código
 - Mercado no tiene cliente ni evento hacia Roadmap.
 - Roadmap registra XP solo desde resultados de desafíos (`services/ProgressService.java`, consumidos por `events/RoadmapEventListener.java`). No escucha `market.events`.
 
+## Acuerdos
+- XP de cofre ([[DEC-033 - Acreditación de XP de cofre en Roadmap]], a partir de [[Q-029 - Acreditación de XP de cofre en Roadmap]]): Roadmap suma `source_type` y `reference_id` a `xp_movement` y escucha `market.events`. El XP suma al nivel, al ranking y a las insignias de umbral, no al avance académico, y no lo multiplica un `BOOST_XP`. Sin evento de respuesta: las fallas van a `market.events.DLT`.
+
 ## Acuerdos pendientes
-- Fuente nueva de XP para los cofres, canal e idempotencia: [[Q-029 - Acreditación de XP de cofre en Roadmap]].
-- Si el XP de cofre cuenta para el nivel, el ranking, el progreso de grupo y las insignias.
+- Nombre y payload del evento, al implementar (task T03 #8428 si los cofres avanzan).
 
 ## Relacionado
 [[DEC-032 - Sorteo y reglas de configuración de los cofres]], [[Cofres y nuevos ítems]], [[Integración con Accounting]], [[Mapa de servicios]].
