@@ -35,7 +35,7 @@ Origen sin pregunta `Q-NNN`: US #9323 / Task #9331 de Taiga. Plan de publicació
 - Ninguna oferta sigue disponible después del corte: nuevas, existentes, pausadas, reiniciadas, reactivadas y sin plazo propio. El fin de cohorte vence de forma definitiva también las pausadas con saldo.
 - Decisión 17 (cambio de `end_date` en Cursos): cada oferta guarda el corte vigente al configurarla y el límite efectivo es el menor entre ese corte guardado y el fin actual que devuelve Cursos. Si Cursos adelanta el fin, el corte nuevo rige de inmediato al consultar la cohorte con `GET /course-cohorts/{id}`. Si lo extiende, las ofertas vigentes conservan su límite hasta que el profesor guarda una edición desde el formulario; las vencidas siguen vencidas.
 - Decisión 18: una oferta sin duración propia (fecha fija heredada o "hasta fin de cohorte") no admite reinicio. El formulario no muestra la pregunta y el backend rechaza `restart_publication: true` con 400 `offer-update-not-allowed`. Para dar más tiempo se cambia la duración.
-- Ofertas existentes: no se inventa una duración a partir de `createdAt` o `updatedAt`. Activa con fecha futura: conserva la fecha como vencimiento fijo y, al pausarla, congela el saldo. Inactiva con fecha futura: saldo congelado igual a la fecha menos el momento de la migración, que corre al activarla. Fecha pasada: vencida definitiva. Sin fecha: hasta fin de cohorte. La migración `V6__offer_publication_duration.sql` es solo aditiva (cinco columnas nulables y dos `CHECK`), sin borrar ni reescribir datos.
+- Ofertas existentes: no se inventa una duración a partir de `createdAt` o `updatedAt`. Activa con fecha futura: conserva la fecha como vencimiento fijo y, al pausarla, congela el saldo. Inactiva con fecha futura: saldo congelado igual a la fecha menos el momento de la migración, que corre al activarla. Fecha pasada: vencida definitiva. Sin fecha: hasta fin de cohorte. La migración `V7__offer_publication_duration.sql` es solo aditiva (cinco columnas nulables y dos `CHECK`; era V6 y se renumeró a V7 porque `develop` ya tiene `V6__goal_notifications.sql`), sin borrar ni reescribir datos.
 
 ### Llamadas a Cursos (decisión 19)
 
@@ -68,15 +68,15 @@ Origen sin pregunta `Q-NNN`: US #9323 / Task #9331 de Taiga. Plan de publicació
 
 ## Consecuencias
 
-- Backend (`tpi-market`, rama `feature/tema-09-offer-publication-duration` desde `develop@99866f45`, sin commit): migración V6, campos nuevos en `entities/CourseCatalogOfferEntity.java`, `OfferPublicationPolicy`, `OfferPublicationAvailability`, `OfferPublicationEditor`, `CohortCutoffResolver`, `CourseCohortClient.findCohortEndDate`, DTO de publicación y edición, `GlobalExceptionHandler` y `docs/api_doc/swagger.json`.
-- Frontend (`2026-PIV-TPI-FE`, rama `feature/tema-09-offer-publication-duration` desde `develop@5992bd2c`, sin commit): `src/app/features/marketplace/**` e i18n.
+- Backend (`tpi-market`, rama `feature/tema-09-offer-publication-duration`, PR [#230](https://github.com/2026-P4-BE/tpi-market/pull/230) sin merge, al día con `develop`): migración V7, campos nuevos en `entities/CourseCatalogOfferEntity.java`, `OfferPublicationPolicy`, `OfferPublicationAvailability`, `OfferPublicationEditor`, `CohortCutoffResolver`, `CourseCohortClient.findCohortEndDate`, DTO de publicación y edición, `GlobalExceptionHandler` y `docs/api_doc/swagger.json`.
+- Frontend (`2026-PIV-TPI-FE`, rama `feature/tema-09-offer-publication-duration`, PR [#698](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/698) sin merge): `src/app/features/marketplace/**` e i18n.
 - No cambian Cursos, Accounting, el UI Kit, los contratos con otros servicios ni el reloj global (`ClockConfig`).
 
 ## Evidencia y pendientes (2026-10-17)
 
 - Backend: `mvnw -B verify` BUILD SUCCESS con 4370 tests, 0 fallas, 17 omitidos que requieren Docker, Checkstyle y PMD limpios; `mvnw -B javadoc:javadoc` BUILD SUCCESS. Las pruebas de integración usan un Cursos simulado (mock), no el servicio real.
 - Frontend: `npm run verify` exit 0, con 10.046 tests aprobados, 1 falla esperada y 3 TODO (10.050 en total); sin `ng build` local.
-- Pendiente: prueba de punta a punta contra Cursos real (no hay E2E: todo lo anterior usa mocks), QA en navegador del ajuste sin scroll y de accesibilidad (teclado, NVDA, zoom 200 %, 320 px, temas), ejecución de V6 sobre PostgreSQL real (no se corrió por falta de Docker) y zona horaria del despliegue sin verificar. Sin commit, PR, merge ni despliegue.
+- Pendiente: prueba de punta a punta contra Cursos real (no hay E2E: todo lo anterior usa mocks), QA en navegador del ajuste sin scroll y de accesibilidad (teclado, NVDA, zoom 200 %, 320 px, temas), ejecución de V7 en un entorno desplegado (en local corrió sobre PostgreSQL con Testcontainers: `verify` con 5735 tests, 0 fallas y 0 omitidos) y zona horaria del despliegue sin verificar. PR abiertas sin merge ni despliegue.
 
 ## Notas afectadas
 
