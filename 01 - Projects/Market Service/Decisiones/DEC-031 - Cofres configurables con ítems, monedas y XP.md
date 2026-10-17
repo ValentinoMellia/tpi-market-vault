@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: equipo-po@2026-10-12
-actualizado: 2026-10-16
+actualizado: 2026-10-17
 tags: [mercado, decision, cofres, prd, monedas, xp]
 ---
 # DEC-031 - Cofres configurables con ítems, monedas y XP
@@ -57,8 +57,10 @@ Sigue abierto, para la task T03 #8428:
 
   Por eso la task T02 #8427 se amplió el 2026-10-16: en Taiga recibió un comentario con este alcance y su título ahora suma a Banco y al dueño del XP.
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Cambia la entrega, que depende de la clase de premio que salió. El sorteo tiene que guardarse en la orden, para que un reintento no vuelva a sortear.
-- **Código.** Nada cambia hasta que la task T03 #8428 decida avanzar. Hoy no existe ningún tipo `CHEST` en `models/enums/ItemType.java`.
+- **Código.** Nada cambia hasta que la task T03 #8428 decida avanzar.
+
+  Actualización (2026-10-17, task T03 #8428): [[DEC-035 - Cofres en dos fases]] decidió construir primero los cofres con premios de ítem y sumar las monedas y el XP en una segunda fase, cuando Accounting y Roadmap tengan su parte. Las excepciones a RF-INT-01 y RF-INT-02 siguen aprobadas, pero no se usan hasta esa fase. Hoy no existe ningún tipo `CHEST` en `models/enums/ItemType.java`.
 - **Frontend.** La pantalla del profesor suma premios de monedas y de XP junto a las ofertas. La vista del alumno muestra cada premio con su probabilidad.
 
 ## Notas afectadas
-[[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]], [[Cofres y nuevos ítems]], [[Decisiones - Índice]], [[Market Service - Overview]], [[Roadmap de trabajo]].
+[[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]], [[Cofres y nuevos ítems]], [[Decisiones - Índice]], [[Market Service - Overview]], [[Roadmap de trabajo]], [[DEC-035 - Cofres en dos fases]].

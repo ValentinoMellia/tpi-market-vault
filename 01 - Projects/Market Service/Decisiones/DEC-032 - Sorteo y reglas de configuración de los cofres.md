@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: equipo-mercado@2026-10-16
-actualizado: 2026-10-16
+actualizado: 2026-10-17
 tags: [mercado, decision, cofres, sorteo]
 ---
 # DEC-032 - Sorteo y reglas de configuración de los cofres
@@ -19,6 +19,8 @@ El equipo de Mercado (Patricio Fernandez) lo decidió el 2026-10-16, a partir de
 - **El profesor puede cambiar los pesos de rareza.** 60 / 25 / 12 / 3 queda como valor por defecto. Sigue la regla de DEC-031: el sistema avisa, no bloquea.
 - **No hay máximo de premios por cofre.** El mockup proponía 8 para que la pantalla entrara sin scroll en 1280×720. Con premios ilimitados, la pantalla del profesor hay que replantearla. Eso es del frontend y queda para la task T03 #8428.
 - **El profesor elige si el alumno ve las probabilidades** antes de comprar, con un interruptor en la configuración del cofre. El valor por defecto del interruptor queda para la T03.
+
+  Actualización (2026-10-17): [[DEC-035 - Cofres en dos fases]] lo fijó encendido por defecto, y dejó el patrón de la pantalla del profesor con premios ilimitados para la historia de frontend H4.
 - **Los premios de oferta guardan una copia de la configuración.** Al agregar una oferta como premio, el cofre copia su configuración (tipo de ítem, cargas, alcance, nombre). Si después el profesor edita o desactiva la oferta, el cofre publicado no cambia. La copia es solo de la configuración, no de unidades: sortear el premio no consume el stock de la oferta original, y la entrega a Accounting es una por orden e idempotente por `orderId`, así que un reintento no duplica el ítem y una oferta desactivada no hace perder el premio.
 - **Las vidas pueden ser premio, con aviso.** Una vida viaja como en la compra de vidas (`LIFE_PURCHASE_CONFIRMED`) y Accounting la recorta si el alumno está en el tope (PAR-12, [[DEC-007 - Tope de vidas, Accounting decide y reporta]]). El asistente avisa al profesor que un alumno en el tope pierde ese premio. No se bloquea.
 - **Límite opcional de cofres por alumno.** El profesor puede fijar una cantidad máxima por alumno y elegir el período (por día, por semana o por cursada). Vacío significa sin límite.
@@ -52,4 +54,4 @@ El equipo de Mercado (Patricio Fernandez) lo decidió el 2026-10-16, a partir de
 | D-11 | ¿Los cosméticos cuentan como canje válido? | No es de cofres: US-8401 |
 
 ## Notas afectadas
-[[DEC-031 - Cofres configurables con ítems, monedas y XP]], [[Q-028 - Acreditación de premios de cofre en Accounting]], [[Q-029 - Acreditación de XP de cofre en Roadmap]], [[Cofres y nuevos ítems]], [[Decisiones - Índice]].
+[[DEC-031 - Cofres configurables con ítems, monedas y XP]], [[Q-028 - Acreditación de premios de cofre en Accounting]], [[Q-029 - Acreditación de XP de cofre en Roadmap]], [[Cofres y nuevos ítems]], [[Decisiones - Índice]], [[DEC-035 - Cofres en dos fases]].
