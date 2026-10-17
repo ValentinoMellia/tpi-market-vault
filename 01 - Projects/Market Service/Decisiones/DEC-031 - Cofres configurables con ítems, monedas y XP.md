@@ -31,6 +31,9 @@ El PO (Santoro) aprobó en persona que los cofres puedan dar monedas y XP. Fue e
 
 ### Lo que esta decisión no cierra
 Estos puntos siguen abiertos. Son propuestas del diseño, no reglas:
+
+> Actualización (2026-10-16, task T02 #8427): [[DEC-032 - Sorteo y reglas de configuración de los cofres]] resolvió quién sortea, los pesos, el máximo de premios y si se muestran las probabilidades. La acreditación de monedas está en [[Q-028 - Acreditación de premios de cofre en Accounting]] y la de XP, en [[Q-029 - Acreditación de XP de cofre en Roadmap]]. La revisión de D-1 a D-11 también está en DEC-032.
+
 - Si el profesor puede cambiar los pesos o se usan siempre los de la plataforma (60 / 25 / 12 / 3).
 - El máximo de premios por cofre (el diseño propone 8).
 - Si las probabilidades se muestran siempre al alumno antes de comprar (el diseño lo recomienda).
@@ -47,6 +50,8 @@ Estos puntos siguen abiertos. Son propuestas del diseño, no reglas:
   - **Ítems:** los acredita Accounting, como en la compra directa ([[Integración con Accounting]]).
   - **Monedas:** hoy Banco solo reserva y cobra. Falta un contrato para que Mercado pida acreditar monedas a un alumno, con idempotencia por orden.
   - **XP:** no está identificado qué servicio es dueño del XP. Hay que averiguarlo y acordar cómo se acredita.
+
+  Actualización (2026-10-16, task T02 #8427): «Banco» es Accounting, el ex Banco ([[Mapa de servicios]]), que hoy acredita monedas solo por desafíos. El dueño del XP es Roadmap ([[Integración con Roadmap]]).
 
   Por eso la task T02 #8427 se amplió el 2026-10-16: en Taiga recibió un comentario con este alcance y su título ahora suma a Banco y al dueño del XP.
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Cambia la entrega, que depende de la clase de premio que salió. El sorteo tiene que guardarse en la orden, para que un reintento no vuelva a sortear.
