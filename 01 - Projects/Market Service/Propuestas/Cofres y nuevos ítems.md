@@ -22,8 +22,8 @@ Resuelto en [[DEC-031 - Cofres configurables con ítems, monedas y XP]], a parti
 
 `STREAK_FREEZE` ya había aparecido y fue descartado como tipo ([[Ideas descartadas]]). Hoy los tipos soportados son solo cuatro ([[Tipos de item]]).
 
-## Decisiones abiertas
-Hay once decisiones abiertas (D-1 a D-11), por ejemplo si se permite un solo boost activo por tipo o si el PO acepta items cosméticos. La tabla no se había migrado al vault. Se recuperó de la propuesta original (30/09) y se revisó el 2026-10-16 en [[DEC-032 - Sorteo y reglas de configuración de los cofres]]: D-1 a D-4 son de cofres y quedan resueltas o sin efecto; D-5, D-6, D-7, D-9 y D-10 son de la meta colectiva ([[DEC-029 - Meta colectiva]]); D-8 (un solo boost activo por tipo) es de efectos de ítems, y D-11 (cosméticos), de la US-8401.
+## Decisiones de la propuesta original
+La propuesta original dejaba once decisiones abiertas (D-1 a D-11), por ejemplo si se permite un solo boost activo por tipo o si el PO acepta items cosméticos. La tabla no se había migrado al vault. Se recuperó de la propuesta original (30/09) y se revisó el 2026-10-16 en [[DEC-032 - Sorteo y reglas de configuración de los cofres]]: D-1 a D-4 son de cofres y quedan resueltas o sin efecto; D-5, D-6, D-7, D-9 y D-10 son de la meta colectiva ([[DEC-029 - Meta colectiva]]); D-8 (un solo boost activo por tipo) es de efectos de ítems, y D-11 (cosméticos), de la US-8401.
 
 ## Impacto
 Cualquier tipo nuevo exige que accounting lo reconozca. Desde su HU58, Accounting toma las cargas y el ámbito del ítem del mensaje y no de su catálogo de `ITEM-PLACEHOLDER-1` a `3` ([[Integración con Accounting]], recomendación D10 en [[Taller de decisiones]]), pero no tiene lógica de efectos más allá de `SHIELD`. Su migración V4 ya menciona `LOOT_CHEST`, sin código que lo use ([[Q-028 - Acreditación de premios de cofre en Accounting]]).
