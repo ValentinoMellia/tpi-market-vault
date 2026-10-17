@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-028
-actualizado: 2026-10-15
+verificado_contra: DEC-036
+actualizado: 2026-10-17
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -21,7 +21,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `coinPrice` | Precio entero entre 1 y 999999 al crear o cambiar el precio; los antiguos superiores se conservan hasta cambiarlos ([[DEC-028 - Precio de oferta hasta 999.999 monedas]]; en `develop` desde `tpi-market@ac05a77f`) |
 | `totalStock`, `availableStock` | Stock total y disponible; `availableStock` nulo significa ilimitado ([[DEC-002 - Stock opcional por oferta]]) |
 | `active`, `deleted` | Disponibilidad |
-| `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). En el snapshot `7528610` solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]) |
+| `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). En el snapshot `7528610` solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]). Con [[DEC-036 - Duración de publicación de ofertas]] deja de ser entrada: se configura `publication_duration_minutes` y el vencimiento se calcula, limitado por el fin de la cohorte |
 | `itemValidityDays` | Residuo, nunca se envía a accounting; los ítems no vencen y el campo se quita ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[Vencimiento de items]]) |
 | Parámetros de configuración | Cargas, multiplicador, modo, duración, intentos, regla de consumo, vidas. Las cargas (`charges`) son las que recibe el estudiante: viajan a Accounting como `maxCharges` ([[DEC-027 - Las cargas del ítem las decide el profesor]]) |
 | `unitsSold` | Unidades vendidas; hoy nunca se incrementa, lo que puede producir sobreventa al editar el stock; la decisión es incrementarlo al confirmar la orden ([[DEC-013 - Reglas de la tienda]]) |
@@ -43,7 +43,7 @@ Decididas en [[DEC-013 - Reglas de la tienda]] (origen: [[Q-015 - Reglas de la t
 - T3: `courseId` es la cohorte; cada cursada tiene su tienda.
 - T4: las ofertas no se borran, solo se desactivan (se conserva el historial de compras).
 - T5: al publicar se valida plantilla existente y activa, tipo coincidente y multiplicador en rango.
-- T6 (modificada): `publicationExpiresAt` puede extenderse. En el snapshot `7528610` los DTO de entrada no lo aceptaban. El contrato propuesto de US-5207 conserva TTL o fecha explícita excluyentes; `PATCH` omitido/`null` no cambia la fecha, permite la primera futura y aplica extensión estrictamente posterior provisional (ratificación pendiente). Véase [[DEC-013 - Reglas de la tienda]].
+- T6 (modificada): `publicationExpiresAt` puede extenderse. En el snapshot `7528610` los DTO de entrada no lo aceptaban. El contrato propuesto de US-5207 conserva TTL o fecha explícita excluyentes; `PATCH` omitido/`null` no cambia la fecha, permite la primera futura y aplica extensión estrictamente posterior provisional (ratificación pendiente). Véase [[DEC-013 - Reglas de la tienda]]. Sustituida por [[DEC-036 - Duración de publicación de ofertas]] (US #9323 / Task #9331): duración en días, horas y minutos que corre desde la activación, se pausa al desactivar, vence de forma definitiva y nunca supera el fin de la cohorte; implementada sin commit en backend y frontend.
 - El stock opcional está decidido en [[DEC-002 - Stock opcional por oferta]].
 - Máximo del nombre aprobado el 2026-10-14: 50 caracteres al crear y al renombrar, en frontend y backend; la columna sigue en 150 y los nombres existentes más largos se conservan hasta renombrarse. La preview muestra el nombre completo creciendo en vertical y el formulario avisa al llegar a 50. En [[DEC-026 - Nombre de oferta hasta 50 caracteres]]; detalle en [[Fix - Límite del nombre de oferta y preview]]. Implementado y verificado en la rama `fix/tema-09-offer-name-max-50` de backend y frontend, en PR listas para revisión ([backend #193](https://github.com/2026-P4-BE/tpi-market/pull/193), [frontend #568](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/568)), sin merge: `develop` todavía acepta hasta 150.
 

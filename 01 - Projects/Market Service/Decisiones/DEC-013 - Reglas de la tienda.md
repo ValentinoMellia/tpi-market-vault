@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-09
+actualizado: 2026-10-17
 tags: [mercado, decision, tienda, stock, oferta]
 ---
 # DEC-013 - Reglas de la tienda
@@ -19,7 +19,7 @@ Confirmada por el usuario el 2026-10-01:
 - **T3 aprobada.** El `courseId` de la tienda es la cohorte del curso: cada cursada tiene su propia tienda.
 - **T4 aprobada.** Las ofertas no se borran, solo se desactivan; así se conserva el historial de compras.
 - **T5 aprobada.** Al publicar se valida que la plantilla exista y esté activa, que el tipo de ítem coincida con el de la plantilla y que el multiplicador esté dentro del rango.
-- **T6 modificada** (reemplaza la recomendación del taller y lo dicho en [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). `publicationExpiresAt` **puede extenderse**. Hecho verificado en `7528610`: ni `dtos/manage/CatalogOfferPublishDto.java` ni `dtos/manage/CatalogOfferUpdateDto.java` contienen `publicationExpiresAt`; solo aparece en los DTO de respuesta (`CourseCatalogManageDto` y `StorefrontOfferDto`). En ese snapshot el profesor no puede fijarlo ni extenderlo por la API.
+- **T6 modificada** (reemplaza la recomendación del taller y lo dicho en [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]). `publicationExpiresAt` **puede extenderse**. Hecho verificado en `7528610`: ni `dtos/manage/CatalogOfferPublishDto.java` ni `dtos/manage/CatalogOfferUpdateDto.java` contienen `publicationExpiresAt`; solo aparece en los DTO de respuesta (`CourseCatalogManageDto` y `StorefrontOfferDto`). En ese snapshot el profesor no puede fijarlo ni extenderlo por la API. La extensión por fecha (`publication_expires_at`) queda sustituida por [[DEC-036 - Duración de publicación de ofertas]].
 
 ## Aclaración de implementación — 2026-10-05
 
