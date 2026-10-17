@@ -36,11 +36,9 @@ Cuando se registró, esta decisión dejó abiertos el sorteo, la acreditación, 
 - **Acreditación de ítems y monedas:** [[DEC-034 - Acreditación de premios de cofre en Accounting]], a partir de [[Q-028 - Acreditación de premios de cofre en Accounting]] (archivada).
 - **Acreditación de XP:** [[DEC-033 - Acreditación de XP de cofre en Roadmap]], a partir de [[Q-029 - Acreditación de XP de cofre en Roadmap]] (archivada).
 
-Sigue abierto, para la task T03 #8428:
+La task T03 #8428 cerró el resto en [[DEC-035 - Cofres en dos fases]]: los cofres se construyen en dos fases (primero premios de ítem, después monedas y XP), las historias técnicas quedan listadas ahí, el interruptor «mostrar probabilidades» viene encendido por defecto y la pantalla del profesor con cualquier cantidad de premios se resuelve en la historia de frontend H4.
 
-- Si los cofres avanzan, se acotan o se difieren, y qué historias técnicas se cargan.
-- El valor por defecto del interruptor «mostrar probabilidades» y cómo se arma la pantalla del profesor con cualquier cantidad de premios.
-- Los nombres y la forma final de los eventos de acreditación de monedas y de XP, que se fijan al implementarlos.
+Sigue abierto: los nombres y la forma final de los eventos de acreditación de monedas y de XP, que se fijan al implementar la fase 2.
 
 ## Alternativas descartadas
 - **Solo ítems (vidas y equipamiento) en el cofre comprado:** era la recomendación de [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]]. El PO prefirió permitir monedas y XP.
@@ -57,9 +55,7 @@ Sigue abierto, para la task T03 #8428:
 
   Por eso la task T02 #8427 se amplió el 2026-10-16: en Taiga recibió un comentario con este alcance y su título ahora suma a Banco y al dueño del XP.
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Cambia la entrega, que depende de la clase de premio que salió. El sorteo tiene que guardarse en la orden, para que un reintento no vuelva a sortear.
-- **Código.** Nada cambia hasta que la task T03 #8428 decida avanzar.
-
-  Actualización (2026-10-17, task T03 #8428): [[DEC-035 - Cofres en dos fases]] decidió construir primero los cofres con premios de ítem y sumar las monedas y el XP en una segunda fase, cuando Accounting y Roadmap tengan su parte. Las excepciones a RF-INT-01 y RF-INT-02 siguen aprobadas, pero no se usan hasta esa fase. Hoy no existe ningún tipo `CHEST` en `models/enums/ItemType.java`.
+- **Código.** Hoy no existe ningún tipo `CHEST` en `models/enums/ItemType.java`. [[DEC-035 - Cofres en dos fases]] decidió construir primero los cofres con premios de ítem y sumar las monedas y el XP en una segunda fase, cuando Accounting y Roadmap tengan su parte. Las excepciones a RF-INT-01 y RF-INT-02 siguen aprobadas, pero no se usan hasta esa fase. Nada cambia en el código hasta que se carguen las historias de DEC-035.
 - **Frontend.** La pantalla del profesor suma premios de monedas y de XP junto a las ofertas. La vista del alumno muestra cada premio con su probabilidad.
 
 ## Notas afectadas

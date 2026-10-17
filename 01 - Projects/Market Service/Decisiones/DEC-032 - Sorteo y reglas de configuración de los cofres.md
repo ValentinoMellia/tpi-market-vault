@@ -17,10 +17,8 @@ El equipo de Mercado (Patricio Fernandez) lo decidió el 2026-10-16, a partir de
 ## Decisión
 - **Mercado sortea, al crear la orden.** La orden guarda el resultado: clase de premio, referencia (el premio de oferta, o la cantidad de monedas o de XP) y rareza. Un reintento o una conciliación leen ese resultado y no vuelven a sortear. Si la orden se cancela o se rechaza antes del débito, no se acredita nada y el sorteo se descarta. Accounting y Roadmap reciben una acreditación común y no necesitan lógica de azar.
 - **El profesor puede cambiar los pesos de rareza.** 60 / 25 / 12 / 3 queda como valor por defecto. Sigue la regla de DEC-031: el sistema avisa, no bloquea.
-- **No hay máximo de premios por cofre.** El mockup proponía 8 para que la pantalla entrara sin scroll en 1280×720. Con premios ilimitados, la pantalla del profesor hay que replantearla. Eso es del frontend y queda para la task T03 #8428.
-- **El profesor elige si el alumno ve las probabilidades** antes de comprar, con un interruptor en la configuración del cofre. El valor por defecto del interruptor queda para la T03.
-
-  Actualización (2026-10-17): [[DEC-035 - Cofres en dos fases]] lo fijó encendido por defecto, y dejó el patrón de la pantalla del profesor con premios ilimitados para la historia de frontend H4.
+- **No hay máximo de premios por cofre.** El mockup proponía 8 para que la pantalla entrara sin scroll en 1280×720. Con premios ilimitados, la pantalla del profesor hay que replantearla. Eso es del frontend: [[DEC-035 - Cofres en dos fases]] lo deja para la historia H4.
+- **El profesor elige si el alumno ve las probabilidades** antes de comprar, con un interruptor en la configuración del cofre. El interruptor viene encendido por defecto ([[DEC-035 - Cofres en dos fases]]).
 - **Los premios de oferta guardan una copia de la configuración.** Al agregar una oferta como premio, el cofre copia su configuración (tipo de ítem, cargas, alcance, nombre). Si después el profesor edita o desactiva la oferta, el cofre publicado no cambia. La copia es solo de la configuración, no de unidades: sortear el premio no consume el stock de la oferta original, y la entrega a Accounting es una por orden e idempotente por `orderId`, así que un reintento no duplica el ítem y una oferta desactivada no hace perder el premio.
 - **Las vidas pueden ser premio, con aviso.** Una vida viaja como en la compra de vidas (`LIFE_PURCHASE_CONFIRMED`) y Accounting la recorta si el alumno está en el tope (PAR-12, [[DEC-007 - Tope de vidas, Accounting decide y reporta]]). El asistente avisa al profesor que un alumno en el tope pierde ese premio. No se bloquea.
 - **Límite opcional de cofres por alumno.** El profesor puede fijar una cantidad máxima por alumno y elegir el período (por día, por semana o por cursada). Vacío significa sin límite.
@@ -38,7 +36,7 @@ El equipo de Mercado (Patricio Fernandez) lo decidió el 2026-10-16, a partir de
 - **Mostrar siempre las probabilidades:** se prefirió dejarlo a criterio del profesor.
 
 ## Consecuencias
-- **Orden de compra.** Hoy `OrderEntity` tiene una sola oferta, un solo `itemType` y una sola cantidad (`src/main/java/ar/edu/utn/frc/tup/p4/entities/OrderEntity.java`). Guardar el sorteo exige campos nuevos. Nada cambia hasta que la T03 decida avanzar.
+- **Orden de compra.** Hoy `OrderEntity` tiene una sola oferta, un solo `itemType` y una sola cantidad (`src/main/java/ar/edu/utn/frc/tup/p4/entities/OrderEntity.java`). Guardar el sorteo exige campos nuevos. Nada cambia hasta que se cargue la historia H3 de [[DEC-035 - Cofres en dos fases]].
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Después del débito, la entrega depende de la clase de premio: `ITEM_CONFIRMED` a Accounting, una acreditación de monedas a Accounting o una de XP a Roadmap.
 - **Frontend.** La pantalla del profesor tiene que admitir cualquier cantidad de premios, pesos editables y el interruptor de probabilidades.
 - **D-1 a D-11.** La tabla estaba en la propuesta original del equipo (30/09) y no se había migrado al vault. Revisión:
