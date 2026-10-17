@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: accounting@1360ec3
+estado: archivado
+verificado_contra: DEC-034
 actualizado: 2026-10-16
-tags: [mercado, pregunta-abierta, cofres, accounting, monedas]
+tags: [mercado, pregunta-archivada, cofres, accounting, monedas]
 ---
 # Q-028 - Acreditación de premios de cofre en Accounting
 
@@ -52,4 +52,4 @@ Accounting (ex Banco, Tema 08, G12 en Taiga). Patricio les lleva la pregunta (ta
 5. ¿Confirman que un premio de equipamiento llega con `ITEM_CONFIRMED` y una vida con `LIFE_PURCHASE_CONFIRMED`, sin cambios?
 
 ## Resolución
-Pendiente.
+Archivada el 2026-10-16. Accounting aceptó la opción 1: un movimiento nuevo de crédito por premio, idempotente por `order_id`, pedido por evento en `market.events`. Responde con su `BALANCE_CREDITED` de siempre, `LOOT_CHEST` queda sin uso y confirma que el equipamiento y las vidas viajan como hoy. Mercado definió que no espera la respuesta (fire-and-forget) y que el nombre provisorio es `CHEST_REWARD_CREDIT`. Registrado en [[DEC-034 - Acreditación de premios de cofre en Accounting]].
