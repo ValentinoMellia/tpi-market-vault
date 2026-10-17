@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-034
-actualizado: 2026-10-16
+actualizado: 2026-10-17
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -46,6 +46,7 @@ tags: [mercado, decision]
 | DEC-032 | [[DEC-032 - Sorteo y reglas de configuración de los cofres]] | Decisión de Mercado (sin `Q`); la acreditación quedó en DEC-033 (XP) y DEC-034 (monedas) | 2026-10-16 |
 | DEC-033 | [[DEC-033 - Acreditación de XP de cofre en Roadmap]] | [[Q-029 - Acreditación de XP de cofre en Roadmap]] (archivada; respuesta de Roadmap del 2026-10-16) | 2026-10-16 |
 | DEC-034 | [[DEC-034 - Acreditación de premios de cofre en Accounting]] | [[Q-028 - Acreditación de premios de cofre en Accounting]] (archivada; respuesta de Accounting del 2026-10-16) | 2026-10-16 |
+| DEC-035 | [[DEC-035 - Cofres en dos fases]] | Decisión de Mercado (sin `Q`): cofres primero con premios de ítem, monedas y XP en una segunda fase; cierra la US-8400 (T03 #8428) | 2026-10-17 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

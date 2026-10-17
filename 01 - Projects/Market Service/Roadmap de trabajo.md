@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-15
+actualizado: 2026-10-17
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -73,7 +73,7 @@ Las subastas se especifican ya porque ambos sprints están en planificación. El
 
 - Subastas ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]], [[Épica 577 - Subastas]]). Incluye `HOLD_INCREASE_REQUESTED` con el total nuevo y el manejo de `HOLD_INCREASED`; un `HOLD_RELEASE_REQUESTED` por postor; modo ciega y fase final ciega (anti-sniping) con desempate por dado decidido en el servidor (en revisión: [[Q-025 - Desempate de las subastas]]). Previstas para el Sprint 3.
 - Meta colectiva: decidida en [[DEC-029 - Meta colectiva]], sin código; los detalles del contrato siguen en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]].
-- Cofres: decididos en [[DEC-031 - Cofres configurables con ítems, monedas y XP]], sin código; faltan los contratos de acreditación de monedas y XP (US-8400, T02 #8427).
+- Cofres: decididos en [[DEC-031 - Cofres configurables con ítems, monedas y XP]] a [[DEC-034 - Acreditación de premios de cofre en Accounting]], sin código. Se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]): primero con premios de ítem y después con monedas y XP. Las historias se cargan en la próxima planning.
 - Propuestas sin aprobar: el resto de [[Cofres y nuevos ítems]] e [[Ítems únicos]].
 - Eventos de notificaciones (`CATALOG_OFFER_PUBLISHED`) y consumo de `COURSE_COHORT_ARCHIVED` y `STUDENT_UNENROLLED` ([[Integración con Notificaciones]], [[Integración con Cursos]]).
 
