@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-17
+actualizado: 2026-10-18
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
