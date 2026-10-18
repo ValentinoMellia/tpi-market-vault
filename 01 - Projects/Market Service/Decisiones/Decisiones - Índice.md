@@ -7,7 +7,7 @@ tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay treinta decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay treinta y una decisiones registradas.
 
 ## Decisiones registradas
 
@@ -42,6 +42,7 @@ tags: [mercado, decision]
 | DEC-027 | [[DEC-027 - Las cargas del ítem las decide el profesor]] | [[Q-007 - Contrato con Accounting]] (archivada; recomendación D10) | 2026-10-10 |
 | DEC-028 | [[DEC-028 - Precio de oferta hasta 999.999 monedas]] | Plan de validaciones y máximos, Campo 2 (sin `Q`) | 2026-10-14 |
 | DEC-029 | [[DEC-029 - Meta colectiva]] | Acuerdo entre Mercado y Accounting (sin `Q`); los detalles pendientes están en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]] | 2026-10-15 |
+| DEC-032 | [[DEC-032 - Retiro definitivo y contrato de holds de subastas]] | [[Q-028 - Retiro y re-oferta frente al ciclo del hold]] (archivada; aprobación explícita del usuario) | 2026-10-17 |
 | DEC-031 | [[DEC-031 - Cofres configurables con ítems, monedas y XP]] | [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]] (archivada; aprobado por el PO en persona el 2026-10-12) | 2026-10-16 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.

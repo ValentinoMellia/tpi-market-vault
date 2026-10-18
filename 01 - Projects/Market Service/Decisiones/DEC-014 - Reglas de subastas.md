@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: equipo-mercado@2026-10-01
-actualizado: 2026-10-09
+actualizado: 2026-10-17
 tags: [mercado, decision, subastas, fase-3]
 ---
 # DEC-014 - Reglas de subastas
@@ -10,6 +10,10 @@ tags: [mercado, decision, subastas, fase-3]
 > Se fijan las reglas de liberación de holds, incremento mínimo, duración máxima, empates, subasta ciega, anti-sniping (fase final ciega) y comportamiento ante curso archivado o baja. Con la actualización del 2026-10-01 queda decidido todo lo que mantenía abierta [[Q-012 - Alcance de subastas]] (archivada); qué se subasta quedó decidido en [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] (la pregunta [[Q-017 - Qué se subasta mientras no existan ítems únicos]] está archivada).
 
 Nota de terminología (2026-10-09): donde antes decía "sellada" (*sealed-bid*) ahora dice "ciega", el término que usa el diseño de [[Subasta]]. No cambia ninguna regla.
+
+## Enmienda 2026-10-17: retiro definitivo y baja
+
+[[DEC-032 - Retiro definitivo y contrato de holds de subastas]] permite retirar con devolución sin cobro y prohíbe volver a pujar. La retención hasta cierre aplica al postor que permanece: quien se retira pide liberación inmediata con AUCTION_BID_WITHDRAWN, pendiente en Accounting. La baja ya libera con ACCOUNT_DEACTIVATED y Mercado no duplica el release. Las reglas históricas de esta decisión se interpretan con esta enmienda; cierre fijo y dado siguen vigentes.
 
 ## Contexto
 Las subastas deben quedar especificadas el 2026-10-01 porque se están planificando el Sprint 2 y el Sprint 3 ([[DEC-015 - Política del backlog de Taiga]], [[Roadmap de trabajo]]). [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]] fijó quién cierra la subasta, pero dejó los casos límite en [[Q-012 - Alcance de subastas]]. Pregunta de origen: [[Q-012 - Alcance de subastas]].

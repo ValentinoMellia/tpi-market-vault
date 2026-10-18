@@ -1,8 +1,8 @@
 ---
 tipo: historia
-estado: borrador
+estado: en-disputa
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-17
 tags: [mercado, backlog, sprint-2, spike]
 sprint: 2
 taiga: "#5256"
@@ -13,6 +13,24 @@ horas: 10
 # S2-09c - SPIKE Diseño técnico de subastas
 
 > Diseñar el modelo, los estados, la fase final ciega y el contrato con Accounting y Cursos para las subastas, de modo que el Sprint 3 empiece implementando. Parte de [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]. 2 tareas, 10 h, 5 puntos, Should.
+
+## Estado vigente: retiro definitivo y acuerdo publicado (2026-10-17)
+
+[[DEC-032 - Retiro definitivo y contrato de holds de subastas]] sustituye la discusión anterior: el alumno retira, recupera el disponible sin cobro y no puede volver a pujar. Mercado bloquea antes de otro create; HOLD_ALREADY_EXISTS es defensa adicional. HOLD_RELEASE_REQUESTED usa AUCTION_BID_WITHDRAWN, todavía pendiente de incorporación al enum de Accounting. El hold queda RELEASED definitivamente; las mejoras de una oferta activa reutilizan PENDING. Los límites de fase no aprobados del spike siguen siendo propuesta.
+
+[Respuesta aprobada y publicada](https://github.com/2026-P4-BE/tpi-market/issues/200#issuecomment-6244678432). El usuario aceptó TTL configurable de 16 días y rechazo de confirmaciones vencidas con INVALID_HOLD_STATE. [[Q-028 - Retiro y re-oferta frente al ciclo del hold]] quedó archivada por la decisión funcional, sin afirmar implementación del motivo pendiente.
+
+La baja libera con ACCOUNT_DEACTIVATED, correlation_id nulo y sin doble release. Se confirman payload HOLD_INCREASED, diez rechazos comunes y studentId:courseId para operaciones por postor. La extensión por orden usa key order_id y no cambia endsAt ni recupera expirados. Detalle y fuentes en [[Seguimiento con Accounting - Subastas y holds]]. No cambian dado vigente, saga C ni acuerdos de meta colectiva.
+
+Las secciones anteriores y siguientes que describen retiro con re-oferta o pendientes ya confirmados se conservan como historial superado por esta decisión.
+
+## Actualización con Accounting (2026-10-17)
+
+[[Seguimiento con Accounting - Subastas y holds]] registra las respuestas recibidas y la aclaración de Mercado. El usuario reporta que Hernán confirmó permitir retiro y re-oferta; Accounting los excluyó usando el PRD anterior. Discrepancia y mecanismo de reingreso abiertos en [[Q-028 - Retiro y re-oferta frente al ciclo del hold]]. Aumentar reutiliza el mismo hold PENDING mediante `HOLD_INCREASE_REQUESTED` / `HOLD_INCREASED`; no acredita reabrir RELEASED.
+
+Accounting informa que la baja libera con `ACCOUNT_DEACTIVATED`, sin `AUCTION_BIDDER_UNENROLLED`, y anuncia `HOLD_EXPIRY_EXTEND_REQUESTED` / `HOLDS_EXPIRY_EXTENDED` para PENDING por orden, solo alargando y con tope; payload final pendiente de AsyncAPI. Quedan por responder TTL de 16 días, rechazos, payload de HOLD_INCREASED y clave `studentId:courseId`. Rechazar confirmaciones vencidas con INVALID_HOLD_STATE está en evaluación. Extender holds no modifica el cierre fijo de DEC-014.
+
+Las secciones siguientes conservan sus verificaciones históricas; esta actualización supera pedidos anteriores de motivo por baja y ausencia de comando de extensión. No acredita despliegue ni ratifica la saga C para subastas. La propuesta detallada está en [[Flujos de compra directa y subasta]].
 
 ## [G11] — SPIKE: Diseño técnico de subastas
 
