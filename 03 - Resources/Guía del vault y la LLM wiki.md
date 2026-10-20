@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: ninguno
-actualizado: 2026-10-01
+actualizado: 2026-10-20
 tags: [mercado, onboarding, guia, vault]
 ---
 # Guía del vault y la LLM wiki
@@ -351,3 +351,7 @@ Cómo evitar conflictos:
 ## Glosario mínimo
 
 El vocabulario del dominio está en [[Glosario]]. Para esta guía basta con: **ingest** (incorporar una fuente), **query** (consultar), **lint** (revisar la salud), **DEC** (decisión registrada), **Q** (pregunta abierta), **Inbox** (material pendiente) y **wikilink** (enlace `[[...]]` entre notas).
+
+## Plantilla para desarrollar con un orquestador
+
+Para iniciar una tarea concreta directamente en el entorno de desarrollo, utilizar [[Prompt de desarrollo con orquestador]]. La plantilla reúne el contexto de Mercado, el routing nativo de Gentle AI y las condiciones para ejecutar workers simultáneos, sin depender de la skill privada de coordinación.
