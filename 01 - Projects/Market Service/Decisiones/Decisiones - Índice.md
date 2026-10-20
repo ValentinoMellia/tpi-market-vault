@@ -2,12 +2,12 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-031
-actualizado: 2026-10-16
+actualizado: 2026-10-20
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
 
-> Registro de decisiones (`DEC-NNN`) de Mercado. Hay treinta decisiones registradas.
+> Registro de decisiones (`DEC-NNN`) de Mercado. Hay treinta y una decisiones registradas.
 
 ## Decisiones registradas
 
@@ -33,7 +33,7 @@ tags: [mercado, decision]
 | DEC-018 | [[DEC-018 - Aviso de ofertas nuevas]] | [[Q-022 - Aviso de ofertas nuevas]] (archivada) | 2026-10-05 |
 | DEC-019 | [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] | [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]] (archivada; sustituida para compras directas nuevas por [[DEC-025 - Saga de compra de ítems según la Propuesta C]]) | 2026-10-06 |
 | DEC-020 | [[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]] | Confirmación del PO sobre la propuesta `courses-real-integration` (sin `Q`) | 2026-10-08 |
-| DEC-021 | [[DEC-021 - Acceso al mercado por membresía de Cursos]] | Confirmación del PO; responde [[Q-024 - Qué es el rol GESTOR]] para las rutas de un curso (la pregunta sigue abierta para las rutas sin curso) | 2026-10-08 |
+| DEC-021 | [[DEC-021 - Acceso al mercado por membresía de Cursos]] | Confirmación del PO; responde [[Q-024 - Qué es el rol GESTOR]] para las rutas de un curso (la pregunta sigue abierta para las rutas sin curso); enmendada el 2026-10-20 por [[DEC-037 - GESTOR como docente en las subastas]] solo para las subastas | 2026-10-08 |
 | DEC-022 | [[DEC-022 - Contrato de membresía con Cursos]] | Acuerdo con Cursos en `tpi-course#87` (cerrada) | 2026-10-08 |
 | DEC-023 | [[DEC-023 - Sin mocks de Cursos en el código]] | Confirmación del PO (sin `Q`); reemplaza T01, T03 y T04 de US-5202 | 2026-10-08 |
 | DEC-024 | [[DEC-024 - Listado Mis mercados]] | Confirmación del PO (sin `Q`) | 2026-10-08 |
@@ -43,6 +43,7 @@ tags: [mercado, decision]
 | DEC-028 | [[DEC-028 - Precio de oferta hasta 999.999 monedas]] | Plan de validaciones y máximos, Campo 2 (sin `Q`) | 2026-10-14 |
 | DEC-029 | [[DEC-029 - Meta colectiva]] | Acuerdo entre Mercado y Accounting (sin `Q`); los detalles pendientes están en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]] | 2026-10-15 |
 | DEC-031 | [[DEC-031 - Cofres configurables con ítems, monedas y XP]] | [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]] (archivada; aprobado por el PO en persona el 2026-10-12) | 2026-10-16 |
+| DEC-037 | [[DEC-037 - GESTOR como docente en las subastas]] | Decisión de Valentino Mellia (equipo de Mercado) en la Task-8409 de US-8394 (sin `Q`); enmienda [[DEC-021 - Acceso al mercado por membresía de Cursos]] solo para subastas y responde en parte [[Q-024 - Qué es el rol GESTOR]] | 2026-10-20 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

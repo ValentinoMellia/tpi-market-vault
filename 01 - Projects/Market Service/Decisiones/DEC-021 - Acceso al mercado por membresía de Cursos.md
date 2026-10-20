@@ -2,12 +2,12 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@fb5f82d9
-actualizado: 2026-10-08
+actualizado: 2026-10-20
 tags: [mercado, decision, cursos, seguridad, roles]
 ---
 # DEC-021 - Acceso al mercado por membresía de Cursos
 
-> En un curso habilitado solo acceden el estudiante con inscripción `VALIDATED` (rol `STUDENT`) y el docente asignado (`PROFESSOR` o `PROFESSOR_READ_ONLY`); escribir ofertas exige `can_write`. El `GESTOR` de Cursos no tiene acceso al mercado y no es el `ADMIN` de Mercado. Volver a validar dentro de la saga de compra queda para el sprint 3.
+> En un curso habilitado solo acceden el estudiante con inscripción `VALIDATED` (rol `STUDENT`) y el docente asignado (`PROFESSOR` o `PROFESSOR_READ_ONLY`); escribir ofertas exige `can_write`. El `GESTOR` de Cursos no tiene acceso al mercado y no es el `ADMIN` de Mercado. Volver a validar dentro de la saga de compra queda para el sprint 3. **Enmienda 2026-10-20**: en las subastas el `GESTOR` de la membresía actúa como docente ([[DEC-037 - GESTOR como docente en las subastas]]).
 
 ## Contexto
 La membresía de Cursos ([[DEC-022 - Contrato de membresía con Cursos]]) devuelve uno de cuatro roles por cohorte: `STUDENT`, `PROFESSOR`, `PROFESSOR_READ_ONLY` o `GESTOR`, con los flags `can_read` y `can_write`. Hoy el código lo interpreta en `models/enums/CourseMembership.java`, donde `GESTOR` cuenta como docente con escritura, igual que `PROFESSOR`. Además, en las rutas de Mercado el `GESTOR` del JWT está en el mismo grupo que `ADMIN` ([[DEC-006 - Roles y permisos según el código y los headers del gateway]]). Verificado en `develop@fb5f82d9`.
@@ -25,6 +25,8 @@ Confirmada por el PO el 2026-10-08.
 - **No miembro** (`role: null`, por ejemplo una inscripción `PENDING`) o rol que no corresponde a la ruta: se rechaza con el error de inscripción o de asignación que ya existe.
 - **Todo esto vale solo en un curso habilitado** ([[DEC-020 - Mercado habilitado solo con la cohorte ACTIVE]]).
 - **Saga de compra:** la membresía se valida al crear la orden. Volver a validar la inscripción y el estado de la cohorte dentro de la saga de confirmación y aprovisionamiento queda para el **sprint 3**.
+
+**Enmienda del 2026-10-20** ([[DEC-037 - GESTOR como docente en las subastas]], decidida por Valentino Mellia, del equipo de Mercado). Solo para las rutas de subastas de un curso (lanzar, borradores, editar, programar, cancelar, detalle y listado de staff), el `GESTOR` de la membresía se trata como docente de la cohorte: lee con `can_read` y escribe solo con `can_write = true`. En ofertas, metas, vitrinas y resúmenes esta decisión sigue igual: el `GESTOR` no tiene acceso.
 
 ## Alternativas descartadas
 - **GESTOR como administrativo global** (lo que hace hoy el grupo `ADMINISTRATIVE_ROLES`) **o como docente por curso** (lo que hace hoy `CourseMembership`): el PO decidió que el gestor de Cursos no participa del mercado.

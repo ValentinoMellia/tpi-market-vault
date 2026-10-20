@@ -43,6 +43,7 @@ Decidido ([[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo
 - En una subasta de puja visible, una oferta debe superar estrictamente a la mejor (sin empates). En subasta ciega el empate se resuelve con un dado decidido por el servidor según DEC-014; el spike propone la oferta más antigua en su lugar (ver "Desempate").
 - Curso archivado: se cancelan las subastas abiertas. Baja de un estudiante: se retiran sus ofertas y la subasta continúa.
 - El tiempo no se extiende; el anti-sniping es la fase final ciega descrita arriba.
+- **Autorización del `GESTOR`** ([[DEC-037 - GESTOR como docente en las subastas]], 2026-10-20): en las rutas de subastas de un curso (lanzar, borradores, editar, programar, cancelar, detalle y listado de staff), el `GESTOR` de la membresía de Cursos se trata como docente de la cohorte: lee con `can_read` y escribe solo con `can_write = true`. El rol `GESTOR` del JWT se admite en esas rutas pero siempre se contrasta con la membresía, y nunca recibe permisos de `ADMIN`. Vale solo para subastas; el resto del mercado sigue con [[DEC-021 - Acceso al mercado por membresía de Cursos]].
 
 Pendiente: la regla de la oferta en la fase final ciega (el spike propone una, ver "Diseño técnico"). [[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-012 - Alcance de subastas]] están archivadas.
 
