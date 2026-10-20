@@ -2,12 +2,12 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-15
+actualizado: 2026-10-20
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
 
-> Intención del dominio: subastas de items entre estudiantes de un curso. Es de la Fase 3 y no existe código. Las secciones anteriores a "Diseño técnico" recogen lo decidido y la documentación anterior; el diseño técnico es un borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], sin confirmar por el equipo.
+> Intención del dominio: subastas de items entre estudiantes de un curso. Desde el 2026-10-20 existe código para lanzar y listar subastas abiertas (T01–T04 de [[S3-01 - Subastas, lanzar y ver las abiertas]]); las ofertas (pujas), el cierre y la liquidación todavía no. Las secciones anteriores a "Diseño técnico" recogen lo decidido y la documentación anterior; el diseño técnico es un borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], sin confirmar por el equipo.
 
 ## Qué representa
 Una venta con ofertas, con duración de una hora a catorce días y una base fijada por el profesor. Hay dos modos: **puja visible** (se ve la mejor oferta) y **ciega** (nadie ve las ofertas de los demás). La subasta de puja visible termina con una **fase final ciega** durante sus últimos X minutos, duración configurable por subasta por el profesor que la lanza (anti-sniping, [[DEC-014 - Reglas de subastas]]).
@@ -191,7 +191,14 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Cursos**: payload exacto de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED`.
 
 ## Dónde vive en el código
-No existe.
+Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`, PR #247), con T01–T03 ya mergeadas en `develop` (#241, #244 y #245). Todavía no hay código de ofertas (pujas), de cierre ni de liquidación.
+
+- `entities/AuctionEntity.java` con `entities/AuctionItemSnapshot.java`: entidad completa con modo (`AuctionMode`: `VISIBLE`/`BLIND`), enum de estados `models/enums/AuctionStatus.java`, ventana `starts_at`/`ends_at`, fase final e incremento opcionales, base opcional y versión; `repositories/AuctionRepository.java`.
+- Lanzamiento: `controllers/AuctionLaunchController.java` (`POST /courses/{courseId}/auctions`), `services/impl/AuctionLaunchService.java`, `AuctionLaunchValidator.java` y `AuctionLaunchWriter.java`. Lanza directo a `OPEN` con el lote exclusivo de una unidad congelado desde plantilla + configuración; no reserva stock.
+- Lectura: `controllers/AuctionQueryController.java` (`GET /courses/{courseId}/auctions`) y `services/impl/AuctionQueryService.java`: solo `OPEN` no vencidas, ordenadas por cierre, con autorización de membresía del curso.
+- Contrato de respuesta: `dtos/auction/AuctionResponseDto.java` y `dtos/auction/AuctionListItemDto.java` (`best_bid` ausente en `BLIND` y vacío en `VISIBLE` sin pujas; `in_final_phase` derivada del reloj, `null` en `BLIND`).
+- Persistencia: Flyway `V12__auctions_schema.sql` y `V13__auction_unit_lot_provenance.sql`.
+- Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
 [[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
