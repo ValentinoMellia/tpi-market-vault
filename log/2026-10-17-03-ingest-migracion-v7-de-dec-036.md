@@ -1,0 +1,2 @@
+## [2026-10-17] ingest | Migración V7 y estado de las PR de DEC-036
+- `develop` incorporó `V6__goal_notifications.sql`, así que la migración de la duración de publicación se renumeró a `V7__offer_publication_duration.sql` (decisión del responsable de la tarea; nunca se había mergeado ni desplegado). Actualizada [[DEC-036 - Duración de publicación de ofertas]] con V7, las PR [#230](https://github.com/2026-P4-BE/tpi-market/pull/230) y [#698](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/698) y la evidencia del último `verify` (5735 tests, PostgreSQL con Testcontainers).

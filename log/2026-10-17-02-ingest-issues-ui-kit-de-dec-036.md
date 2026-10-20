@@ -1,0 +1,3 @@
+## [2026-10-17] ingest | Issues del UI Kit de la duración de publicación
+- A pedido del responsable de la tarea se publicaron las dos carencias del UI Kit que [[DEC-036 - Duración de publicación de ofertas]] tenía como borradores: [#152](https://github.com/2026-P4-FE/2026-PIV-TPI-UI-KIT/issues/152) (orientación horizontal de `GenericRadioGroup`) y [#153](https://github.com/2026-P4-FE/2026-PIV-TPI-UI-KIT/issues/153) (`ariaDescribedBy` externo en `GenericInput`, distinta de la #147).
+- Actualizada la sección de frontend de [[DEC-036 - Duración de publicación de ofertas]]. En el frontend, los comentarios `TODO(ui-kit)` pasan a `ui-kit#152` y `ui-kit#153` en la PR [2026-P4-FE/2026-PIV-TPI-FE#698](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/698).
