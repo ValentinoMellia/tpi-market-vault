@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-20
+actualizado: 2026-10-21
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
@@ -44,7 +44,7 @@ Decidido ([[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo
 - Curso archivado: se cancelan las subastas abiertas. Baja de un estudiante: se retiran sus ofertas y la subasta continúa.
 - El tiempo no se extiende; el anti-sniping es la fase final ciega descrita arriba.
 
-Pendiente: la regla de la oferta en la fase final ciega (el spike propone una, ver "Diseño técnico"). [[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-012 - Alcance de subastas]] están archivadas.
+Pendiente: la regla de la oferta en la fase final ciega (el spike propone una, ver "Diseño técnico"; abierta en [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]]). [[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-012 - Alcance de subastas]] están archivadas.
 
 Garantía elegida (decisión previa del equipo, sin `DEC` propia): cada oferta retiene el monto completo en Accounting ([[Hold de monedas]]). La alternativa de retener solo al líder fue rechazada ([[Ideas descartadas]]). Recomendaciones del [[Taller de decisiones]]: S1, S3, S5 y S6 confirmadas, S10 reemplazada.
 
@@ -181,7 +181,8 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Pedido a G10 (siguiente sprint)**: consulta de servicio a servicio que devuelva la posición de los estudiantes empatados de una cohorte, con su permiso. Lo gestiona el equipo de Mercado con G10. Un `ServiceIdentity` ya tiene precedente en `.../nodes/*/eligibility`. Descartado: consultar como el profesor, porque el cierre es automático y no hay una petición suya en curso; suplantar sus headers no es válido (`GatewayHeadersFilter` rechaza `X-Delegated-User`).
 - **Ranking no disponible al cerrar** (cuando se incorpore): qué hace la subasta mientras no haya respuesta (reintentar en `EVALUATING_WINNER`, como en la liquidación) o si usa directamente el respaldo.
 - **Justicia del desempate**: la oferta más antigua premia a quien ofertó antes con ese monto, aunque en la fase ciega nadie ve las ofertas de los demás. Queda por confirmar si el equipo lo considera suficiente y si se le avisa al empatado por qué ganó o perdió.
-- **Modo `BLIND`**: no está dicho si un estudiante puede subir su oferta (Accounting solo permite subir un hold) ni retirarla. El borrador asume que puede subirla y que no puede retirarla (interpretación del spike, sin confirmar).
+- **Regla de la oferta ciega y mejor visible en la fase final**: cuánto se debe ofrecer en la fase final, si se muestra la mejor visible congelada, quién puede ofertar y qué ve el staff están abiertos en [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]].
+- **Modo `BLIND`**: no está dicho si un estudiante puede subir su oferta (Accounting solo permite subir un hold) ni retirarla. El borrador asume que puede subirla y que no puede retirarla (interpretación del spike, sin confirmar; ver [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]]).
 - **Curso o cohorte**: las subastas se dan en un curso y cohorte, y Cursos verifica la pertenencia por cohorte; Accounting trabaja con `courseId`. Falta definir si `courseId` identifica la cohorte o si la subasta guarda además el id de cohorte.
 - **TTL en Accounting**: TTL máximo aceptado para `AUCTION_BID` (¿14 días más margen?) y si `HOLD_INCREASE_REQUESTED` extiende el vencimiento. Si no hay TTL largo, hay que limitar la duración máxima o renovar el hold.
 - **Retiro**: ningún `releaseReason` actual (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) describe un retiro voluntario.
