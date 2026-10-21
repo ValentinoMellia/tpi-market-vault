@@ -43,6 +43,7 @@ tags: [mercado, decision]
 | DEC-028 | [[DEC-028 - Precio de oferta hasta 999.999 monedas]] | Plan de validaciones y máximos, Campo 2 (sin `Q`) | 2026-10-14 |
 | DEC-029 | [[DEC-029 - Meta colectiva]] | Acuerdo entre Mercado y Accounting (sin `Q`); los detalles pendientes están en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]] | 2026-10-15 |
 | DEC-031 | [[DEC-031 - Cofres configurables con ítems, monedas y XP]] | [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]] (archivada; aprobado por el PO en persona el 2026-10-12) | 2026-10-16 |
+| DEC-038 | [[DEC-038 - Apertura programada de subastas]] | Decisión del equipo de Mercado en la Task-8410 de la US #8394 (sin `Q`; no es una ratificación del PO) | 2026-10-21 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

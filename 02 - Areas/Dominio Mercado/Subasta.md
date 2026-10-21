@@ -117,6 +117,8 @@ stateDiagram-v2
 
 El reintento repite solo el paso que falló: si el ítem ya se acreditó, no se vuelve a acreditar.
 
+**Apertura programada** ([[DEC-038 - Apertura programada de subastas]], decisión del equipo, no del PO): `SCHEDULED` pasa a `OPEN` al llegar `scheduledStartAt`, con el snapshot congelado; antes se revalida cohorte/mercado habilitado, plantilla activa y ventana no vencida. El fin se cuenta desde la apertura real (`endsAt` = apertura + duración). Si no se puede abrir, queda `SCHEDULED` y se reintenta cada 30 s; el profesor puede editarla o cancelarla. La apertura es idempotente: una sola transición bajo ejecuciones repetidas o simultáneas.
+
 `OPEN` distingue `NO_BIDS` y `ACTIVE_BIDS` según haya ofertas. *Propuesta*: el curso archivado cancela **todas** las subastas del curso (`DRAFT`, `SCHEDULED` y `OPEN`), no solo las abiertas como dice [[DEC-014 - Reglas de subastas]]; solo las abiertas tienen holds que liberar.
 
 ### Reglas de las ofertas
@@ -202,4 +204,4 @@ Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`,
 - Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
+[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]], [[DEC-038 - Apertura programada de subastas]].
