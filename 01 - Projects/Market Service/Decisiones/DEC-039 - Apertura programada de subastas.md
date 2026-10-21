@@ -5,7 +5,7 @@ verificado_contra: equipo-mercado@2026-10-21
 actualizado: 2026-10-21
 tags: [mercado, decision, subastas, apertura-programada]
 ---
-# DEC-038 - Apertura programada de subastas
+# DEC-039 - Apertura programada de subastas
 
 > Una subasta `SCHEDULED` se abre sola al llegar su fecha de inicio: el guardado se congela tal como está, se revalida que la cohorte esté habilitada, la plantilla activa y la ventana vigente, el fin se cuenta desde la apertura real, y si no se puede abrir queda `SCHEDULED` y se reintenta. La apertura es idempotente. La decisión es del equipo de Mercado, no una ratificación del PO.
 
