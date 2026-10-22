@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-16
+actualizado: 2026-10-22
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -25,9 +25,11 @@ Actualización (2026-10-09): token de servicio para Accounting verificado contra
 
 Actualización (2026-10-10): endpoint 'Mis mercados' (`GET /api/market/courses`) y métodos de listado de Cursos verificados contra `2fc155ad` (PR #159, US-7382 T01-T04). Se implementaron los métodos `listStudentEnrollments` y `listProfessorCohorts` en `CourseCohortClient` / `GatewayCourseCohortClient` delegando en `GatewayCourseListings` (con paginación de 50 elementos por página hasta recorrer `totalPages`), el servicio `MyMarketsServiceImpl` (con deduplicación por curso donde prevalece docente sobre alumno y permiso de gestión `canManage=true` sobre solo lectura, filtrando cohortes `ACTIVE` e inscripciones `VALIDATED`), el controlador `MyMarketsController` (`GET /courses`) protegido para `STUDENT` y `PROFESSOR`, y se sumó el endpoint 17 a la matriz de roles en `RoleEndpointMatrixAcceptanceTest`.
 
+Actualización (2026-10-20): los dos endpoints de subastas de [[S3-01 - Subastas, lanzar y ver las abiertas]] se agregan a la tabla y se verificaron contra `cb46bb18e` (rama `feature/tema-09-subastas-t04`, PR #247): el `GET` de listado completo y, en lo que respecta a su fila, el `POST` de lanzamiento ya mergeado en `develop` (PR #245). En la misma verificación se corrigió lo de Flyway: desde US-9727 T01 el esquema se maneja con Flyway (`pom.xml`, `src/main/resources/db/migration/V1__baseline.sql` a `V13__auction_unit_lot_provenance.sql`, con `V12__auctions_schema.sql` y `V13` propios de subastas); el resto de la nota no se reverificó.
+
 ## Stack
 
-Java 21, Spring Boot 4.0.0, Spring Cloud 2025.1.0 (cliente Eureka), Spring Web, Data JPA, Validation, Actuator, Security, Micrometer Tracing (OTel), springdoc 3.0.1, ModelMapper, Lombok y spring-kafka. Base H2 en desarrollo y pruebas, PostgreSQL en docker y producción. No hay Flyway ni Liquibase: el esquema lo crea Hibernate (`ddl-auto`: `create-drop` en dev, `update` en docker/prod). No hay validación de JWT en el servicio.
+Java 21, Spring Boot 4.0.0, Spring Cloud 2025.1.0 (cliente Eureka), Spring Web, Data JPA, Validation, Actuator, Security, Micrometer Tracing (OTel), springdoc 3.0.1, ModelMapper, Lombok y spring-kafka. Base H2 en desarrollo y pruebas, PostgreSQL en docker y producción. El esquema se maneja con Flyway (desde US-9727 T01; ver la actualización del 2026-10-20); hasta ese cambio, el esquema lo creaba Hibernate. No hay validación de JWT en el servicio.
 
 ## Cómo correrlo
 
@@ -63,6 +65,8 @@ Paquete base `ar.edu.utn.frc.tup.p4`, en capas clásicas (no hexagonal): `contro
 | `GET /orders/{orderId}` | ídem | STUDENT | Orden propia (ajena responde 404) |
 | `GET /public/ping`, `/whoami`, `/internal`, `/jwks-status` | `GatewayDiagnosticsController`, `JwksStatusController` | variable | Diagnóstico de identidad; `/internal` exige `ROLE_MS` y `market.catalog.read` |
 | `GET /courses` (alias `/api/market/courses`) | `MyMarketsController` | STUDENT, PROFESSOR | Mis mercados: lista cohortes activas donde el usuario es alumno validado o docente asignado (`[{course_id, course_name, role, can_manage}]`); deduplica con precedencia de profesor y gestión; requiere `X-User-Id` (PR #159, US-7382) |
+| `POST /courses/{courseId}/auctions` | `AuctionLaunchController` | PROFESSOR (asignado, con `WRITE`) y ADMIN | Lanza directo a `OPEN` una subasta con lote exclusivo de una unidad desde plantilla + configuración; 201 con el snapshot congelado (PR #245, US-5347 T03; ver [[S3-01 - Subastas, lanzar y ver las abiertas]]) |
+| `GET /courses/{courseId}/auctions` | `AuctionQueryController` | STUDENT (inscripto), PROFESSOR (con `READ`) y ADMIN | Subastas `OPEN` no vencidas, ordenadas por cierre más próximo; `AuctionListItemDto` con `best_bid` (ausente en `BLIND`, vacío en `VISIBLE` sin pujas) e `in_final_phase` derivada del reloj (PR #247, US-5347 T04; ver [[S3-01 - Subastas, lanzar y ver las abiertas]]) |
 
 **Formato de cable.** Todos los cuerpos REST, de entrada y de salida, van en `snake_case`, errores incluidos (PR #76 y #91; `application.properties:17`, `request_id`). Los parámetros de consulta y las cabeceras conservan su nombre. Detalle y excepciones en [[Errores de la API]]. Los payloads de Kafka para la saga de compra migraron a `snake_case` según `contratos-kafka v8` (mergeado en `develop@d3b7a4de` vía PR #186; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
 
@@ -140,7 +144,7 @@ Verificados leyendo el código:
 
 13. **La clave de idempotencia es global, no por estudiante.** `OrderRepository.findByIdempotencyKey(String)` busca solo por la clave (`repositories/OrderRepository.java`). Ver [[Idempotencia]].
 14. **El cliente simulado de matrícula es el valor por defecto.** Desde la T01 de US-5202 (PR #128 a #131) `MockCourseEnrollmentClient` ya no es `@Primary`, pero `market.course.client` vale `mock` si no se configura (verificado en `fb5f82d9`). [[DEC-023 - Sin mocks de Cursos en el código]] pide eliminarlo. Ver [[Integración con Cursos]].
-15. **`itemValidityDays` es un residuo: resuelto en el backend, pendiente en el frontend.** La función de vencimiento de items entró en el PR #44 y se revirtió en el PR #60; el campo se guardaba en la oferta pero nunca se enviaba a accounting. Los ítems no vencen ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[DEC-029 - Los ítems no tienen vigencia después de la compra]]). El backend lo quitó de `src/main` en `fda3fca4` (verificado en `ac05a77f`); el formulario del frontend seguía mostrándolo y su retiro está pendiente de PR.
+15. **`itemValidityDays` era un residuo: resuelto en el backend y en el frontend.** La función de vencimiento de items entró en el PR #44 y se revirtió en el PR #60; el campo se guardaba en la oferta pero nunca se enviaba a accounting. Los ítems no vencen ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[DEC-030 - Los ítems no tienen vigencia después de la compra]]). El backend lo quitó de `src/main` en `fda3fca4` (verificado en `ac05a77f`); el formulario del frontend seguía mostrándolo y lo retiró la PR [2026-P4-FE/2026-PIV-TPI-FE#634](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/634) (mergeada en `develop` el 2026-10-16).
 16. **La rama `main` está 222 commits por detrás de `develop`.**
 17. **El flujo SSE de órdenes lo puede abrir el dueño o ADMIN, GESTOR y MS** (`controllers/PurchaseOrderController.java`).
 

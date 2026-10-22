@@ -1,11 +1,11 @@
 ---
 tipo: decision
 estado: vigente
-verificado_contra: DEC-029, codigo@ac05a77f
-actualizado: 2026-10-16
+verificado_contra: codigo@ac05a77f, equipo-accounting@2026-10-15
+actualizado: 2026-10-22
 tags: [mercado, decision, vencimiento, oferta, item, frontend]
 ---
-# DEC-029 - Los ítems no tienen vigencia después de la compra
+# DEC-030 - Los ítems no tienen vigencia después de la compra
 
 > Un ítem comprado no tiene vigencia ni vencimiento: se retira del frontend el campo «Vigencia después de la compra (días)» y todo lo que lo mostraba. Lo único que dura un tiempo es la publicación de la oferta, que no cambia.
 
@@ -32,7 +32,7 @@ Origen sin pregunta `Q-NNN`: se consultó a Accounting y al equipo de Mercado, q
 
 - Verificado en el código al 2026-10-16: `tpi-market@ac05a77f` no tiene el campo en `src/main`. Lo quitó la Task 5229 de la US-5225 (`fda3fca4`, 2026-10-07); publicar enviando `item_validity_days` responde 201 y lo ignora, y lo protegen `ItemValidityIgnoredAcceptanceTest`, `ItemValidityRemovedTest`, `SnakeCaseContractTest` y `StorefrontCatalogControllerTest`.
 - Accounting, dueño del inventario ([[DEC-001 - Accounting es dueño del inventario]]), no modela vigencia de ítems: el inventario guarda el catálogo, el tipo, el efecto, las cargas y el estado, y su único vencimiento es el de los holds de monedas ([[Integración con Accounting]]). Mercado no envía ningún campo de vigencia en `ITEM_CONFIRMED`.
-- Frontend: el retiro se implementa en la rama `fix/tema-09-remove-item-validity` de `2026-PIV-TPI-FE` (base `develop@6809c8ac`), pendiente de PR hacia `develop` al 2026-10-16. No cambia ningún payload ni contrato de otro servicio.
+- Frontend: el retiro se implementó en la rama `fix/tema-09-remove-item-validity` de `2026-PIV-TPI-FE` (base `develop@6809c8ac`) y entró a `develop` por la PR [2026-P4-FE/2026-PIV-TPI-FE#634](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/634), mergeada el 2026-10-16 (`9751ff17`). No cambia ningún payload ni contrato de otro servicio.
 - Observación fuera de alcance: `ITEM_CONFIRMED` envía `multiplier`, `duration_minutes` y `consumption_rule`, que Accounting ignora. No es vigencia del ítem y no se modifica acá.
 
 ## Notas afectadas

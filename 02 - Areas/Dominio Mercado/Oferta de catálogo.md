@@ -1,7 +1,7 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-028, DEC-029
+verificado_contra: DEC-028, DEC-030
 actualizado: 2026-10-16
 tags: [mercado, dominio, oferta]
 ---
@@ -22,7 +22,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `totalStock`, `availableStock` | Stock total y disponible; `availableStock` nulo significa ilimitado ([[DEC-002 - Stock opcional por oferta]]) |
 | `active`, `deleted` | Disponibilidad |
 | `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). En el snapshot `7528610` solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]) |
-| `itemValidityDays` | Ya no existe: los ítems no tienen vigencia después de la compra. El backend lo quitó de `src/main` (`fda3fca4`) y el frontend lo retira ([[DEC-029 - Los ítems no tienen vigencia después de la compra]], [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[Vencimiento de items]]) |
+| `itemValidityDays` | Ya no existe: los ítems no tienen vigencia después de la compra. El backend lo quitó de `src/main` (`fda3fca4`) y el frontend en la PR [2026-P4-FE/2026-PIV-TPI-FE#634](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/634) ([[DEC-030 - Los ítems no tienen vigencia después de la compra]], [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[Vencimiento de items]]) |
 | Parámetros de configuración | Cargas, multiplicador, modo, duración, intentos, regla de consumo, vidas. Las cargas (`charges`) son las que recibe el estudiante: viajan a Accounting como `maxCharges` ([[DEC-027 - Las cargas del ítem las decide el profesor]]) |
 | `unitsSold` | Unidades vendidas; hoy nunca se incrementa, lo que puede producir sobreventa al editar el stock; la decisión es incrementarlo al confirmar la orden ([[DEC-013 - Reglas de la tienda]]) |
 

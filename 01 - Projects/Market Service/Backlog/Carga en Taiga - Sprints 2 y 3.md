@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: borrador
-verificado_contra: DEC-015
-actualizado: 2026-10-09
+verificado_contra: taiga@2026-10-20
+actualizado: 2026-10-20
 tags: [mercado, backlog, taiga, sprint]
 taiga_proyecto: "1804026"
 ---
@@ -57,7 +57,8 @@ A detallar en la planning del Sprint 3, con el resultado del spike de diseño de
 | Borrador y programación de subastas (`DRAFT`, `SCHEDULED`, con el proceso que abre las programadas) | [[Subasta]] |
 | Ofertar y mejorar oferta (`HOLD_CREATE` / `HOLD_INCREASE` con el total nuevo; solo se puede subir; retiro solo en la fase visible) | [[DEC-014 - Reglas de subastas]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Subasta]] |
 | Modo ciega y fase final ciega de la puja visible (solo ofertan quienes ya ofertaron). El desempate está abierto: rige el dado de DEC-014 hasta que se resuelva Q-025, que propone la oferta más antigua | [[DEC-014 - Reglas de subastas]], [[Q-025 - Desempate de las subastas]] |
-| Cierre: entregar al ganador y liberar a los demás (un release por postor), con reintentos si la liquidación falla | [[DEC-014 - Reglas de subastas]], [[Subasta]] |
+| Cierre: entregar al ganador y liberar a los demás (un release por postor), con reintentos si la liquidación falla (en Taiga: US #8397, tareas #8417–#8419) | [[DEC-014 - Reglas de subastas]], [[Subasta]] |
+| Integración de la saga de holds y el outbox al agregado de subasta (en Taiga: **US #11436**, task #11421; previa a la liquidación #8397 y a la oferta #8412 de la US #8395; extiende `SagaCorrelationService`, el `message_key` del outbox y `HoldOwnerResolver`) | [[Subasta]], [[DEC-014 - Reglas de subastas]] |
 | Cancelación por profesor y curso archivado (cancela todas las subastas del curso); baja de estudiante | [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]] |
 | Frontend de subastas (la animación del dado depende de lo que se decida en Q-025) | [[Subasta]], [[Q-025 - Desempate de las subastas]] |
 | Propuestas, si el PO las aprueba | [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]], [[Ítems únicos]] |

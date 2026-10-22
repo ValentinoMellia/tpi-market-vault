@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: borrador
-verificado_contra: DEC-014
-actualizado: 2026-10-09
+verificado_contra: codigo@cb46bb18e
+actualizado: 2026-10-20
 tags: [mercado, backlog, sprint-2, subastas]
 sprint: 2
 taiga: "#5347"
@@ -118,5 +118,27 @@ Relación: [[Épica 577 - Subastas]], [[Subasta]], [[Roadmap de trabajo]].
 | 4 | #5351 | Endpoint para listar las subastas abiertas del curso | 5 | `GET` con abiertas no vencidas, ordenadas por cierre; 403 si no está inscripto |
 | 5 | #5352 | Derivar la fase final ciega y ocultar la mejor oferta en modo ciega | 3 | Fase calculada con el tiempo restante, sin guardarla; pruebas con reloj controlado |
 | 6 | #5353 | Pruebas de aceptación y contrato de la API de subastas | 5 | Escenarios 1 a 4 y contrato OpenAPI al día |
+
+## Estado de implementación (2026-10-20)
+
+Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`, PR #247) y los merges ya presentes en `develop`.
+
+| # | Taiga | Estado | Evidencia |
+|---|---|---|---|
+| 1 | #5348 | Cerrada en Taiga | Entidad `entities/AuctionEntity.java` con `AuctionItemSnapshot`, enum completo `AuctionStatus` y `repositories/AuctionRepository.java`; PR #241 en `develop` |
+| 2 | #5349 | Cerrada en Taiga | `services/impl/AuctionLaunchValidator.java`; PR #244 en `develop` |
+| 3 | #5350 | Cerrada en Taiga | `controllers/AuctionLaunchController.java` (`POST /courses/{courseId}/auctions`), `AuctionLaunchService` y `AuctionLaunchWriter`; PR #245 en `develop` |
+| 4 | #5351 | **Implementada, pendiente de cerrar en Taiga** | PR #247: `controllers/AuctionQueryController.java`, `services/impl/AuctionQueryService.java` y `dtos/auction/AuctionListItemDto.java` |
+| 5 | #5352 | En progreso en Taiga; sin código nuevo | Requiere la entidad de pujas (US-8395) para la mejor oferta real |
+| 6 | #5353 | Sin iniciar | — |
+
+Lo que entrega la tarea 4 (T04), el `GET /api/market/courses/{courseId}/auctions`:
+
+- Devuelve solo subastas `OPEN` no vencidas (`ends_at > ahora`), ordenadas por cierre más próximo. **CA4 cumplido.**
+- Autorización: `ADMIN` omite la membresía; `STUDENT` debe estar inscripto al curso; `PROFESSOR` necesita membresía con permiso `READ`; sin token, 401; otro caso, 403.
+- `AuctionListItemDto` extiende `AuctionResponseDto` y agrega `best_bid` (ausente en modo `BLIND`; vacío, `NullNode`, en `VISIBLE` sin pujas) e `in_final_phase` (calculado con el reloj en `VISIBLE`; `null` en `BLIND`). **CA5 a medio camino**: lo que falta (mejor oferta real y fase en `BLIND`) queda para T05 y US-8395, sin cambiar este contrato.
+- 7 tests (escenario 4 con reloj controlado, 401/403 y contrato wire snake_case); `mvn -B verify` completo con 6.261 tests en verde; `swagger.json` regenerado con el schema `AuctionListItemDto`.
+
+Los cambios de estado en Taiga (#5351 a cerrar) siguen pendientes de aplicar, junto con los que la nota ya arrastraba.
 
 Cargada en Taiga el 2026-10-02 en el backlog. El mismo día se adelantó al sprint "G11 - Sprint 2" (historia y sus 6 tareas, #5348 a #5353) porque Valentino Mellia sumó horas de capacidad. Las 6 tareas están asignadas a Valentino Mellia; la historia queda sin asignar. Sigue el diseño del spike [[S2-09c - SPIKE Diseño técnico de subastas]]. El 2026-10-09 se ajustaron los criterios a ese diseño (modos puja visible y ciega, incremento y fase final opcionales, aviso de stock y estados completos en el modelo). Las horas no cambiaron: los cambios caben en el margen de ±20 % del resto del plan, a revisar en la planning. Los cambios en Taiga de la historia y de las tareas están pendientes de aplicar.

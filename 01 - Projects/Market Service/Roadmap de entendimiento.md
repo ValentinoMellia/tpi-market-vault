@@ -36,7 +36,7 @@ Deberías entender: qué mensajes intercambia Mercado con cada vecino, cuáles s
 
 ## Etapa 5. Accounting, taller y propuestas
 
-Leer: [[DEC-001 - Accounting es dueño del inventario]], [[Q-007 - Contrato con Accounting]], [[Q-008 - Orden de la saga de compra]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Taller de decisiones]], [[Meta colectiva (Colecta)]] y [[Cofres y nuevos ítems]].
+Leer: [[DEC-001 - Accounting es dueño del inventario]], [[Q-007 - Contrato con Accounting]], [[Q-008 - Orden de la saga de compra]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Taller de decisiones]], [[DEC-029 - Meta colectiva]] y [[Cofres y nuevos ítems]].
 Deberías entender: por qué el inventario es de Accounting, cómo se resolvió la saga de compras directas ([[DEC-025 - Saga de compra de ítems según la Propuesta C]]), qué recomendó el taller sin decidirlo y qué propuestas de producto existen pero no están aprobadas.
 
 ## Etapa 6. Estado y pendientes

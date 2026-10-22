@@ -2,12 +2,12 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-09
+actualizado: 2026-10-20
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
 
-> Intención del dominio: subastas de items entre estudiantes de un curso. Es de la Fase 3 y no existe código. Las secciones anteriores a "Diseño técnico" recogen lo decidido y la documentación anterior; el diseño técnico es un borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], sin confirmar por el equipo.
+> Intención del dominio: subastas de items entre estudiantes de un curso. Desde el 2026-10-20 existe código para lanzar y listar subastas abiertas (T01–T04 de [[S3-01 - Subastas, lanzar y ver las abiertas]]); las ofertas (pujas), el cierre y la liquidación todavía no. Las secciones anteriores a "Diseño técnico" recogen lo decidido y la documentación anterior; el diseño técnico es un borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], sin confirmar por el equipo.
 
 ## Qué representa
 Una venta con ofertas, con duración de una hora a catorce días y una base fijada por el profesor. Hay dos modos: **puja visible** (se ve la mejor oferta) y **ciega** (nadie ve las ofertas de los demás). La subasta de puja visible termina con una **fase final ciega** durante sus últimos X minutos, duración configurable por subasta por el profesor que la lanza (anti-sniping, [[DEC-014 - Reglas de subastas]]).
@@ -141,6 +141,8 @@ Pueden ofertar los estudiantes del curso y cohorte donde se da la subasta. La pe
 ### Contrato con Accounting
 Todo viaja por Kafka en `accounting.events`, con `orderId` = id de la subasta.
 
+Varias piezas se comparten con la meta colectiva y conviene construirlas una sola vez: `HOLD_INCREASE` en Mercado, la extensión del vencimiento de los holds, el job de cierre, la correlación para entidades que no son órdenes y escuchar `COURSE_COHORT_ARCHIVED`. Ver [[Meta colectiva#Qué sirve también para subastas]].
+
 ```mermaid
 sequenceDiagram
     participant E as Estudiante
@@ -187,9 +189,17 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Fallo con el ganador**: en la sesión del 2026-10-08 se indicó que la liquidación **se reintenta y no se cancela la subasta**; el cierre es un hecho consumado y hay que idear cómo resolver los fallos. *Propuesta*: reintentos con espera creciente; al agotarlos la subasta queda en `FAILED_SETTLEMENT` a la espera de un ADMIN, con los holds mantenidos, y no se cancela sola. Queda abierto cuántos reintentos y qué hacer si el hold del ganador vence antes de resolverse (con un hold por `orderId` para siempre, Accounting no permite crear otro). Choca con el rollback por plazo de [[Propuesta C de la saga de compra]], que cancela al vencer el plazo: para subastas ese rollback no aplicaría, o aplicaría solo como último recurso.
 - **Eventos publicados**: nombres y destinatarios de los avisos (oferta superada, cierre, cancelación) según [[Integración con Notificaciones]].
 - **Cursos**: payload exacto de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED`.
+- **Extensión de la saga a subastas pendiente (2026-10-20)**: antes de implementar la liquidación (US **#8397**, tareas #8417–#8419) y la oferta con `HOLD_CREATE AUCTION_BID` (#8412 de la US **#8395**), hay que agregar el tipo de agregado de subasta en tres puntos hoy limitados a órdenes y aportes: `SagaCorrelationService` y `AccountingHoldEventHandler.isDispatchable` (solo `ORDER`, `GOAL_CONTRIBUTION` y `GOAL`), el `message_key` del outbox (solo `ORDER` y `GOAL_CONTRIBUTION`) y `HoldOwnerResolver` (resuelve por `hold_id` en órdenes y aportes, con el punto de extensión para pujas sin implementar). Quedó como **US #11436** ("[G11] — Subastas: integrar la saga de holds y el outbox al agregado de subasta", New, Sprint 03, Épica 577) con la task **#11421** adentro (New, sin asignar). Es la integración del saga de subastas en el bloque de subastas, y es previa a la US #8397 y a la task #8412 de la US #8395. Sin ella, la liquidación tendría que meterse en el código cerrado de la meta colectiva.
 
 ## Dónde vive en el código
-No existe.
+Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`, PR #247), con T01–T03 ya mergeadas en `develop` (#241, #244 y #245). Todavía no hay código de ofertas (pujas), de cierre ni de liquidación.
+
+- `entities/AuctionEntity.java` con `entities/AuctionItemSnapshot.java`: entidad completa con modo (`AuctionMode`: `VISIBLE`/`BLIND`), enum de estados `models/enums/AuctionStatus.java`, ventana `starts_at`/`ends_at`, fase final e incremento opcionales, base opcional y versión; `repositories/AuctionRepository.java`.
+- Lanzamiento: `controllers/AuctionLaunchController.java` (`POST /courses/{courseId}/auctions`), `services/impl/AuctionLaunchService.java`, `AuctionLaunchValidator.java` y `AuctionLaunchWriter.java`. Lanza directo a `OPEN` con el lote exclusivo de una unidad congelado desde plantilla + configuración; no reserva stock.
+- Lectura: `controllers/AuctionQueryController.java` (`GET /courses/{courseId}/auctions`) y `services/impl/AuctionQueryService.java`: solo `OPEN` no vencidas, ordenadas por cierre, con autorización de membresía del curso.
+- Contrato de respuesta: `dtos/auction/AuctionResponseDto.java` y `dtos/auction/AuctionListItemDto.java` (`best_bid` ausente en `BLIND` y vacío en `VISIBLE` sin pujas; `in_final_phase` derivada del reloj, `null` en `BLIND`).
+- Persistencia: Flyway `V12__auctions_schema.sql` y `V13__auction_unit_lot_provenance.sql`.
+- Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]].
+[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
