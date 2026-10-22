@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd
-actualizado: 2026-10-15
+verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd, codigo@6695ef1e
+actualizado: 2026-10-22
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -210,7 +210,7 @@ Flujo acordado en [[DEC-029 - Meta colectiva]] (detalle en [[Meta colectiva]]). 
 | `accounting.events` | Mercado → Accounting | Comandos de hold (`HOLD_*_REQUESTED`) | `student_id` (la que pone el relay en las filas de orden sin `message_key`) |
 | `accounting.events` | Accounting → Mercado (un solo listener, que ignora lo que publicó Mercado) | Respuestas de hold, `HOLD_EXPIRED`, `ITEM_CREDITED`, `BALANCE_*` | `student_id:course_id` (`AccountingKey`) |
 | `market.events` | Mercado → Accounting | `ITEM_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` | `student_id` |
-| `courses.events` | Cursos → Accounting (Mercado no lo escucha) | `STUDENT_UNENROLLED`, `COURSE_COHORT_ARCHIVED` | — |
+| `courses.events` | Cursos → Accounting y Mercado | `STUDENT_UNENROLLED`, `COURSE_COHORT_ARCHIVED` | `enrollment_id` en la baja y `course_cohort_id` en el archivado ([[Integración con Cursos]]). Desde `develop@6695ef1e` Mercado consume el archivado; la baja todavía no |
 
 **Mensajes de la meta** (todos por `accounting.events`, salvo `ITEM_CONFIRMED`):
 

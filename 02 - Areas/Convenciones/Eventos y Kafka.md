@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de
-actualizado: 2026-10-14
+verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de, codigo@6695ef1e
+actualizado: 2026-10-22
 tags: [mercado, convenciones, kafka, eventos]
 ---
 # Eventos y Kafka
@@ -44,7 +44,7 @@ Como comandos y respuestas de holds y revocación comparten `accounting.events`,
 2. Lee el `event_type` con `SagaEventParser.eventTypeOf`: enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler` (incorporado en el PR #151, US-5193 T06), `LIFE_PURCHASE_REJECTED` a `AccountingLifePurchaseEventHandler`, los eventos de hold a `AccountingHoldEventHandler`, y descarta con `DEBUG` lo no consumido.
 3. Con esto ningún comando propio genera `MalformedEventException` ni llega a `accounting.events.DLT`.
 
-Sin implementar: `CATALOG_OFFER_PUBLISHED` y el consumo de `COURSE_ARCHIVED`, `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`.
+Sin implementar: el consumo de `STUDENT_UNENROLLED` y `PARAMETRO_ACTUALIZADO`. `CATALOG_OFFER_PUBLISHED` ya se publica (`services/impl/CatalogOfferNoticeServiceImpl.java`, [[DEC-018 - Aviso de ofertas nuevas]]) y `COURSE_COHORT_ARCHIVED` ya se consume desde `courses.events` (`listeners/CoursesEventsKafkaListener.java`, verificado en `develop@6695ef1e`). El contrato de los eventos de Cursos está en [[Integración con Cursos]].
 
 ### Payloads contractuales (contratos-kafka v8, snake_case)
 
