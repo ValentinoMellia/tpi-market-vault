@@ -1,0 +1,8 @@
+## [2026-10-21] query | Q-031, regla de la oferta ciega y mejor visible en la fase final
+
+- Para la Task #8416 de Taiga (US #8396, "Confirmar regla de oferta ciega y desempate según DEC-014/Q-025") se creó [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]]. No decide nada: presenta con sus consecuencias la regla de la oferta ciega que [[DEC-014 - Reglas de subastas]] dejó pendiente (mínimo según la mejor visible más el incremento, o solo base e incremento), qué se muestra como mejor oferta durante la fase final, quién puede ofertar en esa fase, subir y retirar en el modo `BLIND`, qué ve el staff durante la fase ciega y el estado del desempate ([[Q-025 - Desempate de las subastas]] sigue abierta y rige el dado de DEC-014; se resuelve en la US #8397).
+- Código verificado en `tpi-market@1c75fd75c` (rama `feature/us-8396-t01-s1-auction-phase-policy`, PR pendiente): `AuctionPhasePolicy`, `AuctionPhase`, `AuctionQueryService` (`best_bid` ausente en `BLIND` y vacío en la fase final, igual para el staff), `AuctionBidEntity` y `V15__auction_bids.sql` (una fila por estudiante, sin revisiones ni fase). `V16` ya existe en `develop`: una migración nueva sería `V17` o posterior.
+- [[DEC-014 - Reglas de subastas]]: el punto "Regla de la oferta ciega" de "Pendiente de detalle" enlaza a la pregunta; no cambia lo decidido.
+- [[Subasta]]: "Pendiente" y "Abierto" enlazan a la pregunta; la nota sigue `en-disputa`.
+- [[Carga en Taiga - Sprints 2 y 3]]: la fila del modo ciega ya no presenta "solo ofertan quienes ya ofertaron" como alcance decidido; es una propuesta del spike pendiente en la pregunta.
+- La pregunta queda pendiente de confirmación del equipo de Mercado.

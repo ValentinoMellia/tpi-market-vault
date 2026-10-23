@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@7528610
-actualizado: 2026-10-01
+actualizado: 2026-10-23
 tags: [mercado, backlog, epica, subastas]
 taiga: "#577"
 epica: "Subastas"
@@ -39,7 +39,7 @@ Reglas de [[DEC-014 - Reglas de subastas]] (2026-10-01) y su efecto en las histo
 - #580 y #581 Ofertar y mejorar: incremento mínimo configurable; una oferta abierta debe superar estrictamente a la mejor.
 - #578 Lanzar: duración máxima de 14 días; modo puja visible o ciega (el desempate por dado decidido en el servidor, auditable, está en revisión: [[Q-025 - Desempate de las subastas]]).
 - #588 Curso archivado o baja: se cancelan las subastas del curso archivado; la baja retira las ofertas del estudiante y la subasta continúa.
-- Sin extensión de tiempo; anti-sniping por fase final ciega (últimos X minutos ciegas; X configurable por subasta por el profesor; la regla de la oferta ciega sigue pendiente de detalle): afecta a #580 y #581 ([[DEC-014 - Reglas de subastas]]).
+- Sin extensión de tiempo; anti-sniping por fase final ciega (últimos X minutos ciegas; X configurable por subasta por el profesor; la regla de la oferta ciega se decidió en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]): afecta a #580 y #581 ([[DEC-014 - Reglas de subastas]]).
 
 Las subastas están previstas para el Sprint 3 (no bloqueadas por los ítems únicos, [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]), por lo que se especifican ahora ([[DEC-015 - Política del backlog de Taiga]], [[Roadmap de trabajo]]).
 
