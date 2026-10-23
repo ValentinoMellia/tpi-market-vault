@@ -1,8 +1,8 @@
 ---
 tipo: historia
 estado: archivado
-verificado_contra: DEC-012
-actualizado: 2026-10-01
+verificado_contra: DEC-012, DEC-030
+actualizado: 2026-10-16
 tags: [mercado, backlog, epica, vencimiento]
 taiga: "#770"
 epica: "Vencimiento"
@@ -24,6 +24,7 @@ Era el vencimiento de ítems del inventario. Ver [[Vencimiento de items]] y [[DE
 | #788 | Consultar items vencidos | cerrar o quitar |
 
 ## Notas
+- [[DEC-030 - Los ítems no tienen vigencia después de la compra]] (2026-10-15) confirma que los ítems no tienen vigencia y retira del frontend el campo «Vigencia después de la compra (días)» (Task #9330, US #9323). La duración de la publicación de la oferta sigue siendo otra cosa.
 - Las historias #786 a #788 ya no se transfieren a Accounting ([[Épica 131 - Inventario (otro equipo)]]): se descartan.
 - Lo que sí existe es el vencimiento de la publicación de la oferta (`publicationExpiresAt`, [[Oferta de catálogo]]); cualquier historia sobre eso se conserva.
 - La limpieza en Taiga se coordina en [[Q-013 - Higiene del backlog]] y es una tarea de [[Roadmap de trabajo]].

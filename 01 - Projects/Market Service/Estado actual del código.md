@@ -2,7 +2,7 @@
 tipo: estado
 estado: vigente
 verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-15
+actualizado: 2026-10-22
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -144,7 +144,7 @@ Verificados leyendo el código:
 
 13. **La clave de idempotencia es global, no por estudiante.** `OrderRepository.findByIdempotencyKey(String)` busca solo por la clave (`repositories/OrderRepository.java`). Ver [[Idempotencia]].
 14. **El cliente simulado de matrícula es el valor por defecto.** Desde la T01 de US-5202 (PR #128 a #131) `MockCourseEnrollmentClient` ya no es `@Primary`, pero `market.course.client` vale `mock` si no se configura (verificado en `fb5f82d9`). [[DEC-023 - Sin mocks de Cursos en el código]] pide eliminarlo. Ver [[Integración con Cursos]].
-15. **`itemValidityDays` es un residuo.** La función de vencimiento de items entró en el PR #44 y se revirtió en el PR #60; el campo se guarda en la oferta pero nunca se envía a accounting. Los ítems no vencen y el campo se debe quitar ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]).
+15. **`itemValidityDays` era un residuo: resuelto en el backend y en el frontend.** La función de vencimiento de items entró en el PR #44 y se revirtió en el PR #60; el campo se guardaba en la oferta pero nunca se enviaba a accounting. Los ítems no vencen ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[DEC-030 - Los ítems no tienen vigencia después de la compra]]). El backend lo quitó de `src/main` en `fda3fca4` (verificado en `ac05a77f`); el formulario del frontend seguía mostrándolo y lo retiró la PR [2026-P4-FE/2026-PIV-TPI-FE#634](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/634) (mergeada en `develop` el 2026-10-16).
 16. **La rama `main` está 222 commits por detrás de `develop`.**
 17. **El flujo SSE de órdenes lo puede abrir el dueño o ADMIN, GESTOR y MS** (`controllers/PurchaseOrderController.java`).
 
