@@ -1,8 +1,8 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-031
-actualizado: 2026-10-16
+verificado_contra: DEC-038
+actualizado: 2026-10-21
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -44,6 +44,7 @@ tags: [mercado, decision]
 | DEC-029 | [[DEC-029 - Meta colectiva]] | Acuerdo entre Mercado y Accounting (sin `Q`); los detalles pendientes están en [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]] | 2026-10-15 |
 | DEC-030 | [[DEC-030 - Los ítems no tienen vigencia después de la compra]] | Confirmación de Accounting y del equipo de Mercado; refuerza [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] (sin `Q`) | 2026-10-15 |
 | DEC-031 | [[DEC-031 - Cofres configurables con ítems, monedas y XP]] | [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]] (archivada; aprobado por el PO en persona el 2026-10-12) | 2026-10-16 |
+| DEC-038 | [[DEC-038 - La puja es el agregado de la saga de subastas]] | Análisis de la US #11436 (sin `Q`); los eventos de la subasta entera siguen en [[Q-030 - Agregado de los eventos de la subasta entera en el outbox]] | 2026-10-21 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
@@ -61,5 +62,7 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-019 - Aviso cuando el ítem se entregó sin cobro]]: postura provisoria de Mercado (no avisar); decide producto.
 
 - [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]]: nombres, la forma de la pérdida y de la extensión, márgenes y fallas de acreditación de [[DEC-029 - Meta colectiva]]; se acuerda con Accounting.
+
+- [[Q-030 - Agregado de los eventos de la subasta entera en el outbox]]: qué agregado `Long` usan en el outbox los avisos de la subasta entera (task #11471); [[DEC-038 - La puja es el agregado de la saga de subastas]] solo cubre las filas de cada postor.
 
 Las 33 recomendaciones del taller y cuáles quedaron decididas: [[Taller de decisiones]]. Prioridad en [[Roadmap de trabajo]]; contexto en [[Market Service - Overview]].

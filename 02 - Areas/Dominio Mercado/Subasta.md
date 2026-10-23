@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-20
+actualizado: 2026-10-21
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
@@ -68,13 +68,14 @@ Propuesta del spike [[S2-09c - SPIKE Diseño técnico de subastas]] del 2026-10-
 | `finalPhaseMinutes` (X) | Solo en modo `VISIBLE`. Mayor que 0 y menor que la duración |
 | `baseAmount` | Base que fija el profesor; ninguna oferta puede ser menor. Opcional y no negativa; sin valor, la base es 0 y la oferta mínima es de 1 moneda |
 | `minIncrement` | Solo en modo `VISIBLE`. Opcional. Sin valor, cada oferta debe superar estrictamente a la anterior (mínimo efectivo de 1 moneda) |
-| `winnerBidId`, `finalAmount` | Se completan al cerrar. Registro propio: la venta **no** suma a `unitsSold` de la oferta |
+| `winnerBidId`, `finalAmount` | Se completan al cerrar. Registro propio: la venta **no** suma a `unitsSold` de la oferta. `winnerBidId` referencia el id `Long` de la puja ganadora ([[DEC-038 - La puja es el agregado de la saga de subastas]]); hoy el código lo tiene como UUID |
 | `version` | Bloqueo optimista ([[Bloqueo optimista]]) |
 
 **Oferta (puja)**: una por estudiante y subasta, porque Accounting permite un hold por `orderId` y cuenta ([[Hold de monedas]]).
 
 | Campo | Detalle |
 |---|---|
+| `id` | `Long` (`BIGSERIAL`). Es el agregado de la saga de holds para todos los comandos del postor ([[DEC-038 - La puja es el agregado de la saga de subastas]]) |
 | `auctionId`, `studentId` | Clave única conjunta |
 | `amount` | Total retenido hoy; solo puede subir |
 | `holdId`, `holdExpiresAt` | Del hold en Accounting (`holdExpiresAt` en UTC) |
@@ -189,7 +190,15 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Fallo con el ganador**: en la sesión del 2026-10-08 se indicó que la liquidación **se reintenta y no se cancela la subasta**; el cierre es un hecho consumado y hay que idear cómo resolver los fallos. *Propuesta*: reintentos con espera creciente; al agotarlos la subasta queda en `FAILED_SETTLEMENT` a la espera de un ADMIN, con los holds mantenidos, y no se cancela sola. Queda abierto cuántos reintentos y qué hacer si el hold del ganador vence antes de resolverse (con un hold por `orderId` para siempre, Accounting no permite crear otro). Choca con el rollback por plazo de [[Propuesta C de la saga de compra]], que cancela al vencer el plazo: para subastas ese rollback no aplicaría, o aplicaría solo como último recurso.
 - **Eventos publicados**: nombres y destinatarios de los avisos (oferta superada, cierre, cancelación) según [[Integración con Notificaciones]].
 - **Cursos**: payload exacto de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED`.
-- **Extensión de la saga a subastas pendiente (2026-10-20)**: antes de implementar la liquidación (US **#8397**, tareas #8417–#8419) y la oferta con `HOLD_CREATE AUCTION_BID` (#8412 de la US **#8395**), hay que agregar el tipo de agregado de subasta en tres puntos hoy limitados a órdenes y aportes: `SagaCorrelationService` y `AccountingHoldEventHandler.isDispatchable` (solo `ORDER`, `GOAL_CONTRIBUTION` y `GOAL`), el `message_key` del outbox (solo `ORDER` y `GOAL_CONTRIBUTION`) y `HoldOwnerResolver` (resuelve por `hold_id` en órdenes y aportes, con el punto de extensión para pujas sin implementar). Quedó como **US #11436** ("[G11] — Subastas: integrar la saga de holds y el outbox al agregado de subasta", New, Sprint 03, Épica 577) con la task **#11421** adentro (New, sin asignar). Es la integración del saga de subastas en el bloque de subastas, y es previa a la US #8397 y a la task #8412 de la US #8395. Sin ella, la liquidación tendría que meterse en el código cerrado de la meta colectiva.
+- **Eventos de la subasta entera en el outbox**: [[DEC-038 - La puja es el agregado de la saga de subastas]] cubre las filas de cada postor, pero no las que pertenecen a la subasta (avisos de apertura y de resultado de la task #11471), porque la subasta tiene id UUID y el outbox exige `Long`. Ver [[Q-030 - Agregado de los eventos de la subasta entera en el outbox]].
+- **Acreditación del premio (task #11472)**: pasó a la US #8397 ([[DEC-038 - La puja es el agregado de la saga de subastas]]). Antes de empezarla, #8418 tiene que definir la secuencia de liquidación del ganador, y falta que Accounting ratifique `ITEM_CREDIT_FAILED`.
+
+### Saga de holds
+Decidido en [[DEC-038 - La puja es el agregado de la saga de subastas]] (2026-10-21) para la **US #11436** (tareas #11961 (T01, modelo de la puja), #11962 (T02, agregado del outbox), #11421 (T03, despacho al puerto) y #11963 (T04, `hold_id`)), previa a la oferta con `HOLD_CREATE AUCTION_BID` (#8412, US #8395) y a la liquidación (US #8397):
+- Cada puja es su propio agregado `AUCTION_BID` con id `Long`. El UUID de la subasta solo viaja como `order_id` hacia Accounting.
+- Las filas de puja del outbox llevan `message_key` explícito `student_id:course_id`.
+- La US #11436 crea el modelo mínimo de la puja, el `HoldOwner` de puja en `HoldOwnerResolver` y un puerto para sus respuestas de hold; #8412 implementa el comportamiento real.
+- Puntos del código que se extienden: `AccountingHoldEventHandler` (`isDispatchable` y despacho por tipo, hoy `ORDER`, `GOAL_CONTRIBUTION` y `GOAL`), las factories de `SagaRouting` y `HoldOwnerResolver`. `SagaCorrelationService` ya es genérico: resuelve por la fila del outbox.
 
 ## Dónde vive en el código
 Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`, PR #247), con T01–T03 ya mergeadas en `develop` (#241, #244 y #245). Todavía no hay código de ofertas (pujas), de cierre ni de liquidación.
@@ -202,4 +211,4 @@ Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`,
 - Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
+[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]], [[DEC-038 - La puja es el agregado de la saga de subastas]], [[Q-030 - Agregado de los eventos de la subasta entera en el outbox]].
