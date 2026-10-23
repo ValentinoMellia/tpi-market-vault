@@ -117,6 +117,8 @@ stateDiagram-v2
 
 El reintento repite solo el paso que falló: si el ítem ya se acreditó, no se vuelve a acreditar.
 
+**Implementado (Task-8408 de la US #8394, tpi-market PR #252, sin mergear):** el código ya aplica las transiciones de preparación del diagrama: `DRAFT` → `SCHEDULED`, `OPEN` o `CANCELLED`; `SCHEDULED` → `OPEN` o `CANCELLED`; y `OPEN` → `CANCELLED` ([[DEC-014 - Reglas de subastas]]). Cualquier otro cambio se rechaza, también si se intenta con un `setStatus` directo o un merge. Una subasta `SCHEDULED` no se guarda sin `scheduledStartAt`, y la fecha se conserva al abrir. Las transiciones de cierre y liquidación quedan sin definir hasta sus historias (#8397). Siguen **pendientes de ratificación** y no se implementaron: desprogramar (`SCHEDULED` → `DRAFT`) o reprogramar, si `scheduledStartAt` se limpia al abrir (la tabla de arriba dice "solo en `SCHEDULED`"), y si se puede crear una subasta directamente en `SCHEDULED`.
+
 `OPEN` distingue `NO_BIDS` y `ACTIVE_BIDS` según haya ofertas. *Propuesta*: el curso archivado cancela **todas** las subastas del curso (`DRAFT`, `SCHEDULED` y `OPEN`), no solo las abiertas como dice [[DEC-014 - Reglas de subastas]]; solo las abiertas tienen holds que liberar.
 
 ### Reglas de las ofertas
@@ -199,6 +201,7 @@ Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`,
 - Lectura: `controllers/AuctionQueryController.java` (`GET /courses/{courseId}/auctions`) y `services/impl/AuctionQueryService.java`: solo `OPEN` no vencidas, ordenadas por cierre, con autorización de membresía del curso.
 - Contrato de respuesta: `dtos/auction/AuctionResponseDto.java` y `dtos/auction/AuctionListItemDto.java` (`best_bid` ausente en `BLIND` y vacío en `VISIBLE` sin pujas; `in_final_phase` derivada del reloj, `null` en `BLIND`).
 - Persistencia: Flyway `V12__auctions_schema.sql` y `V13__auction_unit_lot_provenance.sql`.
+- Transiciones de estado (Task-8408 de la US #8394, `tpi-market` `5d5950dfc`, rama `feature/tema-09-subastas-borradores-t01`, PR #252 sin mergear): tabla `AuctionStatus.canTransitionTo` e `isBeforeOpening()`; en `AuctionEntity`, `schedule(startAt)` (solo desde `DRAFT`), `transitionTo(target)`, la verificación previa a cada `UPDATE` contra el estado leído y la regla de que `SCHEDULED` exige `scheduled_start_at`. Sin migración nueva. Los endpoints de borrador y programación son la Task-8409 y la apertura automática, la Task-8410.
 - Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
