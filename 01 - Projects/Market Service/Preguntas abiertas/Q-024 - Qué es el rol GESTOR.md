@@ -2,7 +2,7 @@
 tipo: pregunta
 estado: en-disputa
 verificado_contra: codigo@c195d386
-actualizado: 2026-10-09
+actualizado: 2026-10-20
 tags: [mercado, pregunta-abierta, seguridad, roles]
 ---
 # Q-024 - Qué es el rol GESTOR
@@ -44,3 +44,5 @@ El equipo de Mercado decide cómo trata el rol. Hay que confirmar con Users (qu�
 
 ## Resolución
 Parcial. [[DEC-021 - Acceso al mercado por membresía de Cursos]] (confirmada por el PO el 2026-10-08) la responde para las **rutas de un curso**: el `GESTOR` de Cursos no tiene acceso al mercado del curso y no equivale al `ADMIN` de Mercado. Queda abierto qué pasa con el `GESTOR` del JWT en las **rutas sin curso** (por ejemplo, los resúmenes y el flujo SSE de órdenes). Hasta que el equipo lo confirme, la pregunta no se archiva.
+
+También parcial para las **rutas de subastas de un curso**: [[DEC-037 - GESTOR como docente en las subastas]] (decidida el 2026-10-20 por Valentino Mellia, del equipo de Mercado) trata al `GESTOR` de la membresía como docente de la cohorte (lectura con `can_read`, escritura con `can_write`) y nunca como `ADMIN`. Esa decisión enmienda a DEC-021 solo para subastas. La pregunta sigue abierta y no se archiva.
