@@ -1,0 +1,9 @@
+## [2026-10-22] ingest | Contrato de baja y reactivación con Cursos (`tpi-course#193`)
+
+- Fuente: la issue `tpi-course#193` (consulta de Mercado del 2026-10-22 y respuesta de Cursos), contrastada con `tpi-course` `develop@5e6ed772` (`CourseEventTypes`, `CourseEventPayloads`, `EnrollmentWithdrawalService`, `StudentUnenrolledDispatcher` y el documento de contratos de Kafka) y con `tpi-market` `develop@6695ef1e`.
+- Contrato acordado: `STUDENT_UNENROLLED` y `STUDENT_ENROLLED` en `courses.events`, con key `enrollment_id`, envelope estándar, `producer: tema-02-cursos-matricula`, `event_version: 1`, el mismo `event_id` entre reintentos y orden garantizado solo por matrícula. El archivado emite solo `COURSE_COHORT_ARCHIVED` y no hay bajas de docentes.
+- Diferencia encontrada en Cursos: su documento dice que la baja solo aplica a matrículas `VALIDATED`, pero el código (y la respuesta de la issue) también la emiten para `PENDING`. Queda anotado como pedido a Cursos; a Mercado no lo afecta.
+- La reacción de Mercado a la baja registra el acuerdo con Accounting de `tpi-market#200`: Mercado no envía un release, porque Accounting libera con `ACCOUNT_DEACTIVATED`.
+- Nueva pregunta [[Q-032 - Reinscripción de un postor dado de baja]]: Cursos sugiere que el estudiante reactivado vuelva a pujar, pero Accounting admite un solo hold por cuenta y subasta. Se toma el número 032 porque 028 a 031 ya están usados en ramas abiertas.
+- De paso se corrigieron afirmaciones desactualizadas sobre el código: `course_closure` y `CourseEventHandler` ya no existen, `COURSE_COHORT_ARCHIVED` cancela metas y subastas abiertas (PR #271) y `CATALOG_OFFER_PUBLISHED` ya se publica.
+- Notas tocadas: [[Integración con Cursos]] (sección nueva "Eventos de Cursos para Mercado"), [[Subasta]] (secciones "Cursos" y "Abierto"), [[Eventos y Kafka]], [[Integración con Accounting]] (mapa de tópicos) y [[Q-032 - Reinscripción de un postor dado de baja]] (nueva).

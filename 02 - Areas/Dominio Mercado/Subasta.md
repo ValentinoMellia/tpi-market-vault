@@ -2,7 +2,7 @@
 tipo: entidad
 estado: en-disputa
 verificado_contra: DEC-016
-actualizado: 2026-10-20
+actualizado: 2026-10-22
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
@@ -169,9 +169,10 @@ sequenceDiagram
 - **Cancelación**: un `HOLD_RELEASE_REQUESTED` por postor con `AUCTION_CANCELLED`, nunca uno por `orderId` ([[DEC-014 - Reglas de subastas]]).
 
 ### Cursos
-Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.events` ([[Integración con Cursos]]).
-- `COURSE_ARCHIVED`: se cancelan las subastas del curso y se libera un hold por postor.
-- `STUDENT_UNENROLLED`: las ofertas del estudiante pasan a `LIBERADA`, se libera su hold y la subasta continúa. En la fase visible, la mejor oferta se recalcula (consecuencia del diseño, sin decisión propia).
+Mercado consume `COURSE_COHORT_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.events`. El contrato está en [[Integración con Cursos]], acordado en `tpi-course#193`. El nombre `COURSE_ARCHIVED` de notas anteriores no existe.
+- `COURSE_COHORT_ARCHIVED`: se cancelan las subastas abiertas de la cohorte y se libera un hold por postor con `AUCTION_CANCELLED`. Implementado en `develop@6695ef1e` (US #8398 T02, PR #271).
+- `STUDENT_UNENROLLED` (task #8422, sin código todavía): las ofertas del estudiante en las subastas `OPEN` de la cohorte pasan a `LIBERADA` y la subasta continúa. En la fase visible, la mejor oferta se recalcula (consecuencia del diseño, sin decisión propia). Mercado **no envía el release**: Accounting libera por su cuenta los holds del alumno dado de baja con `ACCOUNT_DEACTIVATED` y publica `HOLD_RELEASED` sin `correlation_id`, que Mercado resuelve por `hold_id`. Así se acordó con Accounting en `tpi-market#200` (2026-10-17) para evitar una doble liberación. El evento se deduplica por `event_id`, y si la cohorte ya fue archivada no hay nada que retirar.
+- `STUDENT_ENROLLED` (reactivación de la matrícula): las ofertas retiradas no se restauran. Si el estudiante puede volver a pujar en una subasta donde ya tenía oferta está abierto en [[Q-032 - Reinscripción de un postor dado de baja]].
 
 ### Abierto
 - **Desempate**: [[DEC-014 - Reglas de subastas]] pide una tirada de dado decidida por el servidor y auditable. En la sesión del 2026-10-09 se propuso reemplazarlo por la **oferta más antigua** en el Sprint 3, y más adelante por el ranking del curso y cohorte (ver "Desempate"). Contradice a DEC-014, por eso queda abierta la pregunta [[Q-025 - Desempate de las subastas]]; se decide al implementar.
@@ -188,7 +189,7 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Plazo de liquidación**: el plazo de la propuesta C (`holdExpiresAt` − margen) está pensado para 300 s. Con holds largos haría falta un plazo propio de liquidación.
 - **Fallo con el ganador**: en la sesión del 2026-10-08 se indicó que la liquidación **se reintenta y no se cancela la subasta**; el cierre es un hecho consumado y hay que idear cómo resolver los fallos. *Propuesta*: reintentos con espera creciente; al agotarlos la subasta queda en `FAILED_SETTLEMENT` a la espera de un ADMIN, con los holds mantenidos, y no se cancela sola. Queda abierto cuántos reintentos y qué hacer si el hold del ganador vence antes de resolverse (con un hold por `orderId` para siempre, Accounting no permite crear otro). Choca con el rollback por plazo de [[Propuesta C de la saga de compra]], que cancela al vencer el plazo: para subastas ese rollback no aplicaría, o aplicaría solo como último recurso.
 - **Eventos publicados**: nombres y destinatarios de los avisos (oferta superada, cierre, cancelación) según [[Integración con Notificaciones]].
-- **Cursos**: payload exacto de `COURSE_ARCHIVED` y `STUDENT_UNENROLLED`.
+- **Cursos**: el payload de `COURSE_COHORT_ARCHIVED` y `STUDENT_UNENROLLED` quedó acordado el 2026-10-22 ([[Integración con Cursos]]). Sigue abierta la reinscripción de un postor dado de baja ([[Q-032 - Reinscripción de un postor dado de baja]]).
 - **Extensión de la saga a subastas pendiente (2026-10-20)**: antes de implementar la liquidación (US **#8397**, tareas #8417–#8419) y la oferta con `HOLD_CREATE AUCTION_BID` (#8412 de la US **#8395**), hay que agregar el tipo de agregado de subasta en tres puntos hoy limitados a órdenes y aportes: `SagaCorrelationService` y `AccountingHoldEventHandler.isDispatchable` (solo `ORDER`, `GOAL_CONTRIBUTION` y `GOAL`), el `message_key` del outbox (solo `ORDER` y `GOAL_CONTRIBUTION`) y `HoldOwnerResolver` (resuelve por `hold_id` en órdenes y aportes, con el punto de extensión para pujas sin implementar). Quedó como **US #11436** ("[G11] — Subastas: integrar la saga de holds y el outbox al agregado de subasta", New, Sprint 03, Épica 577) con la task **#11421** adentro (New, sin asignar). Es la integración del saga de subastas en el bloque de subastas, y es previa a la US #8397 y a la task #8412 de la US #8395. Sin ella, la liquidación tendría que meterse en el código cerrado de la meta colectiva.
 
 ## Dónde vive en el código
