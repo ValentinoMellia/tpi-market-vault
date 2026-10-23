@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-09
+verificado_contra: equipo-plataforma@2026-10-01, codigo@e63dcb47
+actualizado: 2026-10-23
 tags: [plataforma, gateway, seguridad]
 ---
 # Gateway e identidad
@@ -69,6 +69,15 @@ Las dos capas no leen igual la identidad: la primera usa las autoridades del fil
 **Desde el PR #120 de `tpi-market`** (T04 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-06 (`5938bd84`)), una prueba de aceptación recorre las dos capas para cada endpoint de negocio y cada tipo de llamador (`src/test/java/ar/edu/utn/frc/tup/p4/acceptance/RoleEndpointMatrixAcceptanceTest.java`) y falla si alguna vuelve a comparar roles por subcadena.
 
 **Desde el PR #124 de `tpi-market`** (T05 de [[S2-04 - Seguridad]], mergeado en `develop` el 2026-10-07 (`c195d386`)), las dos capas leen la misma identidad: todos los chequeos de rol de los services usan el principal autenticado (`UserRole.fromAuthorities`) y ninguno vuelve a parsear `X-User-Roles`. Un rol que el filtro no da (por ejemplo `MS` en un usuario) tampoco lo puede dar un service. `X-User-Id` sigue llegando por cabecera y es obligatoria en todas las rutas que la toman (400 `missing-header` si falta). Qué roles se saltean la matrícula o la asignación en cada ruta está en [[S2-04 - Seguridad]].
+
+**Desde la US-12002 de `tpi-market`** (cofres, T06, PR 278, `develop@e63dcb47`), la segunda capa de los cofres corre en el controlador y no en el servicio. `CourseChestManageController` llama a `services/impl/ChestAccessGate.java` antes de abrir la transacción del servicio, para que las llamadas a Cursos no retengan una conexión de la base durante su timeout. Las metas hacen lo mismo (`controllers/CourseGoalManageController.java`); las ofertas, en cambio, autorizan dentro de `services/impl/CourseCatalogManageServiceImpl.java`. El gate sigue este orden:
+
+1. Usuario presente.
+2. Mercado habilitado, también para el `ADMIN`.
+3. Bypass de asignación solo para el `ADMIN`.
+4. Membresía docente con `can_read` o `can_write` (`CourseMembershipServiceImpl.requireProfessor`). Una membresía `GESTOR` responde 403, como pide [[DEC-021 - Acceso al mercado por membresía de Cursos]].
+
+Las dos consultas a Cursos de un mismo pedido (mercado habilitado y membresía) cuestan una sola llamada HTTP. `GatewayCourseCohortClient.findMembership` (`clients/impl/GatewayCourseCohortClient.java`) memoiza la respuesta en un atributo del request (`RequestMemo`, sobre `RequestContextHolder`). Solo guarda las respuestas exitosas, y fuera de un request no memoiza. Detalle en [[Cofre]].
 
 ## Puntos débiles
 

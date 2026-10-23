@@ -1,8 +1,8 @@
 ---
 tipo: estado
 estado: vigente
-verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-15
+verificado_contra: codigo@7528610, codigo@2fc155ad, codigo@e63dcb47
+actualizado: 2026-10-23
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -24,6 +24,8 @@ Actualización (2026-10-09): conciliación real de holds y resolución de `HOLD_
 Actualización (2026-10-09): token de servicio para Accounting verificado contra `6926af1` (PR #139, US-5193 T09, issue #126). Los dos clientes REST de Accounting (`clients/impl/GatewayAccountingEquipSummaryClient.java` y `clients/impl/HttpBankHoldQueryClient.java`) envían el token propio de Mercado para `accounting-service` / `accounting.account.read` con el bean `ACCOUNTING_TOKEN_INTERCEPTOR` (`configs/ServiceTokenConfig.java`). El token lo pide el mismo proveedor que usa Cursos (`clients/impl/GatewayServiceTokenProvider.java`). Audience y scope se configuran en `market.service-token.accounting-*` (`MARKET_ACCOUNTING_AUDIENCE`, `MARKET_ACCOUNTING_SCOPE`). Se eliminaron el token fijo `ACCOUNTING_SERVICE_TOKEN` (`market.accounting.service-token`), `market.accounting.read-scope` y el mecanismo duplicado `ServiceTokenClient` / `IdentityServiceTokenClient`. Un 401 se reintenta una vez y un 403 no; sin token, `equip-summary` responde 503 y la consulta de holds lanza `BankHoldUnavailableException`. Detalle en [[Integración con Accounting]].
 
 Actualización (2026-10-10): endpoint 'Mis mercados' (`GET /api/market/courses`) y métodos de listado de Cursos verificados contra `2fc155ad` (PR #159, US-7382 T01-T04). Se implementaron los métodos `listStudentEnrollments` y `listProfessorCohorts` en `CourseCohortClient` / `GatewayCourseCohortClient` delegando en `GatewayCourseListings` (con paginación de 50 elementos por página hasta recorrer `totalPages`), el servicio `MyMarketsServiceImpl` (con deduplicación por curso donde prevalece docente sobre alumno y permiso de gestión `canManage=true` sobre solo lectura, filtrando cohortes `ACTIVE` e inscripciones `VALIDATED`), el controlador `MyMarketsController` (`GET /courses`) protegido para `STUDENT` y `PROFESSOR`, y se sumó el endpoint 17 a la matriz de roles en `RoleEndpointMatrixAcceptanceTest`.
+
+Actualización (2026-10-23): gestión de cofres del profesor (US-12002, T01 a T06: PR 259, 263, 264, 268, 270 y 278 de `tpi-market`) verificada contra `e63dcb47`, el merge de la PR 278. Se verificaron las siete rutas de cofres de la tabla de endpoints y los gaps 25 a 29. El resto de la nota no se reverificó contra ese commit; en particular, no se documentan acá las metas ni las subastas que ya están en `develop`. El dominio está en [[Cofre]] y la historia en [[S3-02 - Cofres, el profesor crea y gestiona]]. La T07 (PR 282, solo tests) seguía abierta.
 
 ## Stack
 
@@ -63,6 +65,13 @@ Paquete base `ar.edu.utn.frc.tup.p4`, en capas clásicas (no hexagonal): `contro
 | `GET /orders/{orderId}` | ídem | STUDENT | Orden propia (ajena responde 404) |
 | `GET /public/ping`, `/whoami`, `/internal`, `/jwks-status` | `GatewayDiagnosticsController`, `JwksStatusController` | variable | Diagnóstico de identidad; `/internal` exige `ROLE_MS` y `market.catalog.read` |
 | `GET /courses` (alias `/api/market/courses`) | `MyMarketsController` | STUDENT, PROFESSOR | Mis mercados: lista cohortes activas donde el usuario es alumno validado o docente asignado (`[{course_id, course_name, role, can_manage}]`); deduplica con precedencia de profesor y gestión; requiere `X-User-Id` (PR #159, US-7382) |
+| `POST /courses/{courseId}/chests` | `CourseChestManageController` | PROFESSOR, ADMIN, GESTOR | Crea un [[Cofre]] en borrador (201, sin `Location`); desde la US-12002 |
+| `PUT /courses/{courseId}/chests/{chestId}` | ídem | ídem | Edita con PUT completo y `version` ([[DEC-041 - Edición de un cofre según su estado]]) |
+| `POST /courses/{courseId}/chests/{chestId}/publish` | ídem | ídem | Publica o reactiva |
+| `POST /courses/{courseId}/chests/{chestId}/deactivate` | ídem | ídem | Desactiva |
+| `DELETE /courses/{courseId}/chests/{chestId}` | ídem | ídem | Descarta un borrador (204) |
+| `GET /courses/{courseId}/chests` (`?page&size&status`) | ídem | ídem | Lista de gestión paginada, sin los descartados |
+| `GET /courses/{courseId}/chests/{chestId}` | ídem | ídem | Detalle con `version`. En las siete rutas de cofres, `ChestAccessGate` corre en el controlador: el ADMIN no necesita estar asignado al curso pero sí el mercado habilitado, y una membresía GESTOR responde 403 |
 
 **Formato de cable.** Todos los cuerpos REST, de entrada y de salida, van en `snake_case`, errores incluidos (PR #76 y #91; `application.properties:17`, `request_id`). Los parámetros de consulta y las cabeceras conservan su nombre. Detalle y excepciones en [[Errores de la API]]. Los payloads de Kafka para la saga de compra migraron a `snake_case` según `contratos-kafka v8` (mergeado en `develop@d3b7a4de` vía PR #186; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
 
@@ -156,6 +165,16 @@ Reportados por la documentación del equipo. Los que ya se verificaron contra el
 19. Una cancelación por `HOLD_NOT_SETTLED` no libera el stock. Verificado el 2026-10-06 contra `f7457882`: es a propósito (US-138 T05, decisión CD12 de su diseño), porque el ítem ya se entregó; `cancelUnsettled` en `services/impl/OrderConfirmationServiceImpl.java` solo deja un `ERROR` para revisión manual. Decidido que queda así: [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]] (origen: [[Q-023 - Stock de una compra cancelada por HOLD_NOT_SETTLED]]). No es un defecto. La T01 #5220 de [[S2-05 - Robustez de la compra]] lo fija con una prueba de integración con stock finito (PR #123 de `tpi-market`, mergeado en `develop` el 2026-10-07 (`c9f47f99`, mergeado por tommikimmel): `OrderConfirmationHoldNotSettledStockIntegrationTest`).
 20. Una orden que queda en `CREATED` porque falló `requestHold` nunca se reconcilia.
 21. `KafkaSagaIntegrationTest`: el PR #89 lo migró a KRaft y declara los 9 casos en verde en una corrida local; sin Docker se omite y no hay CI sobre `develop`, así que no está verificado aquí (ver la sección Pruebas).
+
+### Gaps agregados el 2026-10-23
+
+Verificados contra `e63dcb47` (US-12002, [[S3-02 - Cofres, el profesor crea y gestiona]]):
+
+25. **500 por una página enorme en otros listados.** El listado de cofres rechaza con 400 en `page` un `page × size` que no entra en un `int` (`services/impl/ChestQueryServiceImpl.java`). `/auctions/drafts` (`services/impl/AuctionStaffQueryService.java`), `/goals` (`controllers/CourseGoalQueryController.java`) y las órdenes del alumno (`controllers/StudentOrderController.java`) arman el `PageRequest` sin ese control. Es inferido del código: Spring Data no admite ese desplazamiento y ningún handler toma la excepción, así que cae en `unexpected-error` (500). No hay test que lo pruebe. No se abrió issue, a propósito.
+26. **Ejemplos de OpenAPI de cofres en `camelCase`.** Los ejemplos de `addChestExamples` en `configs/SpringDocConfig.java` muestran `prizes[0].sourceOfferId`, `prizes[1].rewardKind` y `rarityWeights`. El código emite `prizes[i].source_offer_id`, `prizes[i].reward_kind` y `rarity_weights` desde la review de la PR 270. El test `CourseChestManageControllerTest.stateConflictOnAField_should_carryTheFieldError` también simula el campo en `camelCase`. La mezcla de estilos de fondo es [[Q-033 - Nombres de campo en los errores de validación]].
+27. **Publicar, desactivar y descartar un cofre no reciben `version`.** Una vista vieja puede publicar un borrador recién editado. Si la publicación pierde una carrera contra una edición, responde 409 `chest-version-conflict` sin `currentVersion`. Ver [[Cofre]].
+28. **`OFFER_SOLD_OUT` solo se calcula al copiar la oferta**, al crear el cofre o en un borrador al editarlo. No se recalcula al leer ni al publicar. Además, un cofre corrupto en la base rompería toda la página del listado: hoy no se puede producir por la API.
+29. **Suite con 44 errores previos.** Los da la base H2 en memoria compartida entre contextos de Spring (`jdbc:h2:mem:test`): cuando el caché de contextos desaloja uno, borra el esquema de los demás. Afecta a seis clases de integración ajenas a los cofres, y `develop` puro da los mismos 44. Issue [269](https://github.com/2026-P4-BE/tpi-market/issues/269) de `tpi-market`, abierta.
 
 ## Relacionado
 
