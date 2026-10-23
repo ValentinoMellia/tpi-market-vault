@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@80a6aeac
-actualizado: 2026-10-09
+verificado_contra: codigo@80a6aeac, codigo@e63dcb47
+actualizado: 2026-10-23
 tags: [mercado, convenciones, errores, api]
 ---
 # Errores de la API
@@ -15,9 +15,9 @@ tags: [mercado, convenciones, errores, api]
 
 ## Formato de cable: `snake_case`
 
-Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y también los de entrada: `spring.jackson.property-naming-strategy=SNAKE_CASE` (`src/main/resources/application.properties:17`; el archivo de pruebas lo repite porque tapa al principal). Lo introdujo el PR #76 y el PR #91 lo extendió a los errores: antes `ErrorApi` estaba fijado en `camelCase` y ahora el identificador de traza sale como `request_id`. Ejemplos: `order_id` y `sse_stream_url` en la respuesta de compra, `offer_id` e `idempotency_key` en su cuerpo, `total_elements` en la paginación. Lo que no cambia:
+Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y también los de entrada: cada campo de varias palabras declara su `@JsonProperty("snake_case")` explícito; en `develop@e63dcb47` ya no hay `spring.jackson.property-naming-strategy` en `application.properties` y el `AGENTS.md` de `tpi-market` la prohíbe, igual que `@JsonNaming`. `SnakeCaseContractTest` (`src/test/java/ar/edu/utn/frc/tup/p4/dtos/SnakeCaseContractTest.java`) lo verifica por paquete de DTO. El `snake_case` lo introdujo el PR #76, con la estrategia global que después se reemplazó y el PR #91 lo extendió a los errores: antes `ErrorApi` estaba fijado en `camelCase` y ahora el identificador de traza sale como `request_id`. Ejemplos: `order_id` y `sse_stream_url` en la respuesta de compra, `offer_id` e `idempotency_key` en su cuerpo, `total_elements` en la paginación. Lo que no cambia:
 
-- Los valores de `errors[].field` siguen siendo rutas Java en `camelCase` (por ejemplo `offerId`); solo `field` y `message` son claves de ese objeto.
+- Los valores de `errors[].field` de Bean Validation y de Jackson siguen siendo rutas Java en `camelCase` (por ejemplo `offerId`, `coinPrice`, `purchaseLimit.period`), porque `controllers/FieldErrorMapper.java` usa la ruta de la propiedad. Los errores de negocio de las metas y de los cofres, en cambio, informan el nombre del cable (`target_amount`, `rarity_weights`, `prizes[0].source_offer_id`). La mezcla está abierta en [[Q-033 - Nombres de campo en los errores de validación]].
 - Los nombres de los parámetros de consulta y de las cabeceras no se tocan (`courseIds`, `itemType`, `X-User-Id`).
 - Los payloads de Kafka y del outbox usan otro `ObjectMapper`; para el flujo de compras migraron a `snake_case` según `contratos-kafka v8` (mergeado en `develop@d3b7a4de` vía PR #186; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
 - Las respuestas 401 y 403 que escribe `SecurityConfig` son un texto JSON fijo con claves de una sola palabra (`type`, `title`, `status`, `detail`, `instance`): no pasan por `ErrorApi` y no llevan `request_id` (`configs/SecurityConfig.java`).
@@ -55,6 +55,10 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 | `unsupported-media-type` | 415 | El `Content-Type` del cuerpo no es uno que el endpoint acepte; la respuesta lleva `Accept` |
 | `route-not-found` | 404 | Ninguna ruta coincide, incluida una conocida con `/` al final |
 | `not-acceptable` | 406 | El `Accept` de la solicitud excluye JSON |
+| `chest-invalid-parameters` | 400 | Reglas de negocio de un [[Cofre]]: todos los errores juntos en `errors[]` (`ChestInvalidParametersException`) |
+| `chest-not-found` | 404 | Cofre inexistente, de otro curso o descartado (`ChestNotFoundException`) |
+| `chest-state-conflict` | 409 | Operación no permitida en el estado del cofre, o cambio de pesos o premios en un cofre publicado o desactivado; trae el campo en `errors[]` cuando lo hay (`ChestStateConflictException`) |
+| `chest-version-conflict` | 409 | La `version` enviada está vieja (trae `params.currentVersion`) o otra escritura ganó la carrera (sin `currentVersion`) (`ChestVersionConflictException`) |
 | `unexpected-error` | 500 | Error no previsto |
 
 Los estados HTTP están verificados contra `GlobalExceptionHandler`.
@@ -70,5 +74,14 @@ Hasta el PR #133 de `tpi-market` (US-5219 T03, [[S2-05 - Robustez de la compra]]
 - **Lo que sigue en 500.** `ServiceTokenUnavailableException` (falta el token S2S con los clientes reales) y los `IllegalStateException` de invariantes internas. El primero sería un 503; sin tarea todavía.
 - **Prueba.** `src/test/java/ar/edu/utn/frc/tup/p4/acceptance/ClientErrorAcceptanceTest.java`, con el servidor real: los ocho pedidos del inventario y dos compras válidas rechazadas (415 y 406) que no crean orden ni mueven el stock.
 
+## Errores de los cofres
+
+Desde la US-12002 ([[S3-02 - Cofres, el profesor crea y gestiona]]), la gestión de cofres tiene cuatro problemas propios (tabla de arriba). Lo particular:
+
+- **Todos juntos.** `chest-invalid-parameters` junta en un solo 400 los errores de `ChestRules`, `ChestPrizeResolver` y `ChestEvaluator`, uno por campo. Los errores estructurales salen antes, como `validation-error`, porque el controlador valida con `@Valid`.
+- **Lectura estricta.** En los DTO de pedido de cofres, un campo desconocido o un entero no exacto (`7.9`) responden 400 (`StrictJsonModule`).
+- **`currentVersion` va en `params`**, no como campo raíz. Solo viene cuando la versión enviada estaba vieja. Si la escritura perdió una carrera, el 409 sale sin `params`.
+- **Campos en `snake_case`.** Los errores de negocio usan el nombre del cable (`prizes[i].reward_kind`, `rarity_weights`, `version`, `page`). Los ejemplos de OpenAPI de cofres todavía los muestran en `camelCase` ([[Estado actual del código]], gap 26).
+
 ## Relacionado
-[[Estado actual del código]], [[Gateway e identidad]].
+[[Estado actual del código]], [[Gateway e identidad]], [[Cofre]], [[Q-033 - Nombres de campo en los errores de validación]].
