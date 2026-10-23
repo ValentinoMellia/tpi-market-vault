@@ -30,12 +30,17 @@ El PO (Santoro) aprobó en persona que los cofres puedan dar monedas y XP. Fue e
 - **RF-INT-01 en los cofres.** La restricción de no obtener monedas por intercambio, y la de gastar monedas solo en vidas o equipamiento, no se aplica a los cofres. Fuera de los cofres sigue vigente.
 
 ### Lo que esta decisión no cierra
-Estos puntos siguen abiertos. Son propuestas del diseño, no reglas:
-- Si el profesor puede cambiar los pesos o se usan siempre los de la plataforma (60 / 25 / 12 / 3).
-- El máximo de premios por cofre (el diseño propone 8).
-- Si las probabilidades se muestran siempre al alumno antes de comprar (el diseño lo recomienda).
-- Las once decisiones abiertas de la propuesta (D-1 a D-11).
-- Quién sortea, el catálogo de premios y cómo se acredita cada clase de premio. Eso corresponde a la task T02 #8427 de la US-8400.
+Cuando se registró, esta decisión dejó abiertos el sorteo, la acreditación, varias reglas de configuración y las once decisiones de la propuesta original (D-1 a D-11). La task T02 #8427 los resolvió así:
+
+- **Quién sortea, pesos, máximo de premios, visibilidad de las probabilidades y D-1 a D-11:** [[DEC-032 - Sorteo y reglas de configuración de los cofres]]. Sortea Mercado al crear la orden, los pesos son editables, no hay máximo de premios y el profesor elige si se ven las probabilidades.
+- **Acreditación de ítems y monedas:** [[DEC-034 - Acreditación de premios de cofre en Accounting]], a partir de [[Q-028 - Acreditación de premios de cofre en Accounting]] (archivada).
+- **Acreditación de XP:** [[DEC-033 - Acreditación de XP de cofre en Roadmap]], a partir de [[Q-029 - Acreditación de XP de cofre en Roadmap]] (archivada).
+
+Sigue abierto, para la task T03 #8428:
+
+- Si los cofres avanzan, se acotan o se difieren, y qué historias técnicas se cargan.
+- El valor por defecto del interruptor «mostrar probabilidades» y cómo se arma la pantalla del profesor con cualquier cantidad de premios.
+- Los nombres y la forma final de los eventos de acreditación de monedas y de XP, que se fijan al implementarlos.
 
 ## Alternativas descartadas
 - **Solo ítems (vidas y equipamiento) en el cofre comprado:** era la recomendación de [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]]. El PO prefirió permitir monedas y XP.
@@ -47,6 +52,8 @@ Estos puntos siguen abiertos. Son propuestas del diseño, no reglas:
   - **Ítems:** los acredita Accounting, como en la compra directa ([[Integración con Accounting]]).
   - **Monedas:** hoy Banco solo reserva y cobra. Falta un contrato para que Mercado pida acreditar monedas a un alumno, con idempotencia por orden.
   - **XP:** no está identificado qué servicio es dueño del XP. Hay que averiguarlo y acordar cómo se acredita.
+
+  Actualización (2026-10-16, task T02 #8427): «Banco» es Accounting, el ex Banco ([[Mapa de servicios]]), que hoy acredita monedas solo por desafíos. El dueño del XP es Roadmap ([[Integración con Roadmap]]).
 
   Por eso la task T02 #8427 se amplió el 2026-10-16: en Taiga recibió un comentario con este alcance y su título ahora suma a Banco y al dueño del XP.
 - **Saga.** El cobro no cambia: un hold por el precio del cofre. Cambia la entrega, que depende de la clase de premio que salió. El sorteo tiene que guardarse en la orden, para que un reintento no vuelva a sortear.
