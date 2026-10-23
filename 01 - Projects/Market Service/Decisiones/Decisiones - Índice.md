@@ -1,8 +1,8 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-034
-actualizado: 2026-10-17
+verificado_contra: DEC-042
+actualizado: 2026-10-23
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -47,6 +47,9 @@ tags: [mercado, decision]
 | DEC-033 | [[DEC-033 - Acreditación de XP de cofre en Roadmap]] | [[Q-029 - Acreditación de XP de cofre en Roadmap]] (archivada; respuesta de Roadmap del 2026-10-16) | 2026-10-16 |
 | DEC-034 | [[DEC-034 - Acreditación de premios de cofre en Accounting]] | [[Q-028 - Acreditación de premios de cofre en Accounting]] (archivada; respuesta de Accounting del 2026-10-16) | 2026-10-16 |
 | DEC-035 | [[DEC-035 - Cofres en dos fases]] | Decisión de Mercado (sin `Q`): cofres primero con premios de ítem, monedas y XP en una segunda fase; cierra la US-8400 (T03 #8428) | 2026-10-17 |
+| DEC-040 | [[DEC-040 - Tope técnico de 100 premios por cofre]] | Decisión de Mercado (sin `Q`), del QA de la T02 #12006 de la US-12002; enmienda DEC-032 solo en el máximo de premios | 2026-10-22 |
+| DEC-041 | [[DEC-041 - Edición de un cofre según su estado]] | Decisión de Mercado (sin `Q`), de la exploración de la T05 #12009 de la US-12002 | 2026-10-22 |
+| DEC-042 | [[DEC-042 - Fase 1 de cofres en el Sprint 3]] | Decisión de Mercado (sin `Q`): adelanta el backend de la fase 1 al Sprint 3; enmienda DEC-035 solo en ese punto | 2026-10-21 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
@@ -64,6 +67,8 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-019 - Aviso cuando el ítem se entregó sin cobro]]: postura provisoria de Mercado (no avisar); decide producto.
 
 - [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]]: nombres, la forma de la pérdida y de la extensión, márgenes y fallas de acreditación de [[DEC-029 - Meta colectiva]]; se acuerda con Accounting.
+
+- [[Q-033 - Nombres de campo en los errores de validación]]: los errores de negocio de metas y cofres informan el campo en `snake_case` y los de Bean Validation en `camelCase`; falta decidir si se unifica.
 
 
 
