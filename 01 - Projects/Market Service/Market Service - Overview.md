@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-012
-actualizado: 2026-10-04
+actualizado: 2026-10-18
 tags: [mercado, overview]
 ---
 # Market Service - Overview
@@ -39,7 +39,7 @@ Mercado es el Tema 09 y, en Taiga, el grupo G11. Accounting (ex Banco) es el Tem
 - Qué hace el código hoy: [[Estado actual del código]].
 - Cómo aprender el tema: [[Roadmap de entendimiento]]. Qué hacer después: [[Roadmap de trabajo]].
 - Dudas abiertas: [[Q-013 - Higiene del backlog]] y [[Q-018 - Alcance real del Sprint 2 en Taiga]]; [[Q-008 - Orden de la saga de compra]] resuelta en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]; el resto está archivado, listado en [[index]].
-- Decisiones: [[Decisiones - Índice]] (DEC-001 a DEC-031) y [[Taller de decisiones]] (qué recomendaciones están decididas).
+- Decisiones: [[Decisiones - Índice]] (DEC-001 a DEC-035) y [[Taller de decisiones]] (qué recomendaciones están decididas).
 - Meta colectiva, decidida y sin código: [[DEC-029 - Meta colectiva]] y [[Meta colectiva]].
 - Propuestas de producto: [[Cofres y nuevos ítems]].
 - Backlog: [[Backlog - Índice]].

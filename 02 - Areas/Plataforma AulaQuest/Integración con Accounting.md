@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd
-actualizado: 2026-10-15
+verificado_contra: DEC-025, DEC-027, DEC-029, DEC-032, DEC-034, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd, accounting@1360ec3
+actualizado: 2026-10-16
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -255,7 +255,7 @@ Flujo acordado en [[DEC-029 - Meta colectiva]] (detalle en [[Meta colectiva]]). 
 - **Señal de compra de vidas y tope**: Acordada formalmente el 2026-10-02 (enmienda a [[DEC-007 - Tope de vidas, Accounting decide y reporta]], [[S2-10 - Compra de vidas con LIFE_PURCHASE_CONFIRMED]]): Mercado emite `LIFE_PURCHASE_CONFIRMED` en `market.events` tras confirmar el hold de monedas; Accounting acredita hasta el tope y reporta el resultado con `LIFE_CREDITED` en `accounting.events`.
 - Pedidos ya listados del [[Taller de decisiones]] que no cubre la decisión de contrato: `HOLD_EXPIRED` confiable (D4), aceptar cualquier `catalogItemId` (D10) y reembolso (D6).
 - Alineación del código de Mercado: tópicos y `orderRef` UUID en el hold ya están (PR #88); el comportamiento del tópico compartido (T03) y el productor unificado `market-service` (T04) quedaron resueltos en `develop` (PR #102, `2485d8cf`), el mapeo de los 10 motivos de rechazo se completó en el PR #110 (`f7457882`, US-5193 T07), el motivo de liberación como enum tipado se completó en el PR #115 (`5de30854`, US-5193 T08), la consulta real de holds (`HttpBankHoldQueryClient`) con resolución de `HOLD_RELEASED` por `hold_id` se completó en el PR #116 (`e456c55f`, issue #114), el token de servicio con `accounting.account.read` para las dos llamadas REST se completó en el PR #139 (`6926af1`, US-5193 T09, issue #126), y la emisión de `ITEM_CONFIRMED` mediante `ItemProvisionDispatcher` y el consumo de `ITEM_CREDITED` con avance de orden se completaron en el PR #151 (`966bdd00`, US-5193 T05 y T06). El `order_id` UUID en `ITEM_CONFIRMED` ya está (US-7697 T02, PR #189, `develop@d3b7a4de`) ([[Roadmap de trabajo]]).
-- Propuestas que exigen cambios en accounting: [[Cofres y nuevos ítems]]. La meta colectiva ya está decidida ([[DEC-029 - Meta colectiva]], sección «Meta colectiva»).
+- Propuestas que exigen cambios en accounting: [[Cofres y nuevos ítems]]. Para los cofres ([[DEC-031 - Cofres configurables con ítems, monedas y XP]], [[DEC-032 - Sorteo y reglas de configuración de los cofres]]) falta un crédito de monedas por premio, idempotente por `orderId`: hoy `CoinMovementType` solo acredita con `CHALLENGE_CREDIT` (`tpi-accounting@1360ec3`). Acordado en [[DEC-034 - Acreditación de premios de cofre en Accounting]] (a partir de [[Q-028 - Acreditación de premios de cofre en Accounting]]): movimiento nuevo `CHEST_REWARD_CREDIT` (provisorio) pedido por `market.events`, respuesta `BALANCE_CREDITED` que Mercado no espera. Sin implementar hasta la T03 #8428. La meta colectiva ya está decidida ([[DEC-029 - Meta colectiva]], sección «Meta colectiva»).
 
 ## Relacionado
 [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Eventos y Kafka]], [[Hold y escrow]], [[Orden de compra]], [[Hold de monedas]], [[Tipos de item]], [[Épica 131 - Inventario (otro equipo)]], [[Mapa de servicios]].

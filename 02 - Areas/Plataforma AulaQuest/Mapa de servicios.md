@@ -1,8 +1,8 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: equipo-plataforma@2026-10-01
-actualizado: 2026-10-08
+verificado_contra: equipo-plataforma@2026-10-01, roadmap@c7d60f9
+actualizado: 2026-10-16
 tags: [plataforma, servicios]
 ---
 # Mapa de servicios
@@ -16,7 +16,7 @@ tags: [plataforma, servicios]
 | Motor de Desafíos | Tema 03 o 05 (inconsistente en las fuentes) | Resolución de desafíos | sin dato | sin dato | Indirecta ([[Q-011 - Efectos y consumo de items]]) |
 | `accounting-service` (ex Banco) | Tema 08 (Taiga: G12) | Monedas, vidas, holds, libro contable e **inventario** ([[DEC-001 - Accounting es dueño del inventario]]) | 8090 (8091), prefijo `/api/accounting` | `2026-P4-BE/tpi-accounting` | [[Integración con Accounting]] |
 | `market-service` | Tema 09 (Taiga: G11) | Catálogo y compras | 8100 (gestión 8101) | `tpi-market` | Este proyecto; verificado en [[Q-016 - Puerto y registro de Mercado en la plataforma]] |
-| Roadmap | Tema 10 | Progreso del estudiante; pide equipar y desequipar items | sin dato | sin dato | Indirecta ([[Integración con Accounting]]) |
+| `roadmap-service` | Tema 10 | Progreso del estudiante, XP, nivel, ranking e insignias; pide equipar y desequipar items | 8010 (8011) | `2026-P4-BE/tpi-roadmap` | Indirecta ([[Integración con Accounting]]); directa si los cofres dan XP ([[Integración con Roadmap]]) |
 | Notificaciones | Tema 11 | Avisos al usuario; define el estándar de Kafka | sin dato | sin dato | [[Integración con Notificaciones]] |
 | Backoffice | Tema 12 | Parámetros administrables | sin dato | sin dato | [[Integración con Backoffice]] |
 | `api-gateway` | Plataforma | Entrada única, JWT, enrutamiento | 8080 (8081), no publicado | `tpi-api-gateway` | [[Gateway e identidad]] |
