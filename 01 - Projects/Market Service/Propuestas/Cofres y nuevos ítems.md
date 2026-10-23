@@ -2,12 +2,12 @@
 tipo: guia
 estado: borrador
 verificado_contra: equipo-propuestas@2026-09-30
-actualizado: 2026-10-17
+actualizado: 2026-10-23
 tags: [mercado, propuesta, cofres, items]
 ---
 # Cofres y nuevos ítems
 
-> Propuesta original de cofres con premios al azar y de nuevos tipos de ítem. Los cofres ya están decididos y se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]); los tipos de ítem nuevos siguen sin acordar.
+> Propuesta original de cofres con premios al azar y de nuevos tipos de ítem. Los cofres ya están decididos, se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]) y la gestión del profesor de la fase 1 ya está en el código ([[Cofre]]); los tipos de ítem nuevos siguen sin acordar.
 
 ## Cofres
 Una plantilla `CHEST` con un conjunto de premios ponderados (peso por premio) y recompensas opcionales de monedas o XP. El sorteo se haría al crear la orden.
@@ -18,6 +18,20 @@ Contradice RF-INT-01 (las monedas solo se usan para vidas o equipamiento y nunca
 Resuelto en [[DEC-031 - Cofres configurables con ítems, monedas y XP]], a partir de [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]]: el PO aprobó cofres que pueden dar ítems, monedas o XP, configurados por el profesor. Para los cofres, RF-INT-01 deja de aplicarse. El sorteo y las reglas de configuración están en [[DEC-032 - Sorteo y reglas de configuración de los cofres]]. La acreditación quedó acordada en [[DEC-034 - Acreditación de premios de cofre en Accounting]] (monedas, equipamiento y vidas) y [[DEC-033 - Acreditación de XP de cofre en Roadmap]] (XP). Los tipos de ítem nuevos siguen sin acordar.
 
 La task T03 #8428 cerró el alcance en [[DEC-035 - Cofres en dos fases]]: primero cofres con premios de ítem (equipamiento y vidas) y después monedas y XP, cuando Accounting y Roadmap tengan su parte. Las historias técnicas están listadas en esa decisión y se cargan en Taiga en la próxima planning.
+
+## Qué de la propuesta ya existe
+Verificado contra `develop@e63dcb47` de `tpi-market` (US-12002, [[S3-02 - Cofres, el profesor crea y gestiona]]). El detalle está en [[Cofre]].
+
+| Parte de la propuesta | Estado |
+|---|---|
+| Cofre con premios ponderados | Existe, distinto de la propuesta. No es una plantilla `CHEST`: es una entidad propia (tablas `chests` y `chest_rewards`). El peso es por rareza (60 / 25 / 12 / 3 por defecto) y no por premio |
+| Premios de ítem tomados de ofertas del curso | Existen, como copia congelada que no consume stock ([[DEC-032 - Sorteo y reglas de configuración de los cofres]], [[DEC-041 - Edición de un cofre según su estado]]) |
+| Premios de monedas o XP | No existen: son la fase 2. El enum `ChestRewardKind` ya los nombra, pero la API y la base los rechazan |
+| Gestión del profesor: crear, editar, publicar, desactivar y descartar | Existe en `/api/market/courses/{courseId}/chests` |
+| Rareza sugerida, avisos que no bloquean, interruptor de probabilidades y límite por alumno | Existen en la configuración. El límite todavía no se aplica, porque no hay compra |
+| Vista del alumno | No existe: US-12003 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]) |
+| Sorteo al crear la orden y entrega | No existen: US-12004 |
+| Máximo de premios | 100, como tope técnico ([[DEC-040 - Tope técnico de 100 premios por cofre]]) |
 
 ## Ideas de nuevos items
 `HINT`, `AI_ASSIST`, `FIFTY_FIFTY`, `TEST_REVEAL`, `SOLUTION_UNLOCK`, `BONUS_CHALLENGE`, `STREAK_FREEZE`, `RECOVERY_REROLL`, `EXTRA_TIME`, `LATE_PASS`, `GOAL_INSURANCE`, `AUCTION_ALERT`, `COSMETIC`, `KUDOS`.
@@ -30,4 +44,4 @@ La propuesta original dejaba once decisiones abiertas (D-1 a D-11), por ejemplo 
 ## Impacto
 Cualquier tipo nuevo exige que accounting lo reconozca. Desde su HU58, Accounting toma las cargas y el ámbito del ítem del mensaje y no de su catálogo de `ITEM-PLACEHOLDER-1` a `3` ([[Integración con Accounting]], recomendación D10 en [[Taller de decisiones]]), pero no tiene lógica de efectos más allá de `SHIELD`. Su migración V4 ya menciona `LOOT_CHEST`, sin código que lo use ([[Q-028 - Acreditación de premios de cofre en Accounting]]).
 
-Relacionada: [[Plantilla base]], [[Meta colectiva]].
+Relacionada: [[Cofre]], [[Plantilla base]], [[Meta colectiva]].

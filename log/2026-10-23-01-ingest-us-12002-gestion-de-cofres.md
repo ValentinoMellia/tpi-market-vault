@@ -1,0 +1,23 @@
+## [2026-10-23] ingest | US-12002, gestión de cofres del profesor (fase 1)
+- Fuentes:
+  - El código de `develop@e63dcb47` de `tpi-market`, el merge de la PR 278.
+  - Las PR 259, 263, 264, 268, 270, 278 y 282 (esta última abierta), con sus reviews.
+  - Los changes de OpenSpec `us-12002-t01` a `t07`.
+  - Los comentarios de resultado de las tasks #12005 a #12011 y las reviews #12232 y #12838 en Taiga.
+- Nuevas:
+  - [[Cofre]]: entidad, con estados, premios como copia congelada, rareza sugerida, avisos, edición, API y autorización.
+  - [[S3-02 - Cofres, el profesor crea y gestiona]]: la US-12002 con sus siete tasks, reviews, pendientes y lo que sigue.
+- Decisiones registradas con Patricio Fernandez:
+  - [[DEC-040 - Tope técnico de 100 premios por cofre]]: enmienda a DEC-032.
+  - [[DEC-041 - Edición de un cofre según su estado]].
+  - [[DEC-042 - Fase 1 de cofres en el Sprint 3]]: enmienda a DEC-035 en la fecha de construcción.
+- Pregunta abierta: [[Q-033 - Nombres de campo en los errores de validación]]. Los errores de negocio están en `snake_case` y los de Bean Validation en `camelCase`.
+- Actualizadas:
+  - [[Estado actual del código]]: siete rutas de cofres y los gaps 25 a 29. El gap 25 es el 500 por una página enorme en `/auctions/drafts`, `/goals` y `/orders`, registrado sin issue, a propósito.
+  - [[Errores de la API]]: cuatro problemas de cofres y `params.currentVersion`. También se corrigió el párrafo que decía que el `snake_case` venía de `property-naming-strategy`: hoy es `@JsonProperty` explícito.
+  - [[Documentación OpenAPI]]: ejemplos propios de cofres y el esquema documental `ChestPageResponse`.
+  - [[Gateway e identidad]]: `ChestAccessGate` en el controlador y la membresía memoizada por request.
+  - Además: [[Market Service - Overview]], [[Cofres y nuevos ítems]], [[Backlog - Índice]], [[Decisiones - Índice]] y [[Glosario]].
+- Sin tocar, a propósito:
+  - [[Q-024 - Qué es el rol GESTOR]] y [[Integración con Cursos]], que tienen cambios en las PR 56 y 59 del vault.
+  - [[DEC-032 - Sorteo y reglas de configuración de los cofres]] y [[DEC-035 - Cofres en dos fases]], que se enmiendan con decisiones nuevas.

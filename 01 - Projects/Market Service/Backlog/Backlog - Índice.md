@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-02
+actualizado: 2026-10-23
 tags: [mercado, backlog]
 ---
 # Backlog - Índice
@@ -19,6 +19,10 @@ tags: [mercado, backlog]
 | [[Épica 770 - Vencimiento de items]] | Descartada | Sin vencimiento de ítems ([[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]]); historias a cerrar en Taiga |
 | [[Épica 131 - Inventario (otro equipo)]] | Transferida a Accounting | No es de Mercado ([[DEC-001 - Accounting es dueño del inventario]]) |
 | [[Épica 482 - Boost XP (no es de Mercado)]] | Fuera de alcance | Duplicadas y ajena |
+
+## Historias del Sprint 3 fuera de una épica
+
+- [[S3-02 - Cofres, el profesor crea y gestiona]] (US-12002): gestión de cofres del profesor, fase 1. Seis de sus siete tasks están en `develop`; la de tests de punta a punta está en review. La siguen la US-12003 (vista del alumno) y la US-12004 (compra con sorteo), sin nota propia todavía ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]).
 
 ## Leyenda de estado
 

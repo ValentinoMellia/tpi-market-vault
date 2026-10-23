@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@44292e6c
-actualizado: 2026-10-08
+verificado_contra: codigo@44292e6c, codigo@e63dcb47
+actualizado: 2026-10-23
 tags: [mercado, convenciones, openapi, swagger, documentacion]
 ---
 # Documentación OpenAPI (Swagger)
@@ -51,6 +51,10 @@ Ejemplos registrados hoy:
 | 503 | `SERVICE_UNAVAILABLE_503` | `ServiceUnavailable503Example` |
 
 Cada constante tiene su par `..._REF` (`#/components/examples/<Componente>`). Para un ejemplo nuevo: agregar el nombre y su referencia en `OpenApiExamples` y registrarlo con `addExamples` en `SpringDocConfig`.
+
+**Ejemplos propios de un dominio.** Los cofres (US-12002, [[Cofre]]) agregaron ejemplos propios además de los genéricos: 400 `chest-invalid-parameters`, 404 `chest-not-found` y 409 de estado y de versión. Están registrados en `SpringDocConfig.addChestExamples` y nombrados en `OpenApiExamples.CHEST_*`. Hoy sus campos de error están en `camelCase` y el código emite `snake_case` ([[Estado actual del código]], gap 26). Al tocar un error, hay que revisar también su ejemplo.
+
+**Esquema solo para documentar una página.** Springdoc no infiere bien el tipo genérico de `PageResponseDto<T>`. Para el listado de cofres se declaró `dtos/chests/ChestPageResponseDto.java`, un `record` con `@Schema(name = "ChestPageResponse")` que solo se usa en la respuesta 200 del `@ApiResponse`. Nunca se instancia, y `src/test/java/ar/edu/utn/frc/tup/p4/configs/OpenApiExamplesTest.java` verifica que el esquema exista.
 
 ## 4. Mantenimiento y Evolución
 
