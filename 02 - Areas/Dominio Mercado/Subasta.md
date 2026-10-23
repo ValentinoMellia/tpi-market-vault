@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: en-disputa
-verificado_contra: DEC-016
-actualizado: 2026-10-21
+verificado_contra: DEC-043
+actualizado: 2026-10-23
 tags: [mercado, dominio, subastas, fase-3]
 ---
 # Subasta
@@ -27,9 +27,9 @@ Una venta con ofertas, con duración de una hora a catorce días y una base fija
 `DRAFT`, `SCHEDULED`, `OPEN` (`NO_BIDS` o `ACTIVE_BIDS`), luego `CANCELLED` o cierre en curso (`EVALUATING_WINNER`, `CREDITING_ITEM`, `CONFIRMING_LEDGER`, `RELEASING_LOSERS` o `MARKED_DESERTED`) hasta `CLOSED` o `FAILED_SETTLEMENT` (con reintento). Las ofertas pasan por `ACTIVA`, `SUPERADA`, `GANADORA` y `LIBERADA`.
 
 Impacto de [[DEC-014 - Reglas de subastas]] en los estados (previsto, sin código):
-- **Fase final ciega** (2026-10-01): en los últimos X minutos las ofertas pasan a ser ciegas (se puede ofertar sin ver las de los demás), el tiempo no se extiende y al cierre gana la más alta; el empate lo resolvía el dado según DEC-014 (el spike propone la oferta más antigua, ver "Desempate"). X es configurable por subasta; estaba **pendiente de detalle** la regla de la oferta ciega (el spike propone una, ver "Diseño técnico").
+- **Fase final ciega** (2026-10-01): en los últimos X minutos las ofertas pasan a ser ciegas (se puede ofertar sin ver las de los demás), el tiempo no se extiende y al cierre gana la más alta; el empate lo resolvía el dado según DEC-014 (el spike propone la oferta más antigua, ver "Desempate"). X es configurable por subasta. La regla de la oferta ciega se decidió en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]] (ver "Reglas de negocio").
 - **Modo ciega**: no hay mejor oferta visible; al vencer el tiempo, `EVALUATING_WINNER` compara las ofertas ciegas.
-- **Desempate**: [[DEC-014 - Reglas de subastas]] decidió un dado tirado por el servidor, auditable. El spike propone reemplazarlo por la oferta más antigua con ese monto (ver "Desempate" en "Diseño técnico"); hasta que el equipo lo confirme, la decisión vigente sigue siendo el dado. La nota está en disputa por este punto: ver [[Q-025 - Desempate de las subastas]].
+- **Desempate**: [[DEC-014 - Reglas de subastas]] decidió un dado tirado por el servidor, auditable; [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]] lo ratificó como interno, sin mostrarse a nadie. El spike propone reemplazarlo por la oferta más antigua con ese monto (ver "Desempate" en "Diseño técnico"); hasta que el equipo lo confirme, la decisión vigente sigue siendo el dado. La nota está en disputa por este punto: ver [[Q-025 - Desempate de las subastas]].
 - **Superadas**: las ofertas `SUPERADA` conservan su hold hasta el cierre; se liberan todas juntas en `RELEASING_LOSERS` (con un release por postor).
 - **Cancelación**: `CANCELLED` por profesor o por curso archivado libera un hold por postor.
 - **Baja de un estudiante**: sus ofertas pasan a `LIBERADA` y la subasta sigue abierta.
@@ -44,7 +44,15 @@ Decidido ([[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo
 - Curso archivado: se cancelan las subastas abiertas. Baja de un estudiante: se retiran sus ofertas y la subasta continúa.
 - El tiempo no se extiende; el anti-sniping es la fase final ciega descrita arriba.
 
-Pendiente: la regla de la oferta en la fase final ciega (el spike propone una, ver "Diseño técnico"; abierta en [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]]). [[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-012 - Alcance de subastas]] están archivadas.
+Decidido en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]], a partir de [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]] (archivada):
+- **Fase final ciega**: la oferta debe ser al menos la última mejor oferta visible más el incremento mínimo (con 100 visible e incremento de 10, el mínimo es 110); si la subasta no tiene incremento mínimo, debe superar estrictamente a esa mejor visible. Solo ofertan quienes ya ofertaron al menos una vez en la fase visible, y solo para subir su oferta.
+- **Mejor oferta durante la fase final**: el estudiante ve la última mejor oferta visible, congelada desde el inicio de la fase final. Es el máximo monto confirmado con `confirmed_at` anterior a ese inicio (corte estricto), no cambia aunque esa oferta se libere después y es `null` si nadie ofertó antes del corte. La mejor actual de las ofertas ciegas nunca se muestra a los estudiantes.
+- **Staff durante la fase ciega**: el profesor, el gestor y el ADMIN ven el monto real de la mejor oferta, sin lista por estudiante ni identidades de los oferentes.
+- **Retiro**: solo en el modo `BLIND`, donde la oferta se puede subir y retirar. En `VISIBLE` se rechaza, en la fase visible y en la fase final ciega. El retiro excluye la oferta, libera el hold con `AUCTION_BID_WITHDRAWN` y no admite reingreso (Task #8413).
+- **Desempate**: el dado del servidor, con una cara por oferta empatada, es interno y no se muestra a nadie (`ServerDieTieBreakRule`). Puede cambiar según [[Q-025 - Desempate de las subastas]].
+- **Contrato de `best_bid`**: ausente significa oculto; `null`, con la clave presente, significa sin ofertas confirmadas. Después del cierre no se informa a nadie.
+
+[[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-012 - Alcance de subastas]] están archivadas.
 
 Garantía elegida (decisión previa del equipo, sin `DEC` propia): cada oferta retiene el monto completo en Accounting ([[Hold de monedas]]). La alternativa de retener solo al líder fue rechazada ([[Ideas descartadas]]). Recomendaciones del [[Taller de decisiones]]: S1, S3, S5 y S6 confirmadas, S10 reemplazada.
 
@@ -79,7 +87,7 @@ Propuesta del spike [[S2-09c - SPIKE Diseño técnico de subastas]] del 2026-10-
 | `amount` | Total retenido hoy; solo puede subir |
 | `holdId`, `holdExpiresAt` | Del hold en Accounting (`holdExpiresAt` en UTC) |
 | `status` | `ACTIVA`, `SUPERADA`, `GANADORA`, `LIBERADA` |
-| `releaseReason` | `AUCTION_LOST`, `AUCTION_CANCELLED` o retiro (ver "Abierto") |
+| `releaseReason` | `AUCTION_LOST`, `AUCTION_CANCELLED` o `AUCTION_BID_WITHDRAWN` (retiro, solo en modo `BLIND`, [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]) |
 
 **Revisión de la oferta** (solo se agrega, nunca se edita): `bidId`, `amount`, `placedAt` y `phase` (`VISIBLE_PHASE` o `BLIND_PHASE`). Se necesita para calcular la mejor oferta visible al empezar la fase final, que una sola fila por estudiante no permite reconstruir, y sirve de auditoría.
 
@@ -90,7 +98,7 @@ La fase **no se guarda**: se calcula con el reloj.
 
 - Modo `BLIND`: siempre ciega.
 - Modo `VISIBLE`: visible hasta `endsAt - finalPhaseMinutes`, y ciega desde entonces (fase final ciega).
-- Mejor oferta visible: la más alta entre las revisiones con `placedAt` anterior al inicio de la fase final. Es un valor fijo que no cambia durante la fase ciega.
+- Mejor oferta visible: el máximo monto confirmado con `confirmed_at` anterior al inicio de la fase final (corte estricto). Es un valor fijo que no cambia durante la fase ciega ([[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]).
 
 ### Estados
 ```mermaid
@@ -122,10 +130,10 @@ El reintento repite solo el paso que falló: si el ítem ya se acreditó, no se 
 ### Reglas de las ofertas
 Pueden ofertar los estudiantes del curso y cohorte donde se da la subasta. La pertenencia se verifica con Cursos (`membership` por cohorte, todavía sin validar con ese equipo; ver [[Integración con Cursos]]).
 - **Modo `VISIBLE`, fase visible** (*Propuesta* del spike, definida en la sesión del 2026-10-09; falta que el equipo la confirme): la primera oferta debe alcanzar la base. Las siguientes deben superar a la última oferta: estrictamente mayor, y si el profesor fijó un incremento mínimo, al menos la última más ese incremento. No se admite una oferta menor.
-- **Modo `VISIBLE`, fase final ciega** (*Propuesta*, misma salvedad): solo puede ofertar quien **ya ofertó al menos una vez en la fase visible**, y solo para subir su oferta. Quien no ofertó antes no puede entrar. La nueva oferta debe ser **al menos la mejor oferta visible más el incremento mínimo** (con 100 visible e incremento de 10, el mínimo es 110); si la subasta no tiene incremento, debe superar estrictamente a la mejor visible. Las ofertas ciegas no se comparan entre sí, por eso puede haber empates.
+- **Modo `VISIBLE`, fase final ciega** (decidido en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]): solo puede ofertar quien **ya ofertó al menos una vez en la fase visible**, y solo para subir su oferta. Quien no ofertó antes no puede entrar. La nueva oferta debe ser **al menos la mejor oferta visible más el incremento mínimo** (con 100 visible e incremento de 10, el mínimo es 110). Si la subasta no tiene incremento mínimo (`min_increment` es opcional al lanzar una subasta `VISIBLE`), la oferta debe **superar estrictamente** a la mejor visible, como proponía el spike (precisión de [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]). Las ofertas ciegas no se comparan entre sí, por eso puede haber empates.
 - **Modo `BLIND`** (*Propuesta*, misma salvedad): se puede ofertar **cualquier monto** a partir de la base del profesor, sin incremento mínimo y sin ver las ofertas de los demás. Cualquier estudiante del curso y cohorte puede ofertar.
 - **Subir**: el estudiante puede subir su oferta (`HOLD_INCREASE_REQUESTED` con el total nuevo). No puede bajarla.
-- **Retirar** (*Propuesta*): un estudiante puede retirar su oferta y se libera su hold, **solo en la fase visible de una subasta de puja visible**. En la fase ciega (incluido el modo `BLIND`) la oferta es firme. Evita ofertar alto para espantar a los demás y retirarse a último momento. Es una regla nueva: DEC-014 solo dice que los superados esperan al cierre.
+- **Retirar** (decidido en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]): un estudiante puede retirar su oferta **solo en el modo `BLIND`**. En `VISIBLE` el retiro se rechaza, tanto en la fase visible como en la fase final ciega. El retiro excluye la oferta, libera el hold con `AUCTION_BID_WITHDRAWN` y el estudiante no vuelve a entrar (mecánica de la Task #8413). Reemplaza la propuesta del spike, que permitía retirar solo en la fase visible de una subasta de puja visible.
 - Las ofertas `SUPERADA` conservan su hold hasta el cierre ([[DEC-014 - Reglas de subastas]]).
 
 ### Desempate
@@ -181,11 +189,8 @@ Mercado consume `COURSE_ARCHIVED` y `STUDENT_UNENROLLED` del tópico `courses.ev
 - **Pedido a G10 (siguiente sprint)**: consulta de servicio a servicio que devuelva la posición de los estudiantes empatados de una cohorte, con su permiso. Lo gestiona el equipo de Mercado con G10. Un `ServiceIdentity` ya tiene precedente en `.../nodes/*/eligibility`. Descartado: consultar como el profesor, porque el cierre es automático y no hay una petición suya en curso; suplantar sus headers no es válido (`GatewayHeadersFilter` rechaza `X-Delegated-User`).
 - **Ranking no disponible al cerrar** (cuando se incorpore): qué hace la subasta mientras no haya respuesta (reintentar en `EVALUATING_WINNER`, como en la liquidación) o si usa directamente el respaldo.
 - **Justicia del desempate**: la oferta más antigua premia a quien ofertó antes con ese monto, aunque en la fase ciega nadie ve las ofertas de los demás. Queda por confirmar si el equipo lo considera suficiente y si se le avisa al empatado por qué ganó o perdió.
-- **Regla de la oferta ciega y mejor visible en la fase final**: cuánto se debe ofrecer en la fase final, si se muestra la mejor visible congelada, quién puede ofertar y qué ve el staff están abiertos en [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]].
-- **Modo `BLIND`**: no está dicho si un estudiante puede subir su oferta (Accounting solo permite subir un hold) ni retirarla. El borrador asume que puede subirla y que no puede retirarla (interpretación del spike, sin confirmar; ver [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]]).
 - **Curso o cohorte**: las subastas se dan en un curso y cohorte, y Cursos verifica la pertenencia por cohorte; Accounting trabaja con `courseId`. Falta definir si `courseId` identifica la cohorte o si la subasta guarda además el id de cohorte.
 - **TTL en Accounting**: TTL máximo aceptado para `AUCTION_BID` (¿14 días más margen?) y si `HOLD_INCREASE_REQUESTED` extiende el vencimiento. Si no hay TTL largo, hay que limitar la duración máxima o renovar el hold.
-- **Retiro**: ningún `releaseReason` actual (`AUCTION_LOST`, `AUCTION_CANCELLED`, `PURCHASE_NOT_COMPLETED`) describe un retiro voluntario.
 - **Plazo de liquidación**: el plazo de la propuesta C (`holdExpiresAt` − margen) está pensado para 300 s. Con holds largos haría falta un plazo propio de liquidación.
 - **Fallo con el ganador**: en la sesión del 2026-10-08 se indicó que la liquidación **se reintenta y no se cancela la subasta**; el cierre es un hecho consumado y hay que idear cómo resolver los fallos. *Propuesta*: reintentos con espera creciente; al agotarlos la subasta queda en `FAILED_SETTLEMENT` a la espera de un ADMIN, con los holds mantenidos, y no se cancela sola. Queda abierto cuántos reintentos y qué hacer si el hold del ganador vence antes de resolverse (con un hold por `orderId` para siempre, Accounting no permite crear otro). Choca con el rollback por plazo de [[Propuesta C de la saga de compra]], que cancela al vencer el plazo: para subastas ese rollback no aplicaría, o aplicaría solo como último recurso.
 - **Eventos publicados**: nombres y destinatarios de los avisos (oferta superada, cierre, cancelación) según [[Integración con Notificaciones]].
@@ -203,4 +208,4 @@ Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`,
 - Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
+[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]], [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]].

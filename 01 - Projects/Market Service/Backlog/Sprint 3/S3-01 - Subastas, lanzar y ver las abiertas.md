@@ -2,7 +2,7 @@
 tipo: historia
 estado: borrador
 verificado_contra: codigo@cb46bb18e
-actualizado: 2026-10-20
+actualizado: 2026-10-23
 tags: [mercado, backlog, sprint-2, subastas]
 sprint: 2
 taiga: "#5347"
@@ -36,7 +36,7 @@ horas: 27
 - [ ] Accesibilidad (WCAG/teclado/lectores): No aplica (historia de backend).
 - [ ] Otros: esta historia **no** retiene monedas ni recibe ofertas. Eso queda para ofertar y mejorar (hoy #580 y #581), que dependen del contrato con Accounting de [[S2-01 - Contrato con Accounting]].
 
-**Alcance de código de esta historia** (según el borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], 2026-10-09): se codifica la entidad de la subasta completa, con todos sus campos y el enum de estados, incluidos `DRAFT` y `SCHEDULED`. Los endpoints de esta historia **lanzan directo a `OPEN`**. Guardar borrador, programar el inicio (con el proceso que abre `SCHEDULED`) y las entidades de oferta quedan diseñados en [[Subasta]] y se codifican después. Siguen abiertos, y no afectan a esta historia porque todavía no hay ofertas: el desempate ([[Q-025 - Desempate de las subastas]]) y la regla de la oferta en la fase final ciega ([[DEC-014 - Reglas de subastas]]), y si el `courseId` de las rutas identifica la cohorte.
+**Alcance de código de esta historia** (según el borrador del spike [[S2-09c - SPIKE Diseño técnico de subastas]], 2026-10-09): se codifica la entidad de la subasta completa, con todos sus campos y el enum de estados, incluidos `DRAFT` y `SCHEDULED`. Los endpoints de esta historia **lanzan directo a `OPEN`**. Guardar borrador, programar el inicio (con el proceso que abre `SCHEDULED`) y las entidades de oferta quedan diseñados en [[Subasta]] y se codifican después. Siguen abiertos, y no afectan a esta historia porque todavía no hay ofertas: el desempate ([[Q-025 - Desempate de las subastas]]) y si el `courseId` de las rutas identifica la cohorte. La regla de la oferta en la fase final ciega, que figuraba como abierta, se decidió el 2026-10-23 en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]].
 
 ---
 

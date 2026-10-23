@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: equipo-mercado@2026-10-01
-actualizado: 2026-10-21
+actualizado: 2026-10-23
 tags: [mercado, decision, subastas, fase-3]
 ---
 # DEC-014 - Reglas de subastas
@@ -30,7 +30,7 @@ Confirmada por el equipo de Mercado el 2026-10-01.
 
 **Subasta ciega**
 - Se planifica como **modo de subasta**, además de la abierta.
-- En una subasta ciega, un **empate se resuelve con una tirada de dado animada**, mostrada a los estudiantes empatados.
+- En una subasta ciega, un **empate se resuelve con una tirada de dado animada**, mostrada a los estudiantes empatados. Enmendado el 2026-10-23 por [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]: el dado sigue vigente, pero es interno y no se muestra a nadie.
 
 **Curso archivado y baja de estudiante** (S5, confirmada)
 - Si el curso se archiva, las **subastas abiertas de ese curso se cancelan** y se liberan sus holds.
@@ -71,10 +71,10 @@ Confirmado por el equipo de Mercado el 2026-10-01. Este apartado enmienda esta d
 
 **Duración de la fase final (X)**: es **configurable por subasta** y la define el profesor que la lanza (confirmado el 2026-10-01).
 
-**Pendiente de detalle (no decidido)**
-- **Regla de la oferta ciega**: si una oferta ciega debe superar a la última mejor oferta visible (el "estrictamente mayor" de la fase abierta) o solo cumplir el incremento mínimo y el mínimo de la subasta. Las opciones y lo que depende de ellas están en [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]].
+**Regla de la oferta ciega (resuelta el 2026-10-23)**
+- Quedó pendiente de detalle en esta actualización y se resolvió en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]], a partir de [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]] (archivada): en la fase final la oferta debe ser al menos la última mejor oferta visible más el incremento mínimo, esa mejor visible queda congelada y es la que ve el estudiante, y solo ofertan quienes ya ofertaron en la fase visible, para subir. La misma decisión fija el retiro en el modo `BLIND` y qué ve el staff durante la fase ciega.
 
 **Alternativas descartadas para el anti-sniping**: cierre aleatorio en una ventana final ("subasta de vela"), enfriamiento por estudiante y límite de ofertas por estudiante.
 
 ## Notas afectadas
-[[Q-012 - Alcance de subastas]], [[Q-017 - Qué se subasta mientras no existan ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Ítems únicos]], [[Subasta]], [[Taller de decisiones]], [[Integración con Accounting]], [[Integración con Cursos]], [[Épica 577 - Subastas]], [[Roadmap de trabajo]], [[Decisiones - Índice]].
+[[Q-012 - Alcance de subastas]], [[Q-017 - Qué se subasta mientras no existan ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Ítems únicos]], [[Subasta]], [[Taller de decisiones]], [[Integración con Accounting]], [[Integración con Cursos]], [[Épica 577 - Subastas]], [[Roadmap de trabajo]], [[Decisiones - Índice]], [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]].

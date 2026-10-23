@@ -1,9 +1,9 @@
 ---
 tipo: pregunta
-estado: en-disputa
-verificado_contra: codigo@1c75fd75c
-actualizado: 2026-10-21
-tags: [mercado, pregunta-abierta, subastas]
+estado: archivado
+verificado_contra: DEC-043
+actualizado: 2026-10-23
+tags: [mercado, pregunta-archivada, subastas]
 ---
 # Q-031 - Regla de la oferta ciega y mejor visible en la fase final
 
@@ -79,4 +79,13 @@ Sin recomendación: el equipo debe elegir. Mientras tanto, el código no impleme
 El equipo de Mercado. Para el retiro en el modo `BLIND`, además Accounting (no hay `releaseReason` para un retiro voluntario).
 
 ## Resolución
-**Pendiente de confirmación del equipo.** Nadie cierra esta pregunta sin una confirmación explícita del equipo de Mercado. Cuando se decida, se enmienda [[DEC-014 - Reglas de subastas]] y se actualizan [[Subasta]] y [[Carga en Taiga - Sprints 2 y 3]].
+Archivada el 2026-10-23. El equipo de Mercado confirmó las respuestas el 2026-10-22 (las transmitió Martín Lozano):
+
+1. En la fase final ciega, la oferta debe ser al menos la última mejor oferta visible más el incremento mínimo (opción A, la propuesta del spike).
+2. Durante la fase final, el estudiante ve como mejor oferta la última mejor visible, congelada desde el inicio de la fase final.
+3. En la fase final solo ofertan quienes ya ofertaron en la fase visible, y solo para subir su oferta.
+4. En el modo `BLIND` la oferta se puede subir y también retirar.
+5. Durante la fase ciega, el staff (profesor, gestor y ADMIN) ve las ofertas reales: una vista distinta por rol.
+6. Sigue vigente el dado de [[DEC-014 - Reglas de subastas]], con posibles cambios futuros en [[Q-025 - Desempate de las subastas]]. El dado es interno, no se muestra a nadie y tiene una cara por cada oferta empatada (`ServerDieTieBreakRule`).
+
+Las precisiones acordadas al implementar (retiro solo en `BLIND`, monto real de la mejor oferta para el staff, definición de la oferta congelada y contrato de `best_bid`) y lo que se descartó están en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]]. Se actualizaron [[DEC-014 - Reglas de subastas]], [[Subasta]] y [[Carga en Taiga - Sprints 2 y 3]].

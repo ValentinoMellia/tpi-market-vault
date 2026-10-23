@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@7528610, codigo@2fc155ad
-actualizado: 2026-10-15
+actualizado: 2026-10-23
 tags: [mercado, roadmap]
 ---
 # Roadmap de trabajo
@@ -65,7 +65,7 @@ Alcance definido en [[DEC-015 - Política del backlog de Taiga]] (2026-10-01). C
 | Sprint 2 | Alinear el contrato con Accounting y las reglas de la tienda | P0 1, 1b y 1c, y [[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-008 - Nombre de productor y tópicos de Mercado]]; reglas de la tienda de P1 ([[DEC-013 - Reglas de la tienda]]: `unitsSold`, validaciones, desactivar, extensión de `publicationExpiresAt`) |
 | Sprint 3 | Subastas y/o propuestas nuevas | [[DEC-014 - Reglas de subastas]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Épica 577 - Subastas]]; [[Meta colectiva]] ([[DEC-029 - Meta colectiva]]); [[Cofres y nuevos ítems]] e [[Ítems únicos]] |
 
-Las subastas se especifican ya porque ambos sprints están en planificación. El anti-sniping quedó decidido (fase final ciega, con X configurable por subasta y la regla de la oferta ciega pendiente de detalle).
+Las subastas se especifican ya porque ambos sprints están en planificación. El anti-sniping quedó decidido (fase final ciega, con X configurable por subasta); la regla de la oferta ciega se decidió el 2026-10-23 en [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]].
 
 **Sprint 3 sin bloqueo por ítems únicos**: las subastas ofrecen ítems regulares del catálogo ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]); [[Ítems únicos]] sigue como propuesta no aprobada.
 

@@ -2,7 +2,7 @@
 tipo: guia
 estado: borrador
 verificado_contra: taiga@2026-10-20
-actualizado: 2026-10-21
+actualizado: 2026-10-23
 tags: [mercado, backlog, taiga, sprint]
 taiga_proyecto: "1804026"
 ---
@@ -55,12 +55,12 @@ A detallar en la planning del Sprint 3, con el resultado del spike de diseño de
 |---|---|
 | Lanzar y ver subastas (profesor y estudiante) | [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]. Ya es S3-01: modelo completo con todos los estados y lanzar directo a `OPEN` |
 | Borrador y programación de subastas (`DRAFT`, `SCHEDULED`, con el proceso que abre las programadas) | [[Subasta]] |
-| Ofertar y mejorar oferta (`HOLD_CREATE` / `HOLD_INCREASE` con el total nuevo; solo se puede subir; retiro solo en la fase visible) | [[DEC-014 - Reglas de subastas]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[Subasta]] |
-| Modo ciega y fase final ciega de la puja visible. Que en la fase final solo oferten quienes ya ofertaron es una propuesta del spike, pendiente junto con la regla de la oferta ciega en Q-031. El desempate está abierto: rige el dado de DEC-014 hasta que se resuelva Q-025, que propone la oferta más antigua | [[DEC-014 - Reglas de subastas]], [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]], [[Q-025 - Desempate de las subastas]] |
+| Ofertar y mejorar oferta (`HOLD_CREATE` / `HOLD_INCREASE` con el total nuevo; solo se puede subir; retiro solo en el modo `BLIND`, según DEC-043, en una tarea nueva de la US #8395) | [[DEC-014 - Reglas de subastas]], [[DEC-009 - Contrato de holds e ítems según Accounting]], [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]], [[Subasta]] |
+| Modo ciega y fase final ciega de la puja visible (US #8396, Task #8416). Decidido en DEC-043 (Q-031 archivada): en la fase final la oferta mínima es la última mejor visible más el incremento, el estudiante ve esa mejor visible congelada, solo ofertan quienes ya ofertaron en la fase visible y solo para subir, y el staff ve el monto real de la mejor oferta. El desempate sigue siendo el dado interno de DEC-014, sin mostrarse; Q-025, que propone la oferta más antigua, sigue abierta | [[DEC-014 - Reglas de subastas]], [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]], [[Q-031 - Regla de la oferta ciega y mejor visible en la fase final]], [[Q-025 - Desempate de las subastas]] |
 | Cierre: entregar al ganador y liberar a los demás (un release por postor), con reintentos si la liquidación falla (en Taiga: US #8397, tareas #8417–#8419) | [[DEC-014 - Reglas de subastas]], [[Subasta]] |
 | Integración de la saga de holds y el outbox al agregado de subasta (en Taiga: **US #11436**, task #11421; previa a la liquidación #8397 y a la oferta #8412 de la US #8395; extiende `SagaCorrelationService`, el `message_key` del outbox y `HoldOwnerResolver`) | [[Subasta]], [[DEC-014 - Reglas de subastas]] |
 | Cancelación por profesor y curso archivado (cancela todas las subastas del curso); baja de estudiante | [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]] |
-| Frontend de subastas (la animación del dado depende de lo que se decida en Q-025) | [[Subasta]], [[Q-025 - Desempate de las subastas]] |
+| Frontend de subastas (sin animación del dado: es interno según DEC-043; vista distinta para el staff durante la fase ciega) | [[Subasta]], [[DEC-043 - Regla de la oferta ciega y visibilidad por rol en subastas]], [[Q-025 - Desempate de las subastas]] |
 | Propuestas, si el PO las aprueba | [[Meta colectiva (Colecta)]], [[Cofres y nuevos ítems]], [[Ítems únicos]] |
 
 ## 4. Orden de ejecución
