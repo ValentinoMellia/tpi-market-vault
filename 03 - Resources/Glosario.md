@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-001
-actualizado: 2026-10-01
+actualizado: 2026-10-23
 tags: [mercado, glosario]
 ---
 # Glosario
@@ -14,7 +14,7 @@ tags: [mercado, glosario]
 - **Boost**: item que multiplica XP o monedas ganadas. [[Tipos de item]].
 - **Catálogo**: conjunto de ofertas de un curso. [[Oferta de catálogo]].
 - **Meta colectiva** (antes "Colecta"): compra en la que los alumnos de un curso juntan monedas para un beneficio que define el profesor. [[Meta colectiva]], [[DEC-029 - Meta colectiva]].
-- **Cofre**: propuesta de item con premios al azar. [[Cofres y nuevos ítems]].
+- **Cofre**: oferta a precio fijo que entrega un premio al azar según los pesos de rareza. En el código existe la gestión del profesor de la fase 1. [[Cofre]], [[Cofres y nuevos ítems]].
 - **Curso/cohorte**: unidad de clase donde se publica el catálogo; en el código `courseId`. [[Integración con Cursos]].
 - **Escrow**: custodia de fondos hasta cumplir una condición. [[Hold y escrow]].
 - **Escudo**: item que absorbe un intento fallido. [[Tipos de item]].
