@@ -19,7 +19,7 @@ Una compra en curso o terminada: quién compró, qué oferta, a qué precio y c�
 | `courseId`, `studentId`, `offerId` | Contexto de la compra |
 | `itemType` | Tipo de ítem copiado de la oferta al crear la orden; evita leer la oferta al confirmar. Nulo en órdenes anteriores al PR #82 (ver [[Estado actual del código]]) |
 | `appliedPrice` | Precio congelado al comprar |
-| Ícono del ítem | Decidido, sin código en `develop@b195eee25`: la orden copia `icon_tier` e `icon_variant` de la oferta al crearse, en columnas propias, y editar la oferta después no los cambia ([[DEC-046 - El profesor elige forma y color del ícono del ítem]]) |
+| Ícono del ítem | Decidido, sin código en `develop@b195eee25`: la orden copia `icon_shape` e `icon_variant` de la oferta al crearse, en columnas propias, y editar la oferta después no los cambia ([[DEC-046 - El profesor elige forma y color del ícono del ítem]]) |
 | `status` | Estado actual (`OrderStatus`) |
 | `holdId`, `holdExpiresAt` | Hold de Accounting y su vencimiento ([[Hold de monedas]]) |
 | `stockReservationId` | Reserva de stock |

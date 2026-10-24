@@ -19,7 +19,7 @@ Una venta con ofertas, con duración de una hora a catorce días y una base fija
 | Duración | 1 hora a 14 días ([[DEC-014 - Reglas de subastas]]) |
 | Duración de la fase final (X) | Configurable por subasta, la define el profesor ([[DEC-014 - Reglas de subastas]]) |
 | Ítem subastado | Una unidad de una oferta de catálogo, con snapshot al lanzar ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]) |
-| Ícono del ítem | El snapshot (`AuctionItemSnapshot`) copia `icon_tier` e `icon_variant` de la oferta en columnas propias; como los premios de cofre (`ChestRewardEntity`) embeben el mismo snapshot, también lo copian. Decidido en [[DEC-046 - El profesor elige forma y color del ícono del ítem]], sin código en `develop@b195eee25` |
+| Ícono del ítem | El snapshot (`AuctionItemSnapshot`) copia `icon_shape` e `icon_variant` de la oferta en columnas propias; como los premios de cofre (`ChestRewardEntity`) embeben el mismo snapshot, también lo copian. Decidido en [[DEC-046 - El profesor elige forma y color del ícono del ítem]], sin código en `develop@b195eee25` |
 | Base | Oferta mínima que fija el profesor; opcional (sin valor, la base es 0) |
 | Incremento mínimo | Opcional, configurable por subasta; solo en puja visible |
 | Versión | Bloqueo optimista ([[Bloqueo optimista]]) |
