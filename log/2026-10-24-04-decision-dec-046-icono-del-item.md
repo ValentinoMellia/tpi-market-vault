@@ -1,0 +1,6 @@
+## [2026-10-24] decision | DEC-046 El profesor elige forma y color del ícono del ítem
+
+- Se registró [[DEC-046 - El profesor elige forma y color del ícono del ítem]] (US `#13382`, T01 `#13383`): `icon_shape` libre (escudo 1–4, el resto 1–3) e `icon_variant` con los seis ids de `ItemIconVariant` del UI kit `^0.11.1`, guardados en la oferta; migración Flyway con la forma que hoy calcula el frontend; copias en órdenes, metas, snapshot de subastas y premios de cofre; `ITEM_CONFIRMED` con los dos campos detrás de `market.events.item-confirmed.icon.enabled=false`; `StorefrontOfferDto.icon` deprecado.
+- Verificado contra `tpi-market` `develop@b195eee25` (sin campos de ícono en oferta, copias ni evento), `2026-PIV-TPI-FE` `develop@d5065ddfe` (`spriteTier`, paletas propias en `item-icon-variants.ts`) y el kit en `v0.11.1` (`item-icon/item-variants.ts`, topes de `tier`).
+- Notas tocadas: [[Oferta de catálogo]], [[Orden de compra]], [[Meta colectiva]], [[Subasta]] (también cubre los premios de cofre, que embeben el mismo snapshot), [[Integración con Accounting]] y [[Decisiones - Índice]].
+- Pendiente: la nota de dominio `Cofre` todavía no está en `main` (vive en una rama abierta); al mergearse conviene enlazarla con la DEC-046. El valor de las copias ya existentes queda para la T03 `#13385`.

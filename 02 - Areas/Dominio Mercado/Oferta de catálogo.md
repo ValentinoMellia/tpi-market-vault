@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-028, DEC-030
-actualizado: 2026-10-16
+verificado_contra: DEC-028, DEC-030, DEC-046
+actualizado: 2026-10-24
 tags: [mercado, dominio, oferta]
 ---
 # Oferta de catálogo
@@ -24,6 +24,7 @@ La decisión del profesor: qué item vende, a qué precio y con qué parámetros
 | `publicationExpiresAt` | Hasta cuándo se publica la oferta (no es el vencimiento del item). En el snapshot `7528610` solo aparece en los DTO de respuesta; se podrá fijar y extender ([[DEC-013 - Reglas de la tienda]]) |
 | `itemValidityDays` | Ya no existe: los ítems no tienen vigencia después de la compra. El backend lo quitó de `src/main` (`fda3fca4`) y el frontend en la PR [2026-P4-FE/2026-PIV-TPI-FE#634](https://github.com/2026-P4-FE/2026-PIV-TPI-FE/pull/634) ([[DEC-030 - Los ítems no tienen vigencia después de la compra]], [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]], [[Vencimiento de items]]) |
 | Parámetros de configuración | Cargas, multiplicador, modo, duración, intentos, regla de consumo, vidas. Las cargas (`charges`) son las que recibe el estudiante: viajan a Accounting como `maxCharges` ([[DEC-027 - Las cargas del ítem las decide el profesor]]) |
+| `icon_shape`, `icon_variant` | Forma y color del ícono que elige el profesor (escudo 1–4, el resto 1–3; uno de los seis ids de `ItemIconVariant` del UI kit). Decidido en [[DEC-046 - El profesor elige forma y color del ícono del ítem]]; todavía no existen en `develop@b195eee25`, donde la vitrina devuelve en `icon` un texto fijo por tipo, que queda deprecado |
 | `unitsSold` | Unidades vendidas; hoy nunca se incrementa, lo que puede producir sobreventa al editar el stock; la decisión es incrementarlo al confirmar la orden ([[DEC-013 - Reglas de la tienda]]) |
 
 ## Ciclo de vida / estados
