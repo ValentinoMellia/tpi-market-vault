@@ -1,0 +1,17 @@
+## [2026-10-24] ingest | US-12003, vista de cofres del alumno (fase 1)
+- Fuentes:
+  - El código de `develop@eae241f2` de `tpi-market`, con las PR 285, 290 y 295 mergeadas.
+  - Las PR 285, 290, 295 y 306 (esta última abierta), con sus reviews.
+  - Los changes de OpenSpec `us-12003-t01` a `t04`.
+  - Los estados de las tasks #12012 a #12015 y los comentarios de resultado de la #12014 y la #12015 en Taiga y la issue 303 de `tpi-market`.
+- Nueva: [[S3-03 - Cofres, el alumno ve los cofres del curso]]: la US-12003 con sus cuatro tasks, reviews, pendientes y lo que sigue. El BDD 3 pasó a la US-12004.
+- Decisiones registradas con Patricio Fernandez:
+  - [[DEC-044 - Redondeo de las probabilidades de un cofre]]: mayor resto con mínimo de 0,01, para el profesor y el alumno.
+  - [[DEC-045 - Período del límite de compras de un cofre]]: día y semana en hora de Buenos Aires, semana desde el lunes, cursada sin cota.
+- Actualizadas:
+  - [[Cofre]]: sección «Vista del alumno» (rutas, qué se muestra, cofre que no se sortea, cupo de hoy y acceso), probabilidades y límite enlazados a las decisiones nuevas.
+  - [[Estado actual del código]]: dos rutas del alumno y el gap 30 (conteo de compras de cofres que no corre en PostgreSQL, issue 303).
+  - [[S3-02 - Cofres, el profesor crea y gestiona]]: la T07 (PR 282) mergeada y «Lo que sigue» apunta a S3-03.
+  - [[Documentación OpenAPI]]: cómo se regenera `swagger.json` y que estaba atrasado.
+  - Además: [[Market Service - Overview]], [[Cofres y nuevos ítems]], [[Backlog - Índice]] y [[Decisiones - Índice]].
+- Sin tocar, a propósito: [[Q-024 - Qué es el rol GESTOR]], [[Integración con Cursos]] y [[Gateway e identidad]], que tienen cambios en las PR 56 y 59 del vault. La diferencia del `GESTOR` entre los cofres y la tienda queda en [[Cofre]].

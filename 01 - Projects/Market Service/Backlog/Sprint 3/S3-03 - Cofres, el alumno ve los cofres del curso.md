@@ -10,7 +10,7 @@ puntos: 3
 ---
 # S3-03 - Cofres, el alumno ve los cofres del curso
 
-> US-12003 de Taiga: segunda historia de la fase 1 de los [[Cofre|cofres]]. El alumno lista los cofres publicados de su curso y abre el detalle de cada uno, con los premios, su rareza y, si el profesor lo permite, la probabilidad de cada premio. Tres de sus cuatro tasks están mergeadas en `develop` de `tpi-market`; la de tests de punta a punta (PR 306) está abierta.
+> US-12003 de Taiga, segunda historia de la fase 1 de los [[Cofre|cofres]]: el alumno lista los cofres publicados de su curso y abre el detalle de cada uno, con los premios, su rareza y, si el profesor lo permite, la probabilidad de cada premio. Tres de sus cuatro tasks están mergeadas en `develop` de `tpi-market`; la de tests de punta a punta (PR 306) está abierta.
 
 ## [G11] — Cofres: el alumno ve los cofres del curso con sus premios y probabilidades
 
