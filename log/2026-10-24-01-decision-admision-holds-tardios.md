@@ -1,0 +1,2 @@
+## [2026-10-24] decision | Admisión de pujas con HOLD_CREATED tardío
+- Resuelta [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]] mediante una enmienda a [[DEC-014 - Reglas de subastas]]: la puja solo se admite si `HOLD_CREATED` se procesa con la subasta `OPEN` y antes de `endsAt`; el hold tardío se devuelve. Actualizadas [[Subasta]] y [[Decisiones - Índice]]. Origen: review de PR #300; código verificado en `26c7959e5`.

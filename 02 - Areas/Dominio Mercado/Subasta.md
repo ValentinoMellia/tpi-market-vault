@@ -39,6 +39,7 @@ Decidido ([[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo
 - La subasta termina cuando vence su tiempo o cuando un profesor la cancela; los estudiantes no pueden cancelar.
 - **Qué se subasta** ([[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]]): mientras no existan ítems únicos, una unidad de una oferta de catálogo basada en plantilla, con snapshot al lanzar; el motor no depende del tipo de ítem. "Ítem único" es una propuesta no aprobada ([[Ítems únicos]], [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]] enmendada).
 - Cancelación: un `HOLD_RELEASE_REQUESTED` por postor. Los superados recuperan sus monedas al cierre.
+- **Hold tardío**: el `HOLD_CREATED` solo admite la puja si la subasta sigue `OPEN` y `endsAt > now`. Si llega después, se rechaza el intento y se devuelve el hold; la puja no entra en el conjunto de candidatos. El acuse `HOLD_RELEASED` la deja `RELEASED` ([[DEC-014 - Reglas de subastas]], [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]]).
 - Incremento mínimo configurable por subasta; duración máxima de 14 días.
 - En una subasta de puja visible, una oferta debe superar estrictamente a la mejor (sin empates). En subasta ciega el empate se resuelve con un dado decidido por el servidor según DEC-014; el spike propone la oferta más antigua en su lugar (ver "Desempate").
 - Curso archivado: se cancelan las subastas abiertas. Baja de un estudiante: se retiran sus ofertas y la subasta continúa.
@@ -202,4 +203,4 @@ Verificado contra `tpi-market` `cb46bb18e` (rama `feature/tema-09-subastas-t04`,
 - Estado detallado de la historia y de sus tareas: [[S3-01 - Subastas, lanzar y ver las abiertas]].
 
 ## Relacionado
-[[Q-025 - Desempate de las subastas]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].
+[[Q-025 - Desempate de las subastas]], [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]], [[S2-09c - SPIKE Diseño técnico de subastas]], [[S3-01 - Subastas, lanzar y ver las abiertas]], [[Propuesta C de la saga de compra]], [[Épica 577 - Subastas]], [[Ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Integración con Notificaciones]], [[DEC-014 - Reglas de subastas]], [[Integración con Cursos]], [[Meta colectiva]].

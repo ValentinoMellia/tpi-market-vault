@@ -26,7 +26,7 @@ tags: [mercado, decision]
 | DEC-011 | [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]] | [[Q-012 - Alcance de subastas]] (archivada; enmendada: "ítem único" es la propuesta [[Ítems únicos]]) | 2026-10-01 |
 | DEC-012 | [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] | [[Q-014 - Vencimiento de items]] (archivada) | 2026-10-01 |
 | DEC-013 | [[DEC-013 - Reglas de la tienda]] | [[Q-015 - Reglas de la tienda]] (archivada) | 2026-10-01 |
-| DEC-014 | [[DEC-014 - Reglas de subastas]] | [[Q-012 - Alcance de subastas]] (archivada; actualizada el 2026-10-01 con la fase final ciega) | 2026-10-01 |
+| DEC-014 | [[DEC-014 - Reglas de subastas]] | [[Q-012 - Alcance de subastas]] y [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]] (archivadas; enmendada el 2026-10-24 para admitir holds solo antes de `endsAt`) | 2026-10-01 |
 | DEC-015 | [[DEC-015 - Política del backlog de Taiga]] | [[Q-013 - Higiene del backlog]] (sigue abierta) | 2026-10-01 |
 | DEC-016 | [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] | [[Q-017 - Qué se subasta mientras no existan ítems únicos]] (archivada) | 2026-10-01 |
 | DEC-017 | [[DEC-017 - Servicios con MS en las rutas de estado de oferta]] | [[Q-021 - Principal de servicio MS en las reglas de negocio]] (archivada) | 2026-10-03 |
@@ -45,7 +45,7 @@ tags: [mercado, decision]
 | DEC-030 | [[DEC-030 - Los ítems no tienen vigencia después de la compra]] | Confirmación de Accounting y del equipo de Mercado; refuerza [[DEC-012 - Sin vencimiento de ítems, la oferta sí vence]] (sin `Q`) | 2026-10-15 |
 | DEC-031 | [[DEC-031 - Cofres configurables con ítems, monedas y XP]] | [[Q-027 - Cofres frente a RF-INT-01 y RF-INT-03]] (archivada; aprobado por el PO en persona el 2026-10-12) | 2026-10-16 |
 
-[[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
+[[Q-012 - Alcance de subastas]], [[Q-017 - Qué se subasta mientras no existan ítems únicos]] y [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
 Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte de la `Q-NNN`, se escribe `DEC-NNN - Título corto` con la plantilla de decisión, se archiva la pregunta y se actualizan las notas afectadas. Las decisiones tienen el rango más alto de la jerarquía de verdad definida en `AGENTS.md`.
 
