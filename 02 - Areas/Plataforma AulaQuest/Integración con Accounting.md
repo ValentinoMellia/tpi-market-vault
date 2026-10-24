@@ -1,8 +1,8 @@
 ---
 tipo: integracion
 estado: vigente
-verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd
-actualizado: 2026-10-15
+verificado_contra: DEC-025, DEC-027, DEC-029, codigo@966bdd00, codigo@d3b7a4de, codigo@ac05a77f, accounting@develop-2026-10-01, accounting@8f11dbd, DEC-046
+actualizado: 2026-10-24
 tags: [mercado, integracion, accounting, banco, inventario, kafka]
 ---
 # Integración con Accounting
@@ -25,6 +25,7 @@ Actualización (2026-10-12): la integración de la saga de compra directa de ít
 | [[DEC-014 - Reglas de subastas]] | Un release por postor al cancelar o cerrar una subasta; sin release por `orderId` |
 | [[DEC-025 - Saga de compra de ítems según la Propuesta C]] | Adopta la Propuesta C para compra directa de ítems: retener fondos (`HOLD_CREATED`), acreditar (`ITEM_CONFIRMED` → `ITEM_CREDITED`), confirmar débito (`HOLD_CONFIRM_REQUESTED` → `HOLD_CONFIRMED`) y compensación simétrica con `ITEM_REVOKE_REQUESTED` ante fallos o plazos vencidos; cierra [[Q-008 - Orden de la saga de compra]] |
 | [[DEC-027 - Las cargas del ítem las decide el profesor]] | `maxCharges` de `ITEM_CONFIRMED` son las cargas que configura el profesor en la oferta |
+| [[DEC-046 - El profesor elige forma y color del ícono del ítem]] | `ITEM_CONFIRMED` suma `icon_tier` e `icon_variant` (aditivo, `event_version` 1) detrás de `market.events.item-confirmed.icon.enabled=false`, hasta que Accounting los confirme |
 | [[DEC-029 - Meta colectiva]] | Holds `COLLECTIVE_PURCHASE` con `order_id` = `goal_ref`, cobro atómico en lote antes de la entrega, devoluciones de a un hold y un comando para extender el vencimiento (ver «Meta colectiva») |
 
 Esta nota reemplaza a las antiguas "Integración con Banco" e "Integración con Inventario" (archivadas), porque [[DEC-001 - Accounting es dueño del inventario]] fusionó ambas responsabilidades en un solo equipo.
@@ -83,6 +84,7 @@ Un solo tópico, `accounting.events` (más `accounting.events.DLT`), para comand
 - No existen los eventos salientes `ITEM_PROVISION_*` (eliminados en T01, PR #179, mergeado en `develop@d3b7a4de`). En el PR #151 (US-5193 T05, `966bdd00`), la emisión hacia Accounting se encapsuló en `ItemProvisionDispatcher` (alternado por la propiedad `market.events.item-confirmed.enabled`, por defecto `false` con fallback hacia `InventoryItemProvisionClient`), publicando `ITEM_CONFIRMED` en `market.events` con los 7 campos del contrato y UUID `orderRef` como `order_id` (ignorando `aggregateOrderId` en el cable). En T06 (PR #151), `AccountingHoldKafkaListener` enruta `ITEM_CREDITED` hacia `AccountingItemCreditedEventHandler` (`ItemCreditedPayloadDto`), correlacionando por `sourceReferenceId` y deduplicando por `eventId` en `processed_events`. Hoy, si acreditar falla, Accounting reintenta y luego manda a DLT: **no publica ningún evento de falla**; `ITEM_CREDIT_FAILED` es un esquema propuesto (abajo), pendiente de su ratificación.
 - Antes de la HU58 de Accounting, `InventoryCatalog` solo aceptaba `ITEM-PLACEHOLDER-1` a `ITEM-PLACEHOLDER-3` (cualquier otro `catalog_item_id` iba a DLT), con las cargas máximas (`max_charges`) fijas ahí y el ámbito `NULL` (equivale a `ALL`); ver «Cargas del ítem».
 - **Cargas del ítem:** `max_charges` son las cargas que el profesor configuró en la oferta (`charges`), y Mercado las manda en `ITEM_CONFIRMED` ([[DEC-027 - Las cargas del ítem las decide el profesor]]). Desde su HU58 (T02 #5640 en Taiga, cerrada el 2026-10-08), Accounting acepta `max_charges` y `applicable_challenge_scope` del payload y los guarda en la unidad (`max_charges`, `applicable_challenge_scope`), en lugar de tomarlos de su `InventoryCatalog` con placeholders. Hoy Mercado todavía no los envía (`tpi-market` en `6926af1d`): queda en la T01 #7698 de [[S2-12 - Saga de compra según la Propuesta C]]. Los valores por tipo de ítem están en la DEC-027. Accounting (`develop`, `10bb4ec`) manda al DLT, sin reintentos, un `max_charges` ausente o no positivo y un scope desconocido; por eso los boosts `TTL`, que se mandan con `max_charges` nulo, quedan bloqueados hasta su [G12-HU88].
+- **Ícono del ítem (pendiente de Accounting):** [[DEC-046 - El profesor elige forma y color del ícono del ítem]] suma a `ITEM_CONFIRMED` los campos `icon_tier` (entero) e `icon_variant` (id de `ItemIconVariant` del UI kit), como cambio aditivo sin subir `event_version`. Salen de los tres productores (`ItemProvisionDispatcher`, `GoalItemDeliveryDispatcher`, `AuctionItemDeliveryDispatcher`) solo con `market.events.item-confirmed.icon.enabled`, que arranca en `false` y se prende cuando Accounting confirme que los acepta, en una issue de `tpi-accounting` todavía no abierta. Hoy (`develop@b195eee25`) `dtos/events/ItemConfirmedPayloadDto.java` no los tiene y la propiedad no existe.
 
 ## Inventario (fusionado desde la nota de Inventario)
 

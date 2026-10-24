@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-029, codigo@ac05a77f, accounting@8f11dbd
-actualizado: 2026-10-15
+verificado_contra: DEC-029, codigo@ac05a77f, accounting@8f11dbd, DEC-046
+actualizado: 2026-10-24
 tags: [mercado, dominio, meta-colectiva, accounting, kafka]
 ---
 # Meta colectiva
@@ -21,6 +21,7 @@ El profesor publica una meta en su curso con un beneficio, un monto en monedas y
 | `title`, `description` | 1 a 150 y hasta 500 caracteres | Sí |
 | `benefit_type` | `ITEM` o `EXTERNAL`, nunca los dos | No |
 | Ítem | Copia de una oferta del curso (`source_offer_id`) o de una plantilla. Se valida igual que una oferta. Solo `SHIELD` y boosts `PER_EXAM` | No |
+| Ícono del ítem | `icon_tier` e `icon_variant` copiados de la oferta de origen en columnas propias, no dentro de `item_configuration` ([[DEC-046 - El profesor elige forma y color del ícono del ítem]]; sin código en `develop@b195eee25`) | No: editar la oferta no cambia la copia |
 | Beneficio externo | Título y descripción | No |
 | `target_amount` | Monto de la meta, > 0 | Solo para bajarlo |
 | `contribution_mode` | `FREE` (monto libre) o `FIXED` (cuota fija, una sola vez) | No |
