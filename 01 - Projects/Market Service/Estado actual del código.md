@@ -1,8 +1,8 @@
 ---
 tipo: estado
 estado: vigente
-verificado_contra: codigo@7528610, codigo@2fc155ad, codigo@e63dcb47
-actualizado: 2026-10-23
+verificado_contra: codigo@7528610, codigo@2fc155ad, codigo@e63dcb47, codigo@eae241f2
+actualizado: 2026-10-24
 tags: [mercado, codigo, estado]
 ---
 # Estado actual del código
@@ -26,6 +26,8 @@ Actualización (2026-10-09): token de servicio para Accounting verificado contra
 Actualización (2026-10-10): endpoint 'Mis mercados' (`GET /api/market/courses`) y métodos de listado de Cursos verificados contra `2fc155ad` (PR #159, US-7382 T01-T04). Se implementaron los métodos `listStudentEnrollments` y `listProfessorCohorts` en `CourseCohortClient` / `GatewayCourseCohortClient` delegando en `GatewayCourseListings` (con paginación de 50 elementos por página hasta recorrer `totalPages`), el servicio `MyMarketsServiceImpl` (con deduplicación por curso donde prevalece docente sobre alumno y permiso de gestión `canManage=true` sobre solo lectura, filtrando cohortes `ACTIVE` e inscripciones `VALIDATED`), el controlador `MyMarketsController` (`GET /courses`) protegido para `STUDENT` y `PROFESSOR`, y se sumó el endpoint 17 a la matriz de roles en `RoleEndpointMatrixAcceptanceTest`.
 
 Actualización (2026-10-23): gestión de cofres del profesor (US-12002, T01 a T06: PR 259, 263, 264, 268, 270 y 278 de `tpi-market`) verificada contra `e63dcb47`, el merge de la PR 278. Se verificaron las siete rutas de cofres de la tabla de endpoints y los gaps 25 a 29. El resto de la nota no se reverificó contra ese commit; en particular, no se documentan acá las metas ni las subastas que ya están en `develop`. El dominio está en [[Cofre]] y la historia en [[S3-02 - Cofres, el profesor crea y gestiona]]. La T07 (PR 282, solo tests) seguía abierta.
+
+Actualización (2026-10-24): vista de cofres del alumno (US-12003, T01 a T03: PR 285, 290 y 295 de `tpi-market`) verificada contra `develop@eae241f2`. Se verificaron las dos rutas de la vista del alumno de la tabla de endpoints y el gap 30. La T07 de la US-12002 (PR 282) ya está mergeada. El dominio está en [[Cofre]] y la historia en [[S3-03 - Cofres, el alumno ve los cofres del curso]]; la T04 (PR 306, solo tests y `swagger.json`) sigue abierta. El resto de la nota no se reverificó contra ese commit.
 
 ## Stack
 
@@ -72,6 +74,8 @@ Paquete base `ar.edu.utn.frc.tup.p4`, en capas clásicas (no hexagonal): `contro
 | `DELETE /courses/{courseId}/chests/{chestId}` | ídem | ídem | Descarta un borrador (204) |
 | `GET /courses/{courseId}/chests` (`?page&size&status`) | ídem | ídem | Lista de gestión paginada, sin los descartados |
 | `GET /courses/{courseId}/chests/{chestId}` | ídem | ídem | Detalle con `version`. En las siete rutas de cofres, `ChestAccessGate` corre en el controlador: el ADMIN no necesita estar asignado al curso pero sí el mercado habilitado, y una membresía GESTOR responde 403 |
+| `GET /courses/{courseId}/catalog/chests` | `CourseChestStudentController` | STUDENT, ADMIN, GESTOR, MS | Cofres publicados del curso para el alumno, lista simple; desde la US-12003. `ChestStudentAccessGate` corre antes del servicio: ADMIN y MS sin matrícula, STUDENT y GESTOR tienen que ser alumnos del curso, mercado habilitado para todos |
+| `GET /courses/{courseId}/catalog/chests/{chestId}` | ídem | ídem | Detalle del cofre para el alumno; 403 a un no alumno antes de buscar el cofre, 404 si no está publicado o no se puede sortear |
 
 **Formato de cable.** Todos los cuerpos REST, de entrada y de salida, van en `snake_case`, errores incluidos (PR #76 y #91; `application.properties:17`, `request_id`). Los parámetros de consulta y las cabeceras conservan su nombre. Detalle y excepciones en [[Errores de la API]]. Los payloads de Kafka para la saga de compra migraron a `snake_case` según `contratos-kafka v8` (mergeado en `develop@d3b7a4de` vía PR #186; ver [[Eventos y Kafka]] y [[DEC-025 - Saga de compra de ítems según la Propuesta C]]).
 
@@ -175,6 +179,12 @@ Verificados contra `e63dcb47` (US-12002, [[S3-02 - Cofres, el profesor crea y ge
 27. **Publicar, desactivar y descartar un cofre no reciben `version`.** Una vista vieja puede publicar un borrador recién editado. Si la publicación pierde una carrera contra una edición, responde 409 `chest-version-conflict` sin `currentVersion`. Ver [[Cofre]].
 28. **`OFFER_SOLD_OUT` solo se calcula al copiar la oferta**, al crear el cofre o en un borrador al editarlo. No se recalcula al leer ni al publicar. Además, un cofre corrupto en la base rompería toda la página del listado: hoy no se puede producir por la API.
 29. **Suite con 44 errores previos.** Los da la base H2 en memoria compartida entre contextos de Spring (`jdbc:h2:mem:test`): cuando el caché de contextos desaloja uno, borra el esquema de los demás. Afecta a seis clases de integración ajenas a los cofres, y `develop` puro da los mismos 44. Issue [269](https://github.com/2026-P4-BE/tpi-market/issues/269) de `tpi-market`, abierta.
+
+### Gaps agregados el 2026-10-24
+
+Verificados contra `eae241f2` (US-12003, [[S3-03 - Cofres, el alumno ve los cofres del curso]]):
+
+30. **El conteo de compras de cofres no corre en PostgreSQL.** `OrderRepository.countChestPurchases` y `countChestPurchasesBatch` (de la #12016, US-12004) filtran con `(:sinceCutoff IS NULL OR o.createdAt >= :sinceCutoff)` y PostgreSQL responde `could not determine data type of parameter`; en H2 pasan. Hoy nadie en `src/main` las llama: el cupo del alumno usa `NoChestOrdersPurchaseCounter`. `ChestOrderDrawMigrationPostgresTest` está en rojo en `develop` por esto y por tres casos propios del test. Issue [303](https://github.com/2026-P4-BE/tpi-market/issues/303) de `tpi-market`; conviene resolverlo antes de la #12018 ([[DEC-045 - Período del límite de compras de un cofre]]).
 
 ## Relacionado
 

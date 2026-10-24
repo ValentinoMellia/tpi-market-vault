@@ -2,7 +2,7 @@
 tipo: guia
 estado: vigente
 verificado_contra: codigo@44292e6c, codigo@e63dcb47
-actualizado: 2026-10-23
+actualizado: 2026-10-24
 tags: [mercado, convenciones, openapi, swagger, documentacion]
 ---
 # Documentación OpenAPI (Swagger)
@@ -59,3 +59,5 @@ Cada constante tiene su par `..._REF` (`#/components/examples/<Componente>`). Pa
 ## 4. Mantenimiento y Evolución
 
 Esta documentación estática **está sujeta a cambios y no se auto-valida**. Toda modificación a un endpoint existente o creación de uno nuevo DEBE ir acompañada de la revisión y actualización manual de sus correspondientes `@Schema` o `@ExampleObject`.
+
+**Contrato publicado (`docs/api_doc/swagger.json`).** Lo genera `springdoc-openapi-maven-plugin` en la fase `integration-test` con el perfil `dev`: `mvnw -DskipTests verify` levanta la app, lee `http://localhost:8084/api/market/v3/api-docs` y escribe el archivo (`pom.xml`). No se regenera solo: una PR que cambia el contrato tiene que regenerarlo y commitearlo (`docs(api)`). Al sincronizarlo en la US-12003 (PR 306, [[S3-03 - Cofres, el alumno ve los cofres del curso]]) estaba atrasado respecto de `develop`: además de las rutas del alumno trajo los campos de las órdenes de cofre de la #12016 y tres códigos de error de subastas.
