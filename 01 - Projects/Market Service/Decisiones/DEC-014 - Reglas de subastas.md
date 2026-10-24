@@ -7,7 +7,7 @@ tags: [mercado, decision, subastas, fase-3]
 ---
 # DEC-014 - Reglas de subastas
 
-> Se fijan las reglas de liberación de holds, incremento mínimo, duración máxima, empates, subasta ciega, anti-sniping (fase final ciega) y comportamiento ante curso archivado o baja. Con la actualización del 2026-10-01 queda decidido todo lo que mantenía abierta [[Q-012 - Alcance de subastas]] (archivada); qué se subasta quedó decidido en [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] (la pregunta [[Q-017 - Qué se subasta mientras no existan ítems únicos]] está archivada).
+> Se fijan las reglas de liberación de holds, incremento mínimo, duración máxima, empates, subasta ciega, anti-sniping (fase final ciega) y comportamiento ante curso archivado o baja. La enmienda del 2026-10-24 también fija el corte para admitir un hold tardío ([[Q-028 - Admisión de pujas con HOLD_CREATED tardío]]). Con la actualización del 2026-10-01 queda decidido todo lo que mantenía abierta [[Q-012 - Alcance de subastas]] (archivada); qué se subasta quedó decidido en [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] (la pregunta [[Q-017 - Qué se subasta mientras no existan ítems únicos]] está archivada).
 
 Nota de terminología (2026-10-09): donde antes decía "sellada" (*sealed-bid*) ahora dice "ciega", el término que usa el diseño de [[Subasta]]. No cambia ninguna regla.
 
@@ -16,6 +16,11 @@ Las subastas deben quedar especificadas el 2026-10-01 porque se están planifica
 
 ## Decisión
 Confirmada por el equipo de Mercado el 2026-10-01.
+
+**Admisión de holds tardíos (enmienda 2026-10-24)**
+- El hold de una puja se admite solo si, al procesar `HOLD_CREATED`, la subasta sigue `OPEN` y `endsAt` es posterior al momento de procesamiento. La aceptación HTTP previa no extiende el corte.
+- Si el hold llega con la subasta cerrada, cancelada o vencida, Mercado no activa la puja ni la agrega al conjunto de ganadoras: rechaza el intento pendiente y solicita devolver el hold por outbox. La puja permanece pendiente de la confirmación de Accounting; al recibir `HOLD_RELEASED`, pasa a `RELEASED`. Para cancelación se usa `AUCTION_CANCELLED`; para el fin de la ventana, `AUCTION_LOST`.
+- Esta enmienda a DEC-014 resuelve [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]] y ratifica el corte usado por el cierre (`endsAt <= now`).
 
 **Cancelación y liberación de holds**
 - Cuando un profesor cancela una subasta, Mercado envía **un `HOLD_RELEASE_REQUESTED` por postor** (S1 del [[Taller de decisiones]], confirmada), con `releaseReason` `AUCTION_CANCELLED`. **No se adopta** la propuesta de Accounting de un único release por `orderId`; hay que comunicárselo ([[Integración con Accounting]]).
@@ -41,6 +46,8 @@ Confirmada por el equipo de Mercado el 2026-10-01.
 - **No se extiende el tiempo** de la subasta. El mecanismo que evita que todos ofrezcan en el último momento se decidió el 2026-10-01: ver "Actualización 2026-10-01: anti-sniping" más abajo.
 
 ## Alternativas descartadas
+- Admitir una puja por la hora de su solicitud HTTP aunque Accounting confirme el hold después de `endsAt`: descartado; el hold todavía no estaba asegurado al corte y admitirlo permitiría cambiar al ganador después del vencimiento.
+- Esperar a que el job de cierre marque la subasta antes de rechazar el hold: descartado; el límite es `endsAt`, no el retraso del job.
 - **Un solo release por `orderId` (propuesta de Accounting)**: simplificaba la cancelación, pero Accounting guarda un hold por `orderId` para siempre y sin liberación en lote; se mantiene un release por postor.
 - **Liberar al postor apenas es superado** (contrario a S3): descartado; las monedas quedan retenidas hasta el cierre.
 - **Duración máxima de 7 días (S10)**: reemplazada por 14 días.
@@ -77,4 +84,4 @@ Confirmado por el equipo de Mercado el 2026-10-01. Este apartado enmienda esta d
 **Alternativas descartadas para el anti-sniping**: cierre aleatorio en una ventana final ("subasta de vela"), enfriamiento por estudiante y límite de ofertas por estudiante.
 
 ## Notas afectadas
-[[Q-012 - Alcance de subastas]], [[Q-017 - Qué se subasta mientras no existan ítems únicos]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Ítems únicos]], [[Subasta]], [[Taller de decisiones]], [[Integración con Accounting]], [[Integración con Cursos]], [[Épica 577 - Subastas]], [[Roadmap de trabajo]], [[Decisiones - Índice]].
+[[Q-012 - Alcance de subastas]], [[Q-017 - Qué se subasta mientras no existan ítems únicos]], [[Q-028 - Admisión de pujas con HOLD_CREATED tardío]], [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]], [[Ítems únicos]], [[Subasta]], [[Taller de decisiones]], [[Integración con Accounting]], [[Integración con Cursos]], [[Épica 577 - Subastas]], [[Roadmap de trabajo]], [[Decisiones - Índice]].
