@@ -50,6 +50,8 @@ tags: [mercado, decision]
 | DEC-040 | [[DEC-040 - Tope técnico de 100 premios por cofre]] | Decisión de Mercado (sin `Q`), del QA de la T02 #12006 de la US-12002; enmienda DEC-032 solo en el máximo de premios | 2026-10-22 |
 | DEC-041 | [[DEC-041 - Edición de un cofre según su estado]] | Decisión de Mercado (sin `Q`), de la exploración de la T05 #12009 de la US-12002 | 2026-10-22 |
 | DEC-042 | [[DEC-042 - Fase 1 de cofres en el Sprint 3]] | Decisión de Mercado (sin `Q`): adelanta el backend de la fase 1 al Sprint 3; enmienda DEC-035 solo en ese punto | 2026-10-21 |
+| DEC-044 | [[DEC-044 - Redondeo de las probabilidades de un cofre]] | Decisión de Mercado (sin `Q`), de la exploración y el QA de la T02 #12013 de la US-12003 | 2026-10-23 |
+| DEC-045 | [[DEC-045 - Período del límite de compras de un cofre]] | Decisión de Mercado (sin `Q`), de la exploración de la T02 #12013 de la US-12003 | 2026-10-23 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 

@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: codigo@7528610
-actualizado: 2026-10-23
+actualizado: 2026-10-24
 tags: [mercado, backlog]
 ---
 # Backlog - Índice
@@ -22,7 +22,8 @@ tags: [mercado, backlog]
 
 ## Historias del Sprint 3 fuera de una épica
 
-- [[S3-02 - Cofres, el profesor crea y gestiona]] (US-12002): gestión de cofres del profesor, fase 1. Seis de sus siete tasks están en `develop`; la de tests de punta a punta está en review. La siguen la US-12003 (vista del alumno) y la US-12004 (compra con sorteo), sin nota propia todavía ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]).
+- [[S3-02 - Cofres, el profesor crea y gestiona]] (US-12002): gestión de cofres del profesor, fase 1. Sus siete tasks están en `develop`.
+- [[S3-03 - Cofres, el alumno ve los cofres del curso]] (US-12003): listado y detalle de los cofres publicados para el alumno, con probabilidades si el profesor lo permite. Tres de sus cuatro tasks están en `develop`; la de tests de punta a punta está en review. La sigue la US-12004 (compra con sorteo), sin nota propia todavía ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]).
 
 ## Leyenda de estado
 

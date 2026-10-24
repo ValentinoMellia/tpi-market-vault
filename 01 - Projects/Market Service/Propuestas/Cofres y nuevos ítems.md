@@ -2,12 +2,12 @@
 tipo: guia
 estado: borrador
 verificado_contra: equipo-propuestas@2026-09-30
-actualizado: 2026-10-23
+actualizado: 2026-10-24
 tags: [mercado, propuesta, cofres, items]
 ---
 # Cofres y nuevos ítems
 
-> Propuesta original de cofres con premios al azar y de nuevos tipos de ítem. Los cofres ya están decididos, se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]) y la gestión del profesor de la fase 1 ya está en el código ([[Cofre]]); los tipos de ítem nuevos siguen sin acordar.
+> Propuesta original de cofres con premios al azar y de nuevos tipos de ítem. Los cofres ya están decididos, se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]) y la gestión del profesor y la vista del alumno de la fase 1 ya están en el código ([[Cofre]]); los tipos de ítem nuevos siguen sin acordar.
 
 ## Cofres
 Una plantilla `CHEST` con un conjunto de premios ponderados (peso por premio) y recompensas opcionales de monedas o XP. El sorteo se haría al crear la orden.
@@ -20,7 +20,7 @@ Resuelto en [[DEC-031 - Cofres configurables con ítems, monedas y XP]], a parti
 La task T03 #8428 cerró el alcance en [[DEC-035 - Cofres en dos fases]]: primero cofres con premios de ítem (equipamiento y vidas) y después monedas y XP, cuando Accounting y Roadmap tengan su parte. Las historias técnicas están listadas en esa decisión y se cargan en Taiga en la próxima planning.
 
 ## Qué de la propuesta ya existe
-Verificado contra `develop@e63dcb47` de `tpi-market` (US-12002, [[S3-02 - Cofres, el profesor crea y gestiona]]). El detalle está en [[Cofre]].
+Verificado contra `develop@eae241f2` de `tpi-market` (US-12002 y US-12003, [[S3-02 - Cofres, el profesor crea y gestiona]] y [[S3-03 - Cofres, el alumno ve los cofres del curso]]). El detalle está en [[Cofre]].
 
 | Parte de la propuesta | Estado |
 |---|---|
@@ -29,7 +29,7 @@ Verificado contra `develop@e63dcb47` de `tpi-market` (US-12002, [[S3-02 - Cofres
 | Premios de monedas o XP | No existen: son la fase 2. El enum `ChestRewardKind` ya los nombra, pero la API y la base los rechazan |
 | Gestión del profesor: crear, editar, publicar, desactivar y descartar | Existe en `/api/market/courses/{courseId}/chests` |
 | Rareza sugerida, avisos que no bloquean, interruptor de probabilidades y límite por alumno | Existen en la configuración. El límite todavía no se aplica, porque no hay compra |
-| Vista del alumno | No existe: US-12003 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]) |
+| Vista del alumno | Existe en `/api/market/courses/{courseId}/catalog/chests`, con probabilidades si el profesor lo permite ([[S3-03 - Cofres, el alumno ve los cofres del curso]], [[DEC-044 - Redondeo de las probabilidades de un cofre]]) |
 | Sorteo al crear la orden y entrega | No existen: US-12004 |
 | Máximo de premios | 100, como tope técnico ([[DEC-040 - Tope técnico de 100 premios por cofre]]) |
 

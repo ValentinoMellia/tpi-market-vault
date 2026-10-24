@@ -2,7 +2,7 @@
 tipo: historia
 estado: vigente
 verificado_contra: codigo@e63dcb47
-actualizado: 2026-10-23
+actualizado: 2026-10-24
 tags: [mercado, backlog, sprint-3, cofres]
 sprint: 3
 taiga: "#12002"
@@ -10,7 +10,7 @@ puntos: 8
 ---
 # S3-02 - Cofres, el profesor crea y gestiona
 
-> US-12002 de Taiga: primera historia de la fase 1 de los [[Cofre|cofres]], solo con premios de ítem. El profesor crea cofres a precio fijo con premios copiados de las ofertas del curso, los edita, los publica, los desactiva y descarta borradores. Seis de sus siete tasks están mergeadas en `develop` de `tpi-market`; la de tests de punta a punta (PR 282) está abierta.
+> US-12002 de Taiga: primera historia de la fase 1 de los [[Cofre|cofres]], solo con premios de ítem. El profesor crea cofres a precio fijo con premios copiados de las ofertas del curso, los edita, los publica, los desactiva y descarta borradores. Sus siete tasks están mergeadas en `develop` de `tpi-market`. La vista del alumno sigue en [[S3-03 - Cofres, el alumno ve los cofres del curso]].
 
 ## [G11] — Cofres: el profesor crea y gestiona cofres con premios de ítem
 
@@ -30,7 +30,7 @@ Es la H1 de [[DEC-035 - Cofres en dos fases]], adelantada al Sprint 3 por [[DEC-
 
 Resumidos de Taiga, con dónde quedaron cubiertos:
 
-- [x] **CA1**: cada validación responde 400 `problem+json` con el campo que falla. Cubierto por T02, T03 y T06, y de punta a punta en la T07 (PR abierta).
+- [x] **CA1**: cada validación responde 400 `problem+json` con el campo que falla. Cubierto por T02, T03 y T06, y de punta a punta en la T07.
 - [x] **CA2**: un premio de monedas o de XP responde 400 (fase 2). Cubierto por T03.
 - [x] **CA3**: editar o desactivar la oferta de origen no cambia la copia guardada, y crear el cofre no descuenta stock. Cubierto por T04 y T05.
 - [x] **CA4**: la respuesta trae la rareza sugerida de cada premio y los avisos, sin impedir guardar. Cubierto por T03.
@@ -51,7 +51,7 @@ La descripción de Taiga dice «sin máximo de cantidad» de premios. Hoy el top
 | T04 | #12008 | Copia de la oferta sin consumir stock | [268](https://github.com/2026-P4-BE/tpi-market/pull/268) | `us-12002-t04-chest-prize-copy` | Mergeada el 2026-10-22; Closed |
 | T05 | #12009 | Servicio de gestión: crear, editar, publicar, desactivar y descartar | [270](https://github.com/2026-P4-BE/tpi-market/pull/270) | `us-12002-t05-chest-manage-service` | Mergeada el 2026-10-22, con la review de Patiño; Closed |
 | T06 | #12010 | Controlador, autorización, errores, OpenAPI, listado y detalle | [278](https://github.com/2026-P4-BE/tpi-market/pull/278) | `us-12002-t06-chest-manage-controller` | Mergeada el 2026-10-22 (merge `e63dcb47`), con la review de Patiño; Closed |
-| T07 | #12011 | Tests de punta a punta, concurrencia y matriz de roles | [282](https://github.com/2026-P4-BE/tpi-market/pull/282) | `us-12002-t07-chest-manage-tests` | Abierta y sin review al 2026-10-23; Ready for test |
+| T07 | #12011 | Tests de punta a punta, concurrencia y matriz de roles | [282](https://github.com/2026-P4-BE/tpi-market/pull/282) | `us-12002-t07-chest-manage-tests` | Mergeada el 2026-10-23 (merge `21c728cf`), con la aprobación de Lozzano |
 
 Fechas en hora de Argentina. Hay dos tasks de review en la misma historia:
 - **#12232:** Patiño revisó la PR 259 y no encontró defectos bloqueantes.
@@ -68,7 +68,7 @@ El detalle del dominio está en [[Cofre]]; las reglas de edición, en [[DEC-041 
 - **T04.** `ChestPrizeResolver` copia las ofertas en una sola consulta de lectura. Acepta ofertas inactivas o vencidas, y el aviso `OFFER_SOLD_OUT` lo agregó el QA.
 - **T05.** `ChestManageService`, con las reglas de [[DEC-041 - Edición de un cofre según su estado]]. 72 tests nuevos, en H2 y en PostgreSQL. El QA probó una carrera real entre dos profesores, que responde 409.
 - **T06.** `CourseChestManageController` con las siete rutas, autorización con `ChestAccessGate` en el controlador, cuatro problemas propios y ejemplos en OpenAPI. El QA por HTTP real encontró un 500 con una página enorme, y se corrigió: ahora responde 400 en `page`.
-- **T07 (abierta).** Prueba por HTTP real los CA1 a CA5 y los BDD 1 a 3, en H2 y en PostgreSQL con Flyway.
+- **T07.** Prueba por HTTP real los CA1 a CA5 y los BDD 1 a 3, en H2 y en PostgreSQL con Flyway.
   - Concurrencia: de 8 ediciones con la misma versión, una sola gana. Al publicar y editar a la vez, nunca hay un 5xx.
   - Matriz de roles: suma las siete rutas de cofres.
   - Mutaciones de TDD: diez mutaciones, todas detectadas.
@@ -116,9 +116,7 @@ Ninguno bloquea la historia. Están registrados para no perderlos:
 
 ## Lo que sigue
 
-- **US-12003, el alumno ve los cofres del curso** (H2, Sprint 3, 3 puntos):
-  - Endpoint propio del alumno, que muestra solo los cofres `PUBLISHED` no descartados.
-  - Las probabilidades solo van si `show_probabilities` está encendido. También informa cuántos cofres le quedan en el período.
+- **US-12003, el alumno ve los cofres del curso** (H2, Sprint 3, 3 puntos): en [[S3-03 - Cofres, el alumno ve los cofres del curso]].
 - **US-12004, el alumno compra un cofre** (H3, Sprint 3, 8 puntos):
   - El sorteo se hace al crear la orden y se guarda en ella. Reparte solo entre las rarezas con premios, como el evaluador.
   - Antes se controla el límite por alumno. La entrega sigue la saga de equipamiento o de vidas.
@@ -126,6 +124,6 @@ Ninguno bloquea la historia. Están registrados para no perderlos:
 - **Frontend H4 y H5** de [[DEC-035 - Cofres en dos fases]].
 - **Fase 2 (H6), monedas y XP:** cuando Accounting y Roadmap tengan su parte ([[DEC-033 - Acreditación de XP de cofre en Roadmap]], [[DEC-034 - Acreditación de premios de cofre en Accounting]]). Amplía el CHECK de `reward_kind` y suma `amount`.
 
-La US-12003 y la US-12004 pueden reusar el soporte de pruebas de `ChestManageAcceptanceTest` (en la PR 282): cursos propios, ofertas completas, limpieza y carreras.
+La US-12003 reusó el soporte de pruebas de `ChestManageAcceptanceTest`, que su T04 movió a `ChestAcceptanceSupport`: cursos propios, ofertas completas y limpieza. La US-12004 puede reusarlo igual.
 
 Relación: [[Cofre]], [[Cofres y nuevos ítems]], [[Backlog - Índice]], [[S3-01 - Subastas, lanzar y ver las abiertas]].

@@ -2,7 +2,7 @@
 tipo: indice
 estado: vigente
 verificado_contra: DEC-012
-actualizado: 2026-10-23
+actualizado: 2026-10-24
 tags: [mercado, overview]
 ---
 # Market Service - Overview
@@ -41,7 +41,7 @@ Mercado es el Tema 09 y, en Taiga, el grupo G11. Accounting (ex Banco) es el Tem
 - Dudas abiertas: [[Q-013 - Higiene del backlog]] y [[Q-018 - Alcance real del Sprint 2 en Taiga]]; [[Q-008 - Orden de la saga de compra]] resuelta en [[DEC-025 - Saga de compra de ítems según la Propuesta C]]; el resto está archivado, listado en [[index]].
 - Decisiones: [[Decisiones - Índice]] (DEC-001 a DEC-042, con algunos números reservados por PRs abiertas) y [[Taller de decisiones]] (qué recomendaciones están decididas).
 - Meta colectiva, decidida y sin código: [[DEC-029 - Meta colectiva]] y [[Meta colectiva]].
-- Cofres: la gestión del profesor de la fase 1 está en `develop` ([[Cofre]], [[S3-02 - Cofres, el profesor crea y gestiona]]); la vista del alumno y la compra son la US-12003 y la US-12004 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]).
+- Cofres: la gestión del profesor y la vista del alumno de la fase 1 están en `develop` ([[Cofre]], [[S3-02 - Cofres, el profesor crea y gestiona]], [[S3-03 - Cofres, el alumno ve los cofres del curso]]); la compra con sorteo es la US-12004 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]).
 - Propuestas de producto: [[Cofres y nuevos ítems]].
 - Backlog: [[Backlog - Índice]].
 - Plataforma: [[Mapa de servicios]], [[Gateway e identidad]], [[Integración con Accounting]].
