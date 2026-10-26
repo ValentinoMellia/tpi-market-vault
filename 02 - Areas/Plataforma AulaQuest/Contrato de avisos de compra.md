@@ -2,12 +2,12 @@
 tipo: integracion
 estado: borrador
 verificado_contra: codigo@f7457882
-actualizado: 2026-10-09
+actualizado: 2026-10-26
 tags: [mercado, integracion, notificaciones, eventos, compra-directa, catalogo]
 ---
 # Contrato de avisos de compra
 
-> Qué eventos publica Mercado para que Notificaciones avise al alumno: el resultado de una compra directa (`PURCHASE_CONFIRMED` y `PURCHASE_FAILED`, historia #1051) y las ofertas nuevas o reactivadas de su curso (`CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED`, historia #1052). Es el entregable de las tareas #1054 y #1058 y está en borrador hasta que Notificaciones lo acepte.
+> Qué eventos publica Mercado para que Notificaciones avise al alumno: el resultado de una compra directa (`PURCHASE_CONFIRMED` y `PURCHASE_FAILED`, historia #1051) y las ofertas nuevas o reactivadas de su curso (`CATALOG_OFFER_PUBLISHED` y `CATALOG_OFFER_REACTIVATED`, historia #1052). Es el entregable de las tareas #1054 y #1058 y está en borrador hasta que Notificaciones lo acepte. Las órdenes de cofre publican los mismos avisos con `offerId` nulo: abierto en [[Q-034 - Avisos de Notificaciones para órdenes de cofre]].
 
 ## Alcance
 
