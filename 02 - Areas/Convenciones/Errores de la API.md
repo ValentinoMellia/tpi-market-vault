@@ -1,8 +1,8 @@
 ---
 tipo: guia
 estado: vigente
-verificado_contra: codigo@80a6aeac, codigo@e63dcb47
-actualizado: 2026-10-23
+verificado_contra: codigo@80a6aeac, codigo@e63dcb47, codigo@5fb82d80
+actualizado: 2026-10-26
 tags: [mercado, convenciones, errores, api]
 ---
 # Errores de la API
@@ -59,6 +59,7 @@ Todos los cuerpos REST de Mercado, de éxito y de error, van en `snake_case` y t
 | `chest-not-found` | 404 | Cofre inexistente, de otro curso o descartado (`ChestNotFoundException`) |
 | `chest-state-conflict` | 409 | Operación no permitida en el estado del cofre, o cambio de pesos o premios en un cofre publicado o desactivado; trae el campo en `errors[]` cuando lo hay (`ChestStateConflictException`) |
 | `chest-version-conflict` | 409 | La `version` enviada está vieja (trae `params.currentVersion`) o otra escritura ganó la carrera (sin `currentVersion`) (`ChestVersionConflictException`) |
+| `chest-limit-reached` | 422 | Compra de un cofre con el límite del período agotado; `error` lleva `MARKET_CHEST_LIMIT_REACHED` y `params` `chestId`, `maxPerStudent` y `period`. No se crea la orden ni el hold (`ChestLimitReachedException`, desde la US-12004) |
 | `unexpected-error` | 500 | Error no previsto |
 
 Los estados HTTP están verificados contra `GlobalExceptionHandler`.
@@ -82,6 +83,7 @@ Desde la US-12002 ([[S3-02 - Cofres, el profesor crea y gestiona]]), la gestión
 - **Lectura estricta.** En los DTO de pedido de cofres, un campo desconocido o un entero no exacto (`7.9`) responden 400 (`StrictJsonModule`).
 - **`currentVersion` va en `params`**, no como campo raíz. Solo viene cuando la versión enviada estaba vieja. Si la escritura perdió una carrera, el 409 sale sin `params`.
 - **Campos en `snake_case`.** Los errores de negocio usan el nombre del cable (`prizes[i].reward_kind`, `rarity_weights`, `version`, `page`). Los ejemplos de OpenAPI de cofres todavía los muestran en `camelCase` ([[Estado actual del código]], gap 26).
+- **Compra de un cofre** (US-12004, [[S3-04 - Cofres, el alumno compra un cofre]]): reusa los errores de la compra directa y suma `chest-limit-reached` (422, como el tope de vidas). Un cofre que no se puede comprar responde `chest-not-found` (404) por cualquier motivo, incluido no tener nada que sortear. Un premio boost TTL con el flag apagado responde `ttl-boost-unavailable` (409) antes de sortear. Cancelar una orden de cofre en `ITEM_PROVISION_REQUESTED` responde `order-not-cancellable` (409, [[DEC-047 - Cuándo ve el alumno el premio de un cofre]]).
 
 ## Relacionado
 [[Estado actual del código]], [[Gateway e identidad]], [[Cofre]], [[Q-033 - Nombres de campo en los errores de validación]].

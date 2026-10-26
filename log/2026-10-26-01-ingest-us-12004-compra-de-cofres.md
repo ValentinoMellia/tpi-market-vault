@@ -1,0 +1,19 @@
+## [2026-10-26] ingest | US-12004, compra de cofres con sorteo (fase 1)
+- Fuentes:
+  - El código de `develop@5fb82d80` de `tpi-market`, con las PR 293, 309, 313, 320, 321 y 322 mergeadas.
+  - Las seis PR con sus reviews y los changes de OpenSpec `us-12004-t01` a `t05`.
+  - Los estados de la US-12004 (Done) y de las tasks #12016 a #12021 y #14113 en Taiga, más las tasks de frontend #14119 y #14120.
+  - Las issues 269 y 303 de `tpi-market`, cerradas el 2026-10-25.
+- Nueva: [[S3-04 - Cofres, el alumno compra un cofre]]: la US-12004 con sus tasks, CA y BDD cubiertos, reviews, pendientes y lo que sigue. La #12021 se cerró sin PR propia, cubierta por las T02 a T05 (decisión de Patricio Fernandez).
+- Decisión registrada con Patricio Fernandez: [[DEC-047 - Cuándo ve el alumno el premio de un cofre]] (D8 de la #12019): premio visible para el alumno solo en `CONFIRMED` y sin cancelación en `ITEM_PROVISION_REQUESTED`.
+- Pregunta abierta: [[Q-034 - Avisos de Notificaciones para órdenes de cofre]]: `offer_id` nulo en los avisos de compra de un cofre y aviso con el premio.
+- Actualizadas:
+  - [[Cofre]]: sección «Compra del alumno» (pedido y errores, creación con lock, límite y sorteo, sorteo guardado inmutable, entrega y lectura del premio), cupo real en la vista del alumno, pendientes y clases nuevas.
+  - [[Orden de compra]]: `order_kind`, `chest_id` y las reglas de las órdenes de cofre.
+  - [[Errores de la API]]: `chest-limit-reached` y los errores de la compra de un cofre.
+  - [[Estado actual del código]]: la ruta de compra, el gap 30 resuelto y la issue 269 cerrada en el gap 29.
+  - [[S3-03 - Cofres, el alumno ve los cofres del curso]]: T04 mergeada, BDD 3 cubierto por la #12018, issue 303 cerrada y frontend en la #14119.
+  - [[S3-02 - Cofres, el profesor crea y gestiona]]: «Lo que sigue» apunta a S3-04 y a la #14120.
+  - [[DEC-045 - Período del límite de compras de un cofre]] (actualización con el contador real) y [[DEC-034 - Acreditación de premios de cofre en Accounting]] (enlace a DEC-047).
+  - Además: [[Contrato de avisos de compra]], [[Cofres y nuevos ítems]], [[Market Service - Overview]], [[Backlog - Índice]] y [[Decisiones - Índice]].
+- Sin tocar, a propósito: [[Q-024 - Qué es el rol GESTOR]], [[Integración con Cursos]] y [[Gateway e identidad]], por las PR 56 y 59 del vault; y el conteo «treinta decisiones registradas» de [[Decisiones - Índice]], por las PR abiertas que suman decisiones.

@@ -1,8 +1,8 @@
 ---
 tipo: indice
 estado: vigente
-verificado_contra: DEC-042
-actualizado: 2026-10-23
+verificado_contra: DEC-047
+actualizado: 2026-10-26
 tags: [mercado, decision]
 ---
 # Decisiones - Índice
@@ -52,6 +52,7 @@ tags: [mercado, decision]
 | DEC-042 | [[DEC-042 - Fase 1 de cofres en el Sprint 3]] | Decisión de Mercado (sin `Q`): adelanta el backend de la fase 1 al Sprint 3; enmienda DEC-035 solo en ese punto | 2026-10-21 |
 | DEC-044 | [[DEC-044 - Redondeo de las probabilidades de un cofre]] | Decisión de Mercado (sin `Q`), de la exploración y el QA de la T02 #12013 de la US-12003 | 2026-10-23 |
 | DEC-045 | [[DEC-045 - Período del límite de compras de un cofre]] | Decisión de Mercado (sin `Q`), de la exploración de la T02 #12013 de la US-12003 | 2026-10-23 |
+| DEC-047 | [[DEC-047 - Cuándo ve el alumno el premio de un cofre]] | Decisión de Mercado (sin `Q`), de la exploración de la T04 #12019 de la US-12004 (D8); precisa DEC-034 en lo que ve el frontend | 2026-10-25 |
 
 [[Q-012 - Alcance de subastas]] y [[Q-017 - Qué se subasta mientras no existan ítems únicos]] están archivadas: [[DEC-011 - Subastas, ítems únicos, cierre por profesor o por tiempo]], [[DEC-014 - Reglas de subastas]] y [[DEC-016 - Subastas con ítems del catálogo mientras no existan ítems únicos]] cubren el cierre, las reglas, el anti-sniping y qué se subasta.
 
@@ -71,6 +72,8 @@ Una decisión se crea cuando el equipo resuelve una pregunta abierta: se parte d
 - [[Q-026 - Detalles del contrato de la meta colectiva con Accounting]]: nombres, la forma de la pérdida y de la extensión, márgenes y fallas de acreditación de [[DEC-029 - Meta colectiva]]; se acuerda con Accounting.
 
 - [[Q-033 - Nombres de campo en los errores de validación]]: los errores de negocio de metas y cofres informan el campo en `snake_case` y los de Bean Validation en `camelCase`; falta decidir si se unifica.
+
+- [[Q-034 - Avisos de Notificaciones para órdenes de cofre]]: los avisos de compra de una orden de cofre salen con `offer_id` nulo, que el contrato marca como obligatorio, y no dicen qué premio tocó; decide Notificaciones.
 
 
 

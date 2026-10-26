@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de
-actualizado: 2026-10-14
+verificado_contra: DEC-025, codigo@966bdd00, codigo@d3b7a4de, codigo@5fb82d80 (órdenes de cofre)
+actualizado: 2026-10-26
 tags: [mercado, dominio, orden, saga]
 ---
 # Orden de compra
@@ -16,7 +16,8 @@ Una compra en curso o terminada: quién compró, qué oferta, a qué precio y c�
 | Campo | Significado |
 |---|---|
 | `orderRef` | UUID canónico de la orden (columna `order_ref`, restricción única `uk_orders_order_ref`, `updatable = false`). Lo asigna `PurchaseOrderServiceImpl` al crearla; si falta, `@PrePersist` y `requestHold` lo generan. Es el `orderId` que Mercado envía a Accounting; el `id` numérico sigue siendo el que ve el cliente HTTP |
-| `courseId`, `studentId`, `offerId` | Contexto de la compra |
+| `courseId`, `studentId`, `offerId` | Contexto de la compra. `offerId` es nulo en una orden de cofre |
+| `orderKind`, `chestId` | `DIRECT` (compra de una oferta, el valor por defecto) o `CHEST` (compra de un [[Cofre]], con `chestId`). La migración `V23__chest_order_draw.sql` exige `offer_id` en una y `chest_id` en la otra (`chk_orders_kind_consistency`). Desde la US-12004 |
 | `itemType` | Tipo de ítem copiado de la oferta al crear la orden; evita leer la oferta al confirmar. Nulo en órdenes anteriores al PR #82 (ver [[Estado actual del código]]) |
 | `appliedPrice` | Precio congelado al comprar |
 | `status` | Estado actual (`OrderStatus`) |
@@ -72,10 +73,11 @@ stateDiagram-v2
 - Ante hold vencido antes de entregar: `EXPIRED` y se libera stock. Accounting fija el TTL en 300 s para compras directas.
 - Accounting exige un `order_id` UUID canónico y un hold por `order_id` para siempre. Mercado genera y persiste un `orderRef` UUID y lo usa como `order_id` ([[DEC-009 - Contrato de holds e ítems según Accounting]]). Implementado en `develop` (PR #88, US-5193): `OrderEntity.bankOrderId()` devuelve el `orderRef` como texto.
 - El estudiante solo ve sus propias órdenes; las ajenas responden 404.
+- **Órdenes de cofre** (US-12004, [[S3-04 - Cofres, el alumno compra un cofre]]): recorren la misma saga, pero nunca leen una oferta. El premio sorteado se guarda al crear la orden en `chest_order_draws`, una fila inmutable por orden, y la saga, los reintentos y los jobs lo leen de ahí ([[DEC-032 - Sorteo y reglas de configuración de los cofres]]). La orden guarda el nombre del cofre en `offerName`, el tipo y la cantidad del premio y el precio del cofre; no reserva stock y no suma ventas. El detalle y el SSE suman `order_kind`, `chest_id` y `drawn_prize`; el alumno ve el premio recién en `CONFIRMED` y no puede cancelar una orden de cofre en `ITEM_PROVISION_REQUESTED` ([[DEC-047 - Cuándo ve el alumno el premio de un cofre]]). El resumen de ventas del curso cuenta solo órdenes `DIRECT`. Detalle en [[Cofre]], sección «Compra del alumno».
 - Rechazos posibles (`OrderRejectionReason`): 12 valores en total (PR #110, US-5193 T07, `f7457882`). Los 10 motivos contractuales de Accounting más `LIFE_CAP_REACHED` y el fallback `PROVISION_FAILED`. En todos los rechazos se libera el stock reservado (`releaseStockIfReserved`).
 
 ## Dónde vive en el código
-`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`, `reject`, `bankOrderId`, `markForReview`), `models/enums/OrderCancellationReason.java`, `models/enums/OrderReviewReason.java`, `models/enums/OrderRejectionReason.java`, `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `ItemProvisionDispatcher.java`, `OrderConfirmationServiceImpl.java`, `PurchaseRollbackServiceImpl.java`, `ConfirmationDeadlinePolicy.java`, `ConfirmationDeadlineGuard.java`, `PurchaseReconciliationSupport.java`, `PurchaseReviewService.java`, `listeners/AccountingHoldKafkaListener.java`, `listeners/AccountingItemCreditedEventHandler.java`, `dtos/accounting/ItemCreditedPayloadDto.java`, `dtos/events/ItemConfirmedPayloadDto.java`.
+`models/enums/OrderStatus.java` (tabla de transiciones), `entities/OrderEntity.java` (`transitionTo`, `cancel`, `reject`, `bankOrderId`, `markForReview`), `models/enums/OrderCancellationReason.java`, `models/enums/OrderReviewReason.java`, `models/enums/OrderRejectionReason.java`, `services/impl/PurchaseOrderServiceImpl.java`, `OrderHoldServiceImpl.java`, `OrderItemProvisionServiceImpl.java`, `ItemProvisionDispatcher.java`, `OrderConfirmationServiceImpl.java`, `PurchaseRollbackServiceImpl.java`, `ConfirmationDeadlinePolicy.java`, `ConfirmationDeadlineGuard.java`, `PurchaseReconciliationSupport.java`, `PurchaseReviewService.java`, `listeners/AccountingHoldKafkaListener.java`, `listeners/AccountingItemCreditedEventHandler.java`, `dtos/accounting/ItemCreditedPayloadDto.java`, `dtos/events/ItemConfirmedPayloadDto.java`. Órdenes de cofre: `models/enums/OrderKind.java`, `entities/ChestOrderDrawEntity.java`, `services/impl/ChestOrderPrizes.java`, `ChestOrderPrizeView.java` y `dtos/order/OrderChestRewardDto.java`.
 
 ## Relacionado
 [[Épica 137 - Compra directa]], [[DEC-025 - Saga de compra de ítems según la Propuesta C]], [[Propuesta C de la saga de compra]], [[Eventos y Kafka]], [[SSE]], [[Integración con Accounting]], [[DEC-019 - La unidad de una compra HOLD_NOT_SETTLED queda retenida]].

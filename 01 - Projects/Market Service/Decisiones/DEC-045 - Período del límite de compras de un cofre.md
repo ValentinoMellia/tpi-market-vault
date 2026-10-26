@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@eae241f2
-actualizado: 2026-10-24
+actualizado: 2026-10-26
 tags: [mercado, decision, cofres, limite]
 ---
 # DEC-045 - Período del límite de compras de un cofre
@@ -29,6 +29,8 @@ El equipo de Mercado (Patricio Fernandez) lo decidió el 2026-10-23, en la explo
 ## Consecuencias
 - **Hoy:** el contador activo es `services/impl/NoChestOrdersPurchaseCounter.java`, que devuelve 0 compras porque todavía no se pueden comprar cofres. Por eso `remaining_in_period` es siempre igual a `max_per_student`, y el corte del período todavía no se ve por HTTP (lo prueba `ChestLimitPeriodResolverTest`, incluidos los cambios de horario de otras zonas).
 - **US-12004 (#12018):** reemplaza ese contador por uno sobre las órdenes de cofre con este mismo corte y decide qué estados de orden consumen cupo. Las consultas que dejó la #12016 (`OrderRepository.countChestPurchases` y `countChestPurchasesBatch`) fallan en PostgreSQL con `sinceCutoff` nulo, que es justo el caso `COHORT` (issue https://github.com/2026-P4-BE/tpi-market/issues/303).
+
+**Actualización (2026-10-26):** la #12018 (PR 313) reemplazó el contador provisorio por `services/impl/OrderChestPurchaseCounter.java`, con este mismo corte, para la vista y para el bloqueo de la compra. Cuentan `CONFIRMED` y los cinco estados en vuelo; una orden cancelada, rechazada o vencida devuelve el cupo. Las consultas nuevas corren en PostgreSQL y la issue 303 está cerrada ([[S3-04 - Cofres, el alumno compra un cofre]]).
 
 ## Notas afectadas
 [[Cofre]], [[DEC-032 - Sorteo y reglas de configuración de los cofres]], [[S3-03 - Cofres, el alumno ve los cofres del curso]], [[Decisiones - Índice]].

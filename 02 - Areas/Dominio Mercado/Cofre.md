@@ -1,18 +1,18 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: codigo@eae241f2, DEC-032, DEC-040, DEC-041, DEC-044, DEC-045
-actualizado: 2026-10-24
+verificado_contra: codigo@5fb82d80, DEC-032, DEC-040, DEC-041, DEC-044, DEC-045, DEC-047
+actualizado: 2026-10-26
 tags: [mercado, dominio, cofres]
 ---
 # Cofre
 
-> Oferta de la tienda a precio fijo que entrega un premio al azar entre los que configuró el profesor. Hoy existen, en la fase 1 (solo premios de ítem), la gestión del profesor (crear, editar, publicar, desactivar y descartar) y la vista del alumno (listado y detalle de los cofres publicados). La compra con sorteo todavía no existe.
+> Oferta de la tienda a precio fijo que entrega un premio al azar entre los que configuró el profesor. La fase 1 (solo premios de ítem) está completa en el código: la gestión del profesor (crear, editar, publicar, desactivar y descartar), la vista del alumno (listado y detalle de los cofres publicados) y la compra con sorteo y entrega por la saga.
 
 ## Qué representa
 El profesor arma un cofre para su curso con un precio en monedas y una lista de premios. Cada premio tiene una rareza (Común, Raro, Épico o Legendario) y cada rareza un peso. Al comprar, se sortea primero la rareza según los pesos y después un premio dentro de ella ([[DEC-031 - Cofres configurables con ítems, monedas y XP]], [[DEC-032 - Sorteo y reglas de configuración de los cofres]]).
 
-Los cofres se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]). La fase 1 solo admite premios de ítem, tomados de las ofertas del curso; la fase 2 suma monedas y XP. El backend de la fase 1 se adelantó al Sprint 3 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]). Lo que hay en el código es la US-12002 ([[S3-02 - Cofres, el profesor crea y gestiona]]) y la US-12003 ([[S3-03 - Cofres, el alumno ve los cofres del curso]]).
+Los cofres se construyen en dos fases ([[DEC-035 - Cofres en dos fases]]). La fase 1 solo admite premios de ítem, tomados de las ofertas del curso; la fase 2 suma monedas y XP. El backend de la fase 1 se adelantó al Sprint 3 ([[DEC-042 - Fase 1 de cofres en el Sprint 3]]). Lo que hay en el código es la US-12002 ([[S3-02 - Cofres, el profesor crea y gestiona]]), la US-12003 ([[S3-03 - Cofres, el alumno ve los cofres del curso]]) y la US-12004 ([[S3-04 - Cofres, el alumno compra un cofre]]).
 
 ## Datos principales
 Tablas `chests` y `chest_rewards`, creadas por la migración `src/main/resources/db/migration/V16__chests_schema.sql`. En el cable los campos van en `snake_case`.
@@ -45,7 +45,7 @@ Tablas `chests` y `chest_rewards`, creadas por la migración `src/main/resources
 | `source_offer_id` | Oferta del curso de la que se copió. Es solo procedencia: no tiene clave foránea |
 | `item_value` | Precio de la oferta en el momento de copiarla. Sirve para sugerir la rareza y calcular los avisos |
 | Copia del ítem | `AuctionItemSnapshot` embebido (columnas `item_*`), el mismo que usan las subastas: plantilla, nombre, descripción, tipo, cargas, alcance, multiplicador, modo de boost, duración, intentos, regla de consumo y vidas. No copia precio ni stock (`entities/AuctionItemSnapshot.java`, `fromOffer`) |
-| `deleted` | Premio quitado al editar. No se borra porque las órdenes de la compra (US-12004) lo van a referenciar |
+| `deleted` | Premio quitado al editar. No se borra porque el sorteo guardado de una orden lo referencia (`chest_order_draws.reward_id`) |
 
 ## Ciclo de vida / estados
 
@@ -93,7 +93,7 @@ El profesor puede elegir otra. Si un premio llega sin rareza, se guarda la suger
 ### Probabilidades
 `ChestEvaluator` (`services/impl/ChestEvaluator.java`) reparte el peso solo entre las rarezas que tienen premios. La probabilidad de un premio es el peso de su rareza dividido por la suma de los pesos de las rarezas con premios y por la cantidad de premios de esa rareza. Si ninguna rareza con premios tiene peso, el cofre se rechaza con 400 en `rarity_weights`.
 
-El redondeo está en [[DEC-044 - Redondeo de las probabilidades de un cofre]] (`services/impl/ChestProbabilityRounding.java`): 2 decimales, mayor resto para que cada cofre sume exactamente 100,00 y un mínimo de 0,01 descontado del premio más probable. Lo ven igual el profesor y el alumno. Es solo para mostrar: el sorteo de la compra (US-12004) usa los pesos exactos.
+El redondeo está en [[DEC-044 - Redondeo de las probabilidades de un cofre]] (`services/impl/ChestProbabilityRounding.java`): 2 decimales, mayor resto para que cada cofre sume exactamente 100,00 y un mínimo de 0,01 descontado del premio más probable. Lo ven igual el profesor y el alumno. Es solo para mostrar: el sorteo de la compra usa los pesos exactos (ver *Compra del alumno*).
 
 ### Avisos que no bloquean
 Cumplen la libertad del profesor de [[DEC-031 - Cofres configurables con ítems, monedas y XP]]: la respuesta trae `warnings[]` con `{code, message, prize_position, rarity}` y el cofre se guarda igual. Códigos estables (`models/enums/ChestWarningCode.java`):
@@ -175,7 +175,7 @@ El segmento literal `chests` le gana a `/catalog/{itemId}` de la tienda. Las rut
 - `probability` viaja solo con el interruptor encendido, con escala fija de 2. Apagado, la clave no aparece.
 - Los premios de una rareza con peso 0 no se muestran, con el interruptor encendido o apagado: nunca salen. El profesor los ve con el aviso `PRIZE_CANNOT_BE_DRAWN`.
 - **Cofre que no se puede sortear** (publicado sin premios vigentes, o con todas las rarezas con premios en peso 0): se saltea en el listado con un `WARN` y su detalle da 404. Un cofre roto no rompe la página. Hoy no se puede producir por la API.
-- **Cupo:** sin límite, `purchase_limit` viaja en `null`. Con límite trae `max_per_student`, `period` y `remaining_in_period`, que nunca pasa del máximo. Las compras se cuentan por el puerto `services/ChestPurchaseCounter.java` desde el inicio del período de [[DEC-045 - Período del límite de compras de un cofre]]. Hoy el único contador es `services/impl/NoChestOrdersPurchaseCounter.java` (0 compras, porque todavía no se puede comprar un cofre), así que `remaining_in_period` es igual a `max_per_student`. La #12018 lo reemplaza.
+- **Cupo:** sin límite, `purchase_limit` viaja en `null`. Con límite trae `max_per_student`, `period` y `remaining_in_period`, que nunca pasa del máximo. Las compras se cuentan por el puerto `services/ChestPurchaseCounter.java` desde el inicio del período de [[DEC-045 - Período del límite de compras de un cofre]], con `services/impl/OrderChestPurchaseCounter.java`: el mismo conteo que bloquea la compra (ver *Compra del alumno*).
 
 ### Acceso del alumno
 `@PreAuthorize` con `STUDENT`, `ADMIN`, `GESTOR` y `MS`, el mismo grupo que la tienda y la compra; `PROFESSOR` queda afuera (ve sus cofres en la gestión). La regla la aplica `services/impl/ChestStudentAccessGate.java`, que el controlador llama antes del servicio y fuera de su transacción:
@@ -187,6 +187,46 @@ El segmento literal `chests` le gana a `/catalog/{itemId}` de la tienda. Las rut
 
 Una sola regla para el listado y el detalle, y **el acceso va antes de buscar el cofre**: un no alumno recibe 403 con cualquier id, exista o no. Difiere de la tienda en dos puntos: la tienda busca primero en el detalle (404 antes que 403) y ahí deja pasar al `GESTOR` sin matrícula, lo que contradice DEC-021 ([[Q-024 - Qué es el rol GESTOR]]). Con Cursos caído responde 503 `course-service-unavailable`.
 
+## Compra del alumno
+Es la US-12004 ([[S3-04 - Cofres, el alumno compra un cofre]]). La compra reusa la saga de la compra directa: un hold por el precio del cofre y la entrega del premio que salió.
+
+### Pedido
+`POST /api/market/courses/{courseId}/catalog/chests/{chestId}/orders` (`controllers/CourseChestStudentController.java`), con los mismos roles y la misma regla de acceso que la vista del alumno. Cuerpo `{ "idempotency_key": "..." }`. Responde **202** con el mismo DTO de la compra directa (`PurchaseOrderResponseDto`), que suma `order_kind` y `chest_id`; `offer_id` va en `null` y **la respuesta no trae el premio** ([[DEC-047 - Cuándo ve el alumno el premio de un cofre]]).
+
+| Respuesta | Cuándo |
+|---|---|
+| 404 `chest-not-found` | El cofre no existe, es de otro curso, está descartado, no está publicado o no tiene nada que sortear |
+| 409 `idempotency-key-conflict` | La misma clave ya se usó para otra compra, de cofre o de oferta ([[Idempotencia]]) |
+| 409 `ttl-boost-unavailable` | Algún premio es un boost TTL y el flag `market.offers.ttl-boost.enabled` está apagado. Se rechaza antes de sortear, para que la respuesta no dependa del azar |
+| 422 `chest-limit-reached` | El alumno ya tiene el máximo de compras del período. No se crea la orden ni el hold; el mensaje dice «No se te cobró nada» |
+
+### Creación
+`services/impl/ChestPurchaseServiceImpl.java` y `ChestOrderPlacer.java`:
+
+1. **Idempotencia.** El fingerprint de un cofre lleva un marcador `CHEST`; el de la compra directa no cambió. Repetir la clave devuelve la misma orden con el mismo premio, sin volver a sortear, aunque después el cofre haya cambiado, el alumno haya usado el límite o la orden haya terminado.
+2. **Acceso y mercado**, fuera de la transacción (`ChestStudentAccessGate`).
+3. **En una transacción:** lock de la fila del cofre (`ChestRepository.findForUpdate`), cofre publicado, re-chequeo de la clave bajo el lock, premios vigentes, chequeo del boost TTL, **límite**, **sorteo**, orden `CHEST` y sorteo guardado. El lock cierra la carrera del límite: seis compras simultáneas contra un límite de 1 dejan una sola orden.
+4. **Después del commit**, el hold por `coin_price`.
+
+**Límite** (`services/impl/ChestPurchaseLimitGuard.java`): sin `purchase_limit` no cuenta nada. Si no, cuenta las órdenes del alumno para ese cofre desde el inicio del período ([[DEC-045 - Período del límite de compras de un cofre]]): `CONFIRMED` y los cinco estados en vuelo, los mismos del tope de vidas. Una orden cancelada, rechazada o vencida devuelve el cupo.
+
+**Sorteo** (`services/impl/ChestDrawer.java`): una tirada sobre la suma de los pesos de las rarezas con premios elige la rareza, y otra elige un premio de esa rareza en partes iguales. Usa los pesos exactos, nunca los porcentajes redondeados, y la misma regla que las probabilidades (`ChestDrawWeights`): una rareza con peso y sin premios, o con premios y peso 0, nunca sale. El azar viene del puerto `services/ChestDrawRandomSource.java`, con `SecureChestDrawRandomSource` (`SecureRandom`) en producción.
+
+**Orden:** `order_kind` `CHEST`, `chest_id`, `offer_id` nulo, el nombre del cofre en `offer_name`, el tipo y la cantidad del premio (las vidas de la copia, o 1) y el precio del cofre. No reserva stock y no suma ventas ni unidades vendidas a ninguna oferta ([[Orden de compra]]).
+
+### Sorteo guardado
+Tabla `chest_order_draws` (`entities/ChestOrderDrawEntity.java`, migración `V23__chest_order_draw.sql`), una fila por orden (`UNIQUE (order_id)`): cofre y premio sorteado (`chest_id`, `reward_id`), sus nombres, la rareza, `item_value` y la copia completa del ítem (`AuctionItemSnapshot`). La entidad es `@Immutable`: Hibernate nunca la actualiza, y un cambio sobre un sorteo cargado se ignora sin error.
+
+Cumple [[DEC-032 - Sorteo y reglas de configuración de los cofres]]: el único que sortea es `ChestOrderPlacer`, al crear la orden. La saga, los reintentos, los tres jobs (vencimiento del hold, conciliación con Banco y plazo de confirmación) y los eventos repetidos leen el sorteo guardado (`services/impl/ChestOrderPrizes.java`, `drawOf`) y nunca leen el cofre ni la oferta vivos.
+
+### Entrega
+- **Equipamiento** (`OrderItemProvisionServiceImpl`): `ITEM_CONFIRMED` armado desde la copia, con su `templateId` como `catalog_item_id` (como las subastas) y su ícono. La mecánica de escudo y boost está en `ItemConfirmedMechanics`, compartida con la compra directa. Si falta el sorteo o la copia no se puede entregar, la orden se cancela y se libera el hold.
+- **Vida** (`OrderConfirmationServiceImpl`): después de `HOLD_CONFIRMED`, `LIFE_PURCHASE_CONFIRMED` con las vidas de la copia y sin validar antes el tope ([[DEC-034 - Acreditación de premios de cofre en Accounting]]): Accounting recorta.
+- **Avisos:** `PURCHASE_CONFIRMED` y `PURCHASE_FAILED` salen con `offer_id` `null` y el nombre del cofre. Si Notificaciones los acepta así está abierto en [[Q-034 - Avisos de Notificaciones para órdenes de cofre]].
+
+### Lectura del premio
+El premio viaja como `drawn_prize`, junto con `order_kind` y `chest_id`, en el detalle (`GET /orders/{orderId}`) y en el SSE (`GET /orders/stream/{orderId}`). Según [[DEC-047 - Cuándo ve el alumno el premio de un cofre]] (`services/impl/ChestOrderPrizeView.java`), el alumno lo ve recién con la orden `CONFIRMED`, y `ADMIN`, `GESTOR` y `MS` siempre en el SSE. El alumno no puede cancelar una orden de cofre en `ITEM_PROVISION_REQUESTED` (409 `order-not-cancellable`).
+
 ## Pendientes
 Quedaron de las reviews y del QA de la US-12002. Están registrados, pero no se arreglaron:
 
@@ -195,18 +235,19 @@ Quedaron de las reviews y del QA de la US-12002. Están registrados, pero no se 
 - **`OFFER_SOLD_OUT` no se recalcula al leer.**
 - **Un cofre corrupto en la base rompería toda la página del listado del profesor.** Hoy no se puede producir por la API. La vista del alumno lo saltea (ver *Vista del alumno*).
 - **Fase 2:** `ChestPrizeMerger` agrupa por `source_offer_id` y fallaría con un premio sin oferta (monedas o XP).
+- **Premios boost TTL guardados antes de la PR 321:** la gestión ya los rechaza con el flag apagado, pero un cofre que se guardó antes con uno no se puede comprar (409 `ttl-boost-unavailable`) mientras siga así.
 
-Otros pendientes, que no son del dominio, están en [[S3-02 - Cofres, el profesor crea y gestiona]], [[S3-03 - Cofres, el alumno ve los cofres del curso]] y [[Estado actual del código]].
+Otros pendientes, que no son del dominio, están en [[S3-02 - Cofres, el profesor crea y gestiona]], [[S3-03 - Cofres, el alumno ve los cofres del curso]], [[S3-04 - Cofres, el alumno compra un cofre]] y [[Estado actual del código]].
 
 ## Dónde vive en el código
 Paquete base `src/main/java/ar/edu/utn/frc/tup/p4/`:
 
-- **Modelo:** `entities/ChestEntity.java`, `entities/ChestRewardEntity.java`, `entities/AuctionItemSnapshot.java`, `repositories/ChestRepository.java`, `repositories/ChestRewardRepository.java`, `models/ChestLimits.java`, los enums `Chest*` de `models/enums/` y `models/chests/ChestEvaluation.java`.
+- **Modelo:** `entities/ChestEntity.java`, `entities/ChestRewardEntity.java`, `entities/ChestOrderDrawEntity.java`, `entities/AuctionItemSnapshot.java`, `repositories/ChestRepository.java`, `repositories/ChestRewardRepository.java`, `repositories/ChestOrderDrawRepository.java`, `models/ChestLimits.java`, los enums `Chest*` de `models/enums/` y `models/chests/ChestEvaluation.java`.
 - **Reglas:** `services/impl/ChestRules.java`, `ChestEvaluator.java`, `ChestPrizeResolver.java`, `ChestPrizeMerger.java` y `ChestEditGuard.java`.
-- **Servicios:** `services/impl/ChestManageServiceImpl.java`, `ChestQueryServiceImpl.java` y `ChestAccessGate.java`. Del alumno: `ChestStudentQueryServiceImpl.java`, `ChestStudentAccessGate.java`, `ChestLimitPeriodResolver.java` y `ChestProbabilityRounding.java`, más el puerto `services/ChestPurchaseCounter.java`.
-- **API:** `controllers/CourseChestManageController.java`, `controllers/CourseChestStudentController.java`, `dtos/chests/`, `mappers/ChestMapper.java` y `mappers/ChestStudentMapper.java`. Los ejemplos de OpenAPI están en `configs/SpringDocConfig.java` (`addChestExamples`).
-- **Errores:** `exceptions/ChestInvalidParametersException.java`, `ChestNotFoundException.java`, `ChestStateConflictException.java` y `ChestVersionConflictException.java`.
-- **Esquema:** `src/main/resources/db/migration/V16__chests_schema.sql`.
+- **Servicios:** `services/impl/ChestManageServiceImpl.java`, `ChestQueryServiceImpl.java` y `ChestAccessGate.java`. Del alumno: `ChestStudentQueryServiceImpl.java`, `ChestStudentAccessGate.java`, `ChestLimitPeriodResolver.java` y `ChestProbabilityRounding.java`, más el puerto `services/ChestPurchaseCounter.java`. De la compra: `ChestPurchaseServiceImpl.java`, `ChestOrderPlacer.java`, `ChestPurchaseLimitGuard.java`, `OrderChestPurchaseCounter.java`, `ChestDrawer.java`, `ChestDrawWeights.java`, `SecureChestDrawRandomSource.java`, `ChestOrderPrizes.java` y `ChestOrderPrizeView.java`, con los puertos `services/ChestPurchaseService.java` y `services/ChestDrawRandomSource.java`.
+- **API:** `controllers/CourseChestManageController.java`, `controllers/CourseChestStudentController.java`, `dtos/chests/`, `dtos/order/ChestPurchaseRequestDto.java`, `dtos/order/OrderChestRewardDto.java`, `mappers/ChestMapper.java` y `mappers/ChestStudentMapper.java`. Los ejemplos de OpenAPI están en `configs/SpringDocConfig.java` (`addChestExamples`).
+- **Errores:** `exceptions/ChestInvalidParametersException.java`, `ChestNotFoundException.java`, `ChestStateConflictException.java`, `ChestVersionConflictException.java` y `ChestLimitReachedException.java`.
+- **Esquema:** `src/main/resources/db/migration/V16__chests_schema.sql` y `V23__chest_order_draw.sql`.
 
 ## Relacionado
 [[Cofres y nuevos ítems]], [[Oferta de catálogo]], [[Subasta]] (comparte `AuctionItemSnapshot`), [[Meta colectiva]] (mismo criterio de copia de oferta), [[Tipos de item]], [[Q-033 - Nombres de campo en los errores de validación]].
