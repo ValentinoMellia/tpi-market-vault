@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: equipo-accounting@2026-10-16, accounting@1360ec3
-actualizado: 2026-10-16
+actualizado: 2026-10-26
 tags: [mercado, decision, cofres, accounting, monedas, kafka]
 ---
 # DEC-034 - Acreditación de premios de cofre en Accounting
@@ -32,7 +32,7 @@ tags: [mercado, decision, cofres, accounting, monedas, kafka]
 - **Accounting:** un `CoinMovementType` nuevo que `CoinLedgerEventType.resolveFrom` mapea a `BALANCE_CREDITED`, una restricción única por cuenta y `order_id`, y un listener de `market.events`. Lo hace Accounting cuando la task T03 #8428 decida avanzar.
 - **Mercado:** un evento nuevo en `market.events` con el `order_id`, la cohorte, el alumno y la cantidad de monedas. El nombre y el payload se cierran al implementar, siguiendo `contratos-kafka` (`snake_case`). Nada cambia en el código hasta la T03.
 - **Operación:** si el pedido de crédito falla, el alumno pagó y no recibió las monedas hasta que alguien lo reenvíe. Hay que revisar `market.events.DLT`.
-- **Frontend (para la T03):** la apertura del cofre no espera a Accounting ni a Roadmap. El resultado está en la orden desde que se crea. El final para el frontend es la orden en `CONFIRMED`, que ya se sigue por SSE (`GET /orders/stream/{orderId}`) o por `GET /orders/{orderId}`. Recién ahí se muestra la animación con el premio. Para monedas y XP conviene aclarar que se acreditan en unos segundos, porque el saldo y el XP se actualizan cuando se vuelven a leer. En el equipamiento, `CONFIRMED` llega después de `ITEM_CREDITED`, así que el ítem ya está entregado.
+- **Frontend (para la T03):** la apertura del cofre no espera a Accounting ni a Roadmap. El resultado está en la orden desde que se crea. El final para el frontend es la orden en `CONFIRMED`, que ya se sigue por SSE (`GET /orders/stream/{orderId}`) o por `GET /orders/{orderId}`. Recién ahí se muestra la animación con el premio. Desde la US-12004 el backend lo garantiza: el alumno no recibe el premio antes de `CONFIRMED` ([[DEC-047 - Cuándo ve el alumno el premio de un cofre]]). Para monedas y XP conviene aclarar que se acreditan en unos segundos, porque el saldo y el XP se actualizan cuando se vuelven a leer. En el equipamiento, `CONFIRMED` llega después de `ITEM_CREDITED`, así que el ítem ya está entregado.
 - **Cierre de la acreditación:** con esta decisión y DEC-033, las cuatro clases de premio tienen camino acordado.
 
 | Premio | Orden | Mensaje | Respuesta que usa Mercado |

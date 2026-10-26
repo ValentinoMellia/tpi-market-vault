@@ -2,7 +2,7 @@
 tipo: historia
 estado: vigente
 verificado_contra: codigo@e63dcb47
-actualizado: 2026-10-24
+actualizado: 2026-10-26
 tags: [mercado, backlog, sprint-3, cofres]
 sprint: 3
 taiga: "#12002"
@@ -117,11 +117,8 @@ Ninguno bloquea la historia. Están registrados para no perderlos:
 ## Lo que sigue
 
 - **US-12003, el alumno ve los cofres del curso** (H2, Sprint 3, 3 puntos): en [[S3-03 - Cofres, el alumno ve los cofres del curso]].
-- **US-12004, el alumno compra un cofre** (H3, Sprint 3, 8 puntos):
-  - El sorteo se hace al crear la orden y se guarda en ella. Reparte solo entre las rarezas con premios, como el evaluador.
-  - Antes se controla el límite por alumno. La entrega sigue la saga de equipamiento o de vidas.
-  - Las órdenes van a referenciar los premios con `deleted = true`.
-- **Frontend H4 y H5** de [[DEC-035 - Cofres en dos fases]].
+- **US-12004, el alumno compra un cofre** (H3, Sprint 3, 8 puntos): hecha, en [[S3-04 - Cofres, el alumno compra un cofre]]. El sorteo guardado de una orden referencia el premio por `reward_id`, por eso los premios quitados se marcan `deleted` y no se borran.
+- **Frontend H4 y H5** de [[DEC-035 - Cofres en dos fases]]: las pantallas de gestión del profesor con la API real están en la #14120 (Kimmel, en curso).
 - **Fase 2 (H6), monedas y XP:** cuando Accounting y Roadmap tengan su parte ([[DEC-033 - Acreditación de XP de cofre en Roadmap]], [[DEC-034 - Acreditación de premios de cofre en Accounting]]). Amplía el CHECK de `reward_kind` y suma `amount`.
 
 La US-12003 reusó el soporte de pruebas de `ChestManageAcceptanceTest`, que su T04 movió a `ChestAcceptanceSupport`: cursos propios, ofertas completas y limpieza. La US-12004 puede reusarlo igual.
