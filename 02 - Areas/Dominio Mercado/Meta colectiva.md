@@ -1,8 +1,8 @@
 ---
 tipo: entidad
 estado: vigente
-verificado_contra: DEC-029, codigo@ac05a77f, accounting@8f11dbd
-actualizado: 2026-10-15
+verificado_contra: DEC-029, DEC-048, codigo@ac05a77f, accounting@8f11dbd
+actualizado: 2026-11-10
 tags: [mercado, dominio, meta-colectiva, accounting, kafka]
 ---
 # Meta colectiva
@@ -83,7 +83,7 @@ El cierre lo ejecuta una sola instancia, con [[Bloqueo optimista]]. Un job cierr
 | Se rechaza el cobro en lote | `OPEN`, o `FAILED` si ya pasó el cierre | Nadie pagó; se recalcula (D25) |
 | Llega un hold después de cerrar | — | Se libera, nunca se cobra (D25) |
 
-**Visibilidad (D16):** el alumno ve el total, el porcentaje, la cantidad de aportantes y su propio aporte. El profesor además ve la lista de aportantes, con los montos solo en `FREE`, y quiénes no aportaron.
+**Visibilidad (D16 y [[DEC-048 - Los alumnos ven a los aportantes de una meta]]):** el alumno ve el total, el porcentaje, la cantidad de aportantes, su propio aporte y la lista de aportantes con nombre y monto confirmado (también en `FIXED`), sin identificadores. El profesor ve la lista de aportantes con sus ids, los montos solo en `FREE`, y quiénes no aportaron.
 
 ## Flujo con Accounting
 Mapa de tópicos y mensajes en [[Integración con Accounting#Meta colectiva]].
