@@ -2,7 +2,7 @@
 tipo: decision
 estado: vigente
 verificado_contra: codigo@ac05a77f, accounting@8f11dbd, equipo-accounting@2026-10-15
-actualizado: 2026-10-15
+actualizado: 2026-11-10
 tags: [mercado, decision, meta-colectiva, accounting, kafka]
 ---
 # DEC-029 - Meta colectiva
@@ -35,7 +35,7 @@ Acordada por Mercado y Accounting el 2026-10-15. El detalle de reglas, estados y
 | D13 | El backend recorta el aporte al menor entre lo pedido, lo que le queda al alumno de su tope y lo que le falta a la meta. Solo rechaza si el resultado es 0 |
 | D14 | Aporte mínimo opcional en monto libre. El último aporte queda exento |
 | D15 | Mercado lleva un monto comprometido (incluye los aportes en vuelo) y uno confirmado. Cada alumno tiene un solo aporte en vuelo a la vez |
-| D16 | El profesor ve la lista de aportantes, con los montos solo en monto libre. Los alumnos no ven ni quién aporta ni cuánto |
+| D16 | El profesor ve la lista de aportantes, con los montos solo en monto libre. Los alumnos no ven ni quién aporta ni cuánto. **Reemplazada para los alumnos por [[DEC-048 - Los alumnos ven a los aportantes de una meta]] (2026-11-10)** |
 
 ### Ciclo de vida
 | # | Decisión |
